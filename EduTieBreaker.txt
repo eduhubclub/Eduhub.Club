@@ -1,0 +1,843 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { 
+  Menu, 
+  ChevronLeft, 
+  ChevronDown,
+  Home, 
+  BarChart2, 
+  Users, 
+  Settings, 
+  HelpCircle, 
+  Layers,
+  ArrowLeftRight,
+  Bell,
+  Search,
+  MoreVertical,
+  Plus,
+  Edit,
+  Trash2,
+  ExternalLink,
+  Library,
+  ChevronRight,
+  Inbox,
+  Send,
+  Archive,
+  Grid,
+  User,
+  X,
+  Sun,
+  Moon,
+  Hash,
+  RefreshCw,
+  Settings2,
+  Check,
+  CircleDot,
+  Coins,
+  Trophy,
+  Shuffle,
+  Swords,
+  Eye,
+  Footprints,
+  Hand,
+  Copy
+} from 'lucide-react';
+
+const STUDENT_DATABASE = [
+  { id: 1, name: "Aiden Thompson", avatar: "🦁" },
+  { id: 2, name: "Bella Rodriguez", avatar: "🦋" },
+  { id: 3, name: "Caleb Wright", avatar: "🦊" },
+  { id: 4, name: "Dakota Smith", avatar: "🎨" },
+  { id: 5, name: "Elena Gilbert", avatar: "⭐" },
+  { id: 6, name: "Finn O'Shea", avatar: "🐳" },
+  { id: 7, name: "Grace Miller", avatar: "🌻" },
+  { id: 8, name: "Hunter Reed", avatar: "🏹" },
+  { id: 9, name: "Isla Brown", avatar: "🦄" },
+  { id: 10, name: "Julian Vance", avatar: "🚀" },
+  { id: 11, name: "Kai Nguyen", avatar: "🌊" },
+  { id: 12, name: "Lily Chen", avatar: "🌸" },
+  { id: 13, name: "Mason Davis", avatar: "🧱" },
+  { id: 14, name: "Nora Quinn", avatar: "🌙" },
+  { id: 15, name: "Owen Taylor", avatar: "🦉" },
+  { id: 16, name: "Piper Hall", avatar: "🍭" },
+  { id: 17, name: "Quinn Adams", avatar: "🐧" },
+  { id: 18, name: "Riley Cooper", avatar: "🐶" },
+  { id: 19, name: "Sofia Lopez", avatar: "☀️" },
+  { id: 20, name: "Toby Wilson", avatar: "🐯" }
+];
+
+const LogoHorizontal = ({ className = "h-8 w-auto" }) => (
+  <svg viewBox="0 0 100 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <circle cx="12" cy="12" r="9.5" className="text-rose-500" />
+    <path d="M37 3 L46 19 H28 L37 3 Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" className="text-orange-500" />
+    <rect x="53" y="2.5" width="19" height="19" rx="3" className="text-emerald-500" />
+    <path d="M88 4 C 96 4, 98 12, 94 18 C 88 24, 78 18, 80 10 C 82 4, 94 8, 92 14 C 90 20, 82 18, 84 12 C 86 6, 92 10, 88 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky-500" />
+  </svg>
+);
+
+const LogoIcon2x2 = ({ className = "w-16 h-16" }) => (
+  <svg viewBox="0 0 44 44" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <circle cx="10" cy="10" r="8" className="text-rose-500" />
+    <path d="M34 2 L42 18 H26 L34 2 Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" className="text-orange-500" />
+    <rect x="2" y="26" width="16" height="16" rx="3" className="text-emerald-500" />
+    <path d="M34 26 C 40 26, 42 32, 39 36 C 34 41, 27 37, 28 31 C 29 27, 38 30, 37 34 C 36 38, 30 37, 31 32 C 32 28, 37 31, 34 35" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky-500" />
+  </svg>
+);
+
+/**
+ * ROCK PAPER SCISSORS MOCKUP
+ */
+const RPSCardContent = () => (
+  <div className="flex flex-col items-center w-full">
+    <div className="flex justify-center items-center space-x-4 md:space-x-8 mb-8">
+      <div className="flex flex-col items-center space-y-3 group cursor-pointer">
+        <div className="w-20 h-20 md:w-28 md:h-28 rounded-full bg-sky-50 border-4 border-sky-100 flex items-center justify-center shadow-sm group-hover:scale-110 group-hover:bg-sky-100 transition-all duration-300">
+           <div className="text-4xl">✊</div>
+        </div>
+        <span className="text-[10px] font-black uppercase tracking-widest text-sky-500">Rock</span>
+      </div>
+      
+      <div className="flex flex-col items-center space-y-3 group cursor-pointer">
+        <div className="w-20 h-20 md:w-28 md:h-28 rounded-full bg-sky-50 border-4 border-sky-100 flex items-center justify-center shadow-sm group-hover:scale-110 group-hover:bg-sky-100 transition-all duration-300">
+           <div className="text-4xl">✋</div>
+        </div>
+        <span className="text-[10px] font-black uppercase tracking-widest text-sky-500">Paper</span>
+      </div>
+
+      <div className="flex flex-col items-center space-y-3 group cursor-pointer">
+        <div className="w-20 h-20 md:w-28 md:h-28 rounded-full bg-sky-50 border-4 border-sky-100 flex items-center justify-center shadow-sm group-hover:scale-110 group-hover:bg-sky-100 transition-all duration-300">
+           <div className="text-4xl">✌️</div>
+        </div>
+        <span className="text-[10px] font-black uppercase tracking-widest text-sky-500">Scissors</span>
+      </div>
+    </div>
+    <div className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">Traditional Tiebreaker</div>
+  </div>
+);
+
+const App = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [sidebarSide, setSidebarSide] = useState('left');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [activeTab, setActiveTab] = useState('Pick A Number');
+  
+  // Pick A Number State
+  const [randomNumber, setRandomNumber] = useState(null);
+  const [isRolling, setIsRolling] = useState(false);
+  const [range, setRange] = useState({ min: 0, max: 100 });
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [tempRange, setTempRange] = useState({ min: 0, max: 100 });
+
+  // Coin Toss State
+  const [coinResult, setCoinResult] = useState('Heads');
+  const [isFlipping, setIsFlipping] = useState(false);
+  const [flipRotation, setFlipRotation] = useState(0);
+
+  // Pick A Card State
+  const [cardResult, setCardResult] = useState({ rank: '?', suit: '?', color: 'text-slate-300' });
+  const [isDrawingCard, setIsDrawingCard] = useState(false);
+  const [hasDrawnCard, setHasDrawnCard] = useState(false);
+  const [cardRotation, setCardRotation] = useState(0);
+
+  // Random Tiebreaker Method State
+  const [isShufflingMethod, setIsShufflingMethod] = useState(false);
+  const [selectedMethodIdx, setSelectedMethodIdx] = useState(0);
+  
+  // Student Showdown State
+  const [isShufflingShowdown, setIsShufflingShowdown] = useState(false);
+  const [showdownCompetitors, setShowdownCompetitors] = useState([]);
+  
+  const [isShufflingClass, setIsShufflingClass] = useState(false);
+  const [classTeams, setClassTeams] = useState({ teamA: [], teamB: [] });
+  const [rowWinners, setRowWinners] = useState({});
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+
+  // --- Drag and Drop Handlers ---
+  const handleDragStart = (e, student, team) => {
+    e.dataTransfer.setData('text/plain', JSON.stringify({ id: student.id, sourceTeam: team }));
+    e.target.style.opacity = '0.4';
+  };
+
+  const handleDragEnd = (e) => {
+    e.target.style.opacity = '1';
+  };
+
+  const handleDropContainer = (e, targetTeam) => {
+    e.preventDefault();
+    try {
+      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+      if (data.sourceTeam === targetTeam) return;
+
+      const student = classTeams[data.sourceTeam].find(s => s.id === data.id);
+      if (!student) return;
+
+      setClassTeams(prev => ({
+        ...prev,
+        [data.sourceTeam]: prev[data.sourceTeam].filter(s => s.id !== data.id),
+        [targetTeam]: [...prev[targetTeam], student]
+      }));
+      setRowWinners({}); // Clear winners on rearrange
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDropItem = (e, targetTeam, targetStudentId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+      if (data.id === targetStudentId) return;
+
+      const student = classTeams[data.sourceTeam].find(s => s.id === data.id);
+      if (!student) return;
+
+      setClassTeams(prev => {
+        let newSource = [...prev[data.sourceTeam]];
+        let newTarget = data.sourceTeam === targetTeam ? newSource : [...prev[targetTeam]];
+
+        // Remove from source
+        newSource = newSource.filter(s => s.id !== data.id);
+
+        // Update target reference if moving within the same team
+        if (data.sourceTeam === targetTeam) {
+          newTarget = newSource;
+        }
+
+        // Insert at new position
+        const targetIndex = newTarget.findIndex(s => s.id === targetStudentId);
+        newTarget.splice(targetIndex, 0, student);
+
+        return {
+          ...prev,
+          [data.sourceTeam]: newSource,
+          [targetTeam]: newTarget
+        };
+      });
+      setRowWinners({}); // Clear winners on rearrange
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const tiebreakerMethods = [
+    { id: 'rps', title: 'Rock Paper Scissors', desc: 'Classic hand gesture challenge.', rules: "On the count of three, show Rock (fist), Paper (flat hand), or Scissors (two fingers). Rock smashes Scissors, Scissors cut Paper, and Paper covers Rock!", content: <RPSCardContent /> },
+    { id: 'stare', title: 'Staring Contest', desc: 'First to blink or laugh loses!', rules: "Look right into your opponent's eyes! The first person to blink, look away, or giggle loses the game!", content: (
+      <div className="flex space-x-6 py-6 items-center w-full justify-center">
+        <div className="w-24 h-24 bg-white border-4 border-sky-100 rounded-full shadow-lg flex items-center justify-center animate-pulse">
+           <Eye size={48} className="text-sky-500" />
+        </div>
+        <div className="text-2xl font-black text-slate-300 px-4">VS</div>
+        <div className="w-24 h-24 bg-white border-4 border-slate-100 rounded-full shadow-lg flex items-center justify-center animate-pulse" style={{ animationDelay: '0.5s' }}>
+           <Eye size={48} className="text-slate-400" />
+        </div>
+      </div>
+    )},
+    { id: 'thumb', title: 'Thumb War', desc: '1, 2, 3, 4... I declare a thumb war!', rules: "Lock hands and tuck your thumbs. Say '1, 2, 3, 4, I declare a thumb war!' Try to pin your opponent's thumb down for 3 seconds!", content: (
+      <div className="flex space-x-2 py-6 items-center w-full justify-center">
+        <div className="w-20 h-32 bg-sky-50 rounded-full border-4 border-sky-200 flex items-start justify-center pt-4 rotate-[15deg] shadow-inner">
+           <div className="w-12 h-12 bg-sky-400 rounded-full shadow-sm flex items-center justify-center text-white"><Hand size={24} /></div>
+        </div>
+        <div className="w-20 h-32 bg-slate-50 rounded-full border-4 border-slate-200 flex items-start justify-center pt-4 -rotate-[15deg] shadow-inner">
+           <div className="w-12 h-12 bg-slate-400 rounded-full shadow-sm flex items-center justify-center text-white"><Hand size={24} className="scale-x-[-1]" /></div>
+        </div>
+      </div>
+    )},
+    { id: 'balance', title: 'Balance Challenge', desc: 'Stand on one foot. Last one standing wins.', rules: "Stand on one foot like a flamingo! You can't hop around, hold onto anything, or put your foot down. The last person standing wins!", content: (
+      <div className="flex flex-col items-center py-4 w-full justify-center">
+        <div className="w-32 h-32 rounded-full bg-sky-50 border-4 border-sky-200 flex items-center justify-center shadow-sm relative overflow-hidden">
+           <Footprints size={48} className="text-sky-500 -translate-y-2 animate-bounce" />
+           <div className="absolute bottom-0 w-full h-8 bg-sky-500/20"></div>
+        </div>
+      </div>
+    )},
+    { id: 'odds', title: 'Odds or Evens', desc: 'Shoot fingers. Winner determined by the sum.', rules: "One person picks 'Odds', the other 'Evens'. Say 'Shoot!' and hold out 1 or 2 fingers. Add them up—if it's 2 or 4, Evens win! If it's 3, Odds win!", content: (
+      <div className="flex space-x-6 py-6 items-center w-full justify-center">
+        <div className="w-24 h-24 bg-white border-4 border-slate-200 rounded-2xl shadow-sm flex flex-col items-center justify-center hover:border-sky-400 transition-colors">
+          <span className="text-4xl font-black text-slate-800">1</span>
+          <span className="text-[10px] font-bold uppercase text-slate-400 mt-1">Odd</span>
+        </div>
+        <div className="w-24 h-24 bg-white border-4 border-slate-200 rounded-2xl shadow-sm flex flex-col items-center justify-center hover:border-sky-400 transition-colors">
+          <span className="text-4xl font-black text-slate-800">2</span>
+          <span className="text-[10px] font-bold uppercase text-slate-400 mt-1">Even</span>
+        </div>
+      </div>
+    )},
+    { id: 'coin', title: 'Coin Toss', desc: 'A quick 50/50 gravity check.', rules: "One person calls 'Heads' or 'Tails' while the coin is in the air. Whatever it lands on is the winner!", content: (
+      <div className="flex flex-col items-center py-4 w-full justify-center">
+        <div className="w-32 h-32 rounded-full bg-sky-400 border-8 border-sky-500 flex items-center justify-center animate-bounce shadow-lg">
+          <Coins size={48} className="text-sky-800" />
+        </div>
+      </div>
+    )},
+    { id: 'dice', title: 'Dice Duel', desc: 'Highest roll determines the winner.', rules: "Each person rolls a dice. Whoever gets the highest number wins! If it's a tie, roll again!", content: (
+      <div className="flex space-x-6 py-6 items-center w-full justify-center">
+        <div className="w-20 h-20 bg-white border-2 border-slate-200 rounded-2xl shadow-sm rotate-12 flex items-center justify-center">
+          <div className="w-4 h-4 rounded-full bg-sky-500" />
+        </div>
+        <div className="w-20 h-20 bg-white border-2 border-slate-200 rounded-2xl shadow-sm -rotate-12 flex items-center justify-center">
+           <div className="grid grid-cols-2 gap-2">
+             <div className="w-3 h-3 rounded-full bg-slate-800" />
+             <div className="w-3 h-3 rounded-full bg-slate-800" />
+             <div className="w-3 h-3 rounded-full bg-slate-800" />
+             <div className="w-3 h-3 rounded-full bg-slate-800" />
+           </div>
+        </div>
+      </div>
+    )}
+  ];
+
+  const handleStartMethodShuffle = () => {
+    setIsShufflingMethod(true);
+    let count = 0;
+    const interval = setInterval(() => {
+      setSelectedMethodIdx(prev => (prev + 1) % tiebreakerMethods.length);
+      count++;
+      if (count > 20) {
+        clearInterval(interval);
+        setSelectedMethodIdx(Math.floor(Math.random() * tiebreakerMethods.length));
+        setIsShufflingMethod(false);
+      }
+    }, 100);
+  };
+
+  const handleStudentShowdown = () => {
+    setIsShufflingShowdown(true);
+    let count = 0;
+    const interval = setInterval(() => {
+      const shuffled = [...STUDENT_DATABASE].sort(() => 0.5 - Math.random());
+      setShowdownCompetitors(shuffled.slice(0, 2));
+      count++;
+      if (count > 15) {
+        clearInterval(interval);
+        setIsShufflingShowdown(false);
+      }
+    }, 80);
+  };
+
+  const handleClassShowdown = () => {
+    setIsShufflingClass(true);
+    setRowWinners({});
+    let count = 0;
+    const interval = setInterval(() => {
+      const shuffled = [...STUDENT_DATABASE].sort(() => 0.5 - Math.random());
+      const half = Math.ceil(shuffled.length / 2);
+      setClassTeams({ teamA: shuffled.slice(0, half), teamB: shuffled.slice(half) });
+      count++;
+      if (count > 15) {
+        clearInterval(interval);
+        setIsShufflingClass(false);
+      }
+    }, 80);
+  };
+
+  const toggleRowWinner = (rowIndex, team) => {
+    setRowWinners(prev => ({
+      ...prev,
+      [rowIndex]: prev[rowIndex] === team ? null : team
+    }));
+  };
+
+  const teamAScore = Object.values(rowWinners).filter(v => v === 'teamA').length;
+  const teamBScore = Object.values(rowWinners).filter(v => v === 'teamB').length;
+
+  const isLeft = sidebarSide === 'left';
+  const navHeight = 'h-16';
+  const sidebarWidth = isSidebarOpen ? 'w-64' : 'w-20';
+
+  const handlePickNumber = () => {
+    setIsRolling(true);
+    let count = 0;
+    const interval = setInterval(() => {
+      setRandomNumber(Math.floor(Math.random() * (range.max - range.min + 1)) + range.min);
+      count++;
+      if (count > 10) {
+        clearInterval(interval);
+        setRandomNumber(Math.floor(Math.random() * (range.max - range.min + 1)) + range.min);
+        setIsRolling(false);
+      }
+    }, 50);
+  };
+
+  const handleCoinToss = () => {
+    if (isFlipping) return;
+    setIsFlipping(true);
+    const extraRotations = (Math.floor(Math.random() * 5) + 5) * 360;
+    const result = Math.random() > 0.5 ? 'Heads' : 'Tails';
+    const resultAngle = result === 'Heads' ? 0 : 180;
+    const newRotation = flipRotation + extraRotations + resultAngle - (flipRotation % 360);
+    setFlipRotation(newRotation);
+    setTimeout(() => {
+      setCoinResult(result);
+      setIsFlipping(false);
+    }, 1000);
+  };
+
+  const handleDrawCard = () => {
+    if (isDrawingCard) return;
+    setIsDrawingCard(true);
+
+    const suits = ['♥', '♦', '♣', '♠'];
+    const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+    
+    const randomSuit = suits[Math.floor(Math.random() * suits.length)];
+    const randomRank = ranks[Math.floor(Math.random() * ranks.length)];
+    const isRed = randomSuit === '♥' || randomSuit === '♦';
+    const color = isRed ? 'text-rose-500' : 'text-slate-800';
+
+    const currentMod = cardRotation % 360;
+    let targetRotation = cardRotation + 1080; // 3 full spins
+    if (currentMod === 0) targetRotation += 180; // land facing front if currently back
+
+    setCardRotation(targetRotation);
+
+    setTimeout(() => {
+      setCardResult({ rank: randomRank, suit: randomSuit, color });
+      setHasDrawnCard(true);
+    }, 500);
+
+    setTimeout(() => {
+      setIsDrawingCard(false);
+    }, 1000);
+  };
+
+  const openSettings = () => {
+    setTempRange({ ...range });
+    setIsSettingsOpen(true);
+  };
+
+  const saveSettings = (e) => {
+    e.preventDefault();
+    const min = parseInt(tempRange.min);
+    const max = parseInt(tempRange.max);
+    if (!isNaN(min) && !isNaN(max) && max > min) {
+      setRange({ min, max });
+      setIsSettingsOpen(false);
+      setRandomNumber(null);
+    }
+  };
+
+  return (
+    <div className={`flex min-h-screen font-sans transition-all duration-300 ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'} ${isLeft ? 'flex-row' : 'flex-row-reverse'}`}>
+      
+      {/* SIDEBAR */}
+      <aside className={`relative z-50 transition-all duration-300 ease-in-out flex flex-col shadow-sm ${sidebarWidth} ${isLeft ? 'border-r' : 'border-l'} ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+        <div className={`flex items-center justify-center shrink-0 border-b ${navHeight} w-full ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+          <div className="flex items-center justify-center px-4">
+            {isSidebarOpen ? <LogoHorizontal className="h-6 w-auto" /> : <LogoIcon2x2 className="w-8 h-8" />}
+          </div>
+        </div>
+
+        <nav className="flex-1 px-2 pt-4 relative overflow-x-visible space-y-2">
+          {['Pick A Number', 'Coin Toss', 'Pick A Card', 'Random Tiebreaker', 'Student Showdown'].map((tab) => {
+            const Icon = tab === 'Pick A Number' ? Hash : 
+                         tab === 'Coin Toss' ? CircleDot : 
+                         tab === 'Pick A Card' ? Copy :
+                         tab === 'Random Tiebreaker' ? Layers : Swords;
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`flex items-center transition-all group relative rounded-xl h-12
+                  ${isSidebarOpen ? 'w-full px-3' : 'w-16 mx-auto justify-center'}
+                  ${activeTab === tab ? `bg-sky-500 text-white shadow-lg` : `${isDarkMode ? 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}`}
+              >
+                <div className={`flex items-center justify-center shrink-0`}>
+                  <Icon size={20} strokeWidth={activeTab === tab ? 2.5 : 2} />
+                </div>
+                {isSidebarOpen && <span className="ml-4 font-semibold text-sm flex-1 text-left truncate">{tab}</span>}
+                {!isSidebarOpen && (
+                  <div className={`absolute ${isLeft ? 'left-full ml-4' : 'right-full mr-4'} px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-[60] whitespace-nowrap shadow-xl`}>
+                    {tab}
+                  </div>
+                )}
+              </button>
+            )
+          })}
+        </nav>
+
+        <div className={`p-2 border-t ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+           <div className={`flex transition-all duration-300 ${isSidebarOpen ? 'flex-row items-center space-x-2' : 'flex-col items-center space-y-2'}`}>
+              <button onClick={() => setIsDarkMode(!isDarkMode)} className={`flex items-center justify-center rounded-xl h-12 ${isSidebarOpen ? 'flex-1' : 'w-16'} ${isDarkMode ? 'text-amber-400 bg-slate-800' : 'text-slate-400 bg-slate-50'}`}>
+                {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+              </button>
+              <button onClick={() => setSidebarSide(isLeft ? 'right' : 'left')} className={`flex items-center justify-center rounded-xl h-12 ${isSidebarOpen ? 'flex-1' : 'w-16'} text-slate-400 bg-slate-50`}>
+                <ArrowLeftRight size={16} />
+              </button>
+              <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className={`flex items-center justify-center h-12 ${isSidebarOpen ? 'flex-1' : 'w-16'} text-slate-400 bg-slate-50`}>
+                {isSidebarOpen ? <ChevronLeft size={18} className={!isLeft ? 'rotate-180' : ''} /> : <Menu size={20} />}
+              </button>
+           </div>
+        </div>
+      </aside>
+
+      {/* MAIN CONTENT */}
+      <div className="flex-1 flex flex-col min-w-0 relative z-10 overflow-hidden">
+        <header className={`border-b flex items-center px-6 z-20 shrink-0 ${navHeight} sticky top-0 transition-colors duration-300 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+          <div className="flex items-center text-lg font-bold tracking-tight">
+            <span className={isDarkMode ? 'text-white' : 'text-slate-900'}>Edu.</span>
+            <span className="text-sky-500">TieBreaker</span>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-auto p-6 md:p-12 relative flex flex-col items-center">
+          
+          {/* CONTENT: PICK A NUMBER */}
+          {activeTab === 'Pick A Number' && (
+            <div className="w-full max-w-xl pt-8">
+              <button onClick={handlePickNumber} className={`relative w-full aspect-video rounded-[2.5rem] border-4 flex flex-col items-center justify-center shadow-2xl transition-all overflow-hidden ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
+                
+                <div className="absolute top-8 md:top-10 w-full text-center px-4 md:px-8 z-20">
+                  <h1 className={`text-sm md:text-lg font-black uppercase tracking-widest transition-all duration-300 ${isDarkMode ? 'text-slate-400' : 'text-slate-400'}`}>
+                    Pick a number between <span className="text-sky-500">{range.min}</span> and <span className="text-sky-500">{range.max}</span>
+                  </h1>
+                </div>
+
+                <div className="mt-8 md:mt-12">
+                  {randomNumber !== null ? (
+                    <div className="text-8xl md:text-9xl font-black text-sky-500 animate-in zoom-in-50 duration-300">{randomNumber}</div>
+                  ) : (
+                    <Hash size={80} className="text-slate-200" />
+                  )}
+                </div>
+
+              </button>
+              <div className="mt-8 flex justify-center">
+                 <button onClick={openSettings} className="px-8 py-4 bg-white border border-slate-200 rounded-2xl font-bold text-slate-500 hover:border-sky-500 hover:text-sky-500 transition-all flex items-center space-x-2">
+                    <Settings2 size={18} />
+                    <span>Range Settings</span>
+                 </button>
+              </div>
+            </div>
+          )}
+
+          {/* CONTENT: COIN TOSS */}
+          {activeTab === 'Coin Toss' && (
+            <div className="w-full max-w-xl pt-8 flex flex-col items-center">
+              <div className={`relative w-full max-w-sm aspect-[3/4] rounded-[2.5rem] border-4 flex flex-col items-center justify-between py-10 shadow-2xl overflow-hidden ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
+                 
+                 <div className="w-full text-center px-8 z-20 shrink-0">
+                   <h1 className={`text-3xl md:text-4xl font-black uppercase tracking-widest transition-all duration-300 ${
+                      isFlipping ? 'text-slate-400 opacity-50 scale-95' : 'text-sky-500 scale-100'
+                   }`}>
+                     {isFlipping ? 'Flipping...' : `It's ${coinResult}!`}
+                   </h1>
+                 </div>
+
+                 <div className="relative w-48 h-48 my-auto shrink-0" style={{ perspective: '1000px' }}>
+                    <div className="w-full h-full relative transition-transform duration-1000" style={{ transformStyle: 'preserve-3d', transform: `rotateX(${flipRotation}deg)` }}>
+                        <div className="absolute inset-0 rounded-full bg-sky-400 border-8 border-sky-500 flex flex-col items-center justify-center text-sky-800 shadow-inner" style={{ backfaceVisibility: 'hidden' }}>
+                            <User size={56} />
+                            <span className="mt-2 font-black text-xs uppercase tracking-widest">Heads</span>
+                        </div>
+                        <div className="absolute inset-0 rounded-full bg-slate-300 border-8 border-slate-400 flex flex-col items-center justify-center text-slate-700 shadow-inner" style={{ backfaceVisibility: 'hidden', transform: 'rotateX(180deg)' }}>
+                            <Coins size={56} />
+                            <span className="mt-2 font-black text-xs uppercase tracking-widest">Tails</span>
+                        </div>
+                    </div>
+                 </div>
+
+                 <button onClick={handleCoinToss} disabled={isFlipping} className={`mt-4 px-10 py-4 w-64 text-white font-black uppercase tracking-widest rounded-2xl shadow-lg flex items-center justify-center space-x-3 transition-all active:scale-95 shrink-0 ${isFlipping ? 'bg-slate-200 text-slate-400' : 'bg-sky-500 hover:bg-sky-600'}`}>
+                    <RefreshCw size={20} className={isFlipping ? 'animate-spin' : ''} />
+                    <span>{isFlipping ? 'Flipping...' : 'Toss Coin'}</span>
+                 </button>
+              </div>
+            </div>
+          )}
+
+          {/* CONTENT: PICK A CARD */}
+          {activeTab === 'Pick A Card' && (
+            <div className="w-full max-w-xl pt-8 flex flex-col items-center">
+              <div className={`relative w-full max-w-sm aspect-[3/4] rounded-[2.5rem] border-4 flex flex-col items-center justify-between py-10 shadow-2xl overflow-hidden ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
+
+                 <div className="w-full text-center px-8 z-20 shrink-0">
+                   <h1 className={`text-2xl md:text-3xl font-black uppercase tracking-widest transition-all duration-300 ${
+                      isDrawingCard ? 'text-slate-400 opacity-50 scale-95' : 'text-sky-500 scale-100'
+                   }`}>
+                     {isDrawingCard ? 'Drawing...' : hasDrawnCard ? 'Your Card' : 'Pick a Card'}
+                   </h1>
+                 </div>
+
+                 <div className="relative w-48 h-72 my-auto shrink-0" style={{ perspective: '1000px' }}>
+                    <div className="w-full h-full relative transition-transform duration-1000" style={{ transformStyle: 'preserve-3d', transform: `rotateY(${cardRotation}deg)` }}>
+                        
+                        {/* BACK OF CARD */}
+                        <div className="absolute inset-0 rounded-2xl bg-slate-50 border-8 border-sky-200 flex flex-col items-center justify-center shadow-inner" style={{ backfaceVisibility: 'hidden' }}>
+                            <div className="w-full h-full flex flex-col items-center justify-center opacity-90 hover:scale-105 transition-transform duration-300">
+                                <LogoIcon2x2 className="w-24 h-24" />
+                            </div>
+                        </div>
+
+                        {/* FRONT OF CARD */}
+                        <div className="absolute inset-0 rounded-2xl bg-white border-8 border-slate-100 flex flex-col justify-between p-4 shadow-inner" style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
+                            <div className={`text-4xl font-black ${cardResult.color}`}>{cardResult.rank}</div>
+                            <div className={`text-7xl self-center ${cardResult.color}`}>{cardResult.suit}</div>
+                            <div className={`text-4xl font-black self-end rotate-180 ${cardResult.color}`}>{cardResult.rank}</div>
+                        </div>
+                    </div>
+                 </div>
+
+                 <button onClick={handleDrawCard} disabled={isDrawingCard} className={`mt-4 px-10 py-4 w-64 text-white font-black uppercase tracking-widest rounded-2xl shadow-lg flex items-center justify-center space-x-3 transition-all active:scale-95 shrink-0 ${isDrawingCard ? 'bg-slate-200 text-slate-400' : 'bg-sky-500 hover:bg-sky-600'}`}>
+                    <RefreshCw size={20} className={isDrawingCard ? 'animate-spin' : ''} />
+                    <span>{isDrawingCard ? 'Drawing...' : 'Draw Card'}</span>
+                 </button>
+              </div>
+            </div>
+          )}
+
+          {/* CONTENT: RANDOM TIEBREAKER (Method Selector Only) */}
+          {activeTab === 'Random Tiebreaker' && (
+            <div className="w-full max-w-3xl pt-4 animate-in fade-in slide-in-from-bottom-6 duration-700">
+                <div className={`rounded-[2.5rem] border-4 p-10 flex flex-col items-center transition-all duration-500 shadow-2xl relative overflow-hidden ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
+                  <button 
+                    onClick={() => setIsHelpOpen(true)}
+                    className={`absolute top-6 right-6 p-2 rounded-full transition-colors ${isDarkMode ? 'text-sky-400 hover:bg-slate-800' : 'text-sky-500 hover:bg-sky-50'}`}
+                    title="How to play"
+                  >
+                    <HelpCircle size={24} strokeWidth={2.5} />
+                  </button>
+                  <div className="text-center mb-8">
+                    <div className="px-3 py-1 rounded-full bg-sky-500/10 text-sky-600 text-[10px] font-black uppercase tracking-[0.2em] inline-block mb-4">Method Selector</div>
+                    <h2 className={`text-4xl font-black ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{tiebreakerMethods[selectedMethodIdx].title}</h2>
+                    <p className="text-slate-400 font-medium mt-2">{tiebreakerMethods[selectedMethodIdx].desc}</p>
+                  </div>
+
+                  <div className={`w-full py-12 flex-1 flex items-center justify-center transition-all duration-150 ${isShufflingMethod ? 'blur-sm scale-95 opacity-50' : 'opacity-100 scale-100'}`}>
+                    {tiebreakerMethods[selectedMethodIdx].content}
+                  </div>
+
+                  <button 
+                    onClick={handleStartMethodShuffle}
+                    disabled={isShufflingMethod}
+                    className={`mt-10 w-full max-w-md h-16 rounded-2xl font-black uppercase tracking-widest shadow-xl flex items-center justify-center space-x-3 transition-all active:scale-95 ${isShufflingMethod ? 'bg-slate-100 text-slate-400' : 'bg-sky-500 text-white hover:bg-sky-600'}`}
+                  >
+                    <Shuffle size={20} className={isShufflingMethod ? 'animate-spin' : ''} />
+                    <span>{isShufflingMethod ? 'Choosing...' : 'Pick Tiebreaker Method'}</span>
+                  </button>
+                </div>
+            </div>
+          )}
+
+          {/* CONTENT: STUDENT SHOWDOWN (Matchups) */}
+          {activeTab === 'Student Showdown' && (
+            <div className="w-full max-w-5xl pt-4 animate-in fade-in slide-in-from-bottom-6 duration-700">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                
+                {/* 1. Student Matchup (1v1) */}
+                <div className={`rounded-[2.5rem] border-4 p-8 flex flex-col items-center shadow-xl relative overflow-hidden ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
+                   <div className="px-3 py-1 rounded-full bg-sky-500/10 text-sky-600 text-[10px] font-black uppercase tracking-[0.2em] inline-block mb-8">1v1 Matchup</div>
+                   
+                   {showdownCompetitors.length > 0 ? (
+                     <div className={`w-full flex-1 flex justify-around items-center transition-all duration-150 ${isShufflingShowdown ? 'blur-sm scale-95 opacity-50' : 'opacity-100 scale-100 animate-in zoom-in-90 duration-500'}`}>
+                        {showdownCompetitors.map((student, i) => (
+                          <div key={student.id} className="flex flex-col items-center relative w-1/2">
+                            <div className={`w-20 h-20 md:w-28 md:h-28 rounded-full border-4 flex items-center justify-center text-4xl md:text-5xl shadow-lg ${i === 0 ? 'bg-sky-50 border-sky-100' : 'bg-rose-50 border-rose-100'}`}>
+                              {student.avatar}
+                            </div>
+                            <div className="mt-4 font-black text-slate-700 text-center text-sm md:text-base px-2">{student.name}</div>
+                            {i === 0 && (
+                              <div className="absolute top-1/2 left-full -translate-x-1/2 -translate-y-1/2 z-10 flex items-center justify-center">
+                                <div className="bg-slate-900 text-white text-[10px] font-black px-3 py-1.5 rounded-full border-2 border-white shadow-xl">VS</div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                     </div>
+                   ) : (
+                     <div className="flex flex-col items-center justify-center flex-1 opacity-30 py-10">
+                        <User size={64} className="mb-4" />
+                        <p className="text-sm font-bold text-center px-8">Ready for a head-to-head?</p>
+                     </div>
+                   )}
+
+                  <button 
+                    onClick={handleStudentShowdown}
+                    disabled={isShufflingShowdown}
+                    className={`mt-10 w-full h-14 rounded-2xl font-black uppercase tracking-widest shadow-lg flex items-center justify-center space-x-3 transition-all active:scale-95 ${isShufflingShowdown ? 'bg-slate-100 text-slate-400' : 'bg-sky-500 text-white hover:bg-sky-600'}`}
+                  >
+                    <User size={18} className={isShufflingShowdown ? 'animate-bounce' : ''} />
+                    <span>{isShufflingShowdown ? 'Selecting...' : 'Pick 2 Students'}</span>
+                  </button>
+                </div>
+
+                {/* 2. Class Matchup (Team A vs Team B) */}
+                <div className={`rounded-[2.5rem] border-4 p-8 flex flex-col items-center shadow-xl relative overflow-hidden ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
+                   {(teamAScore > 0 || teamBScore > 0) && (
+                     <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white border-2 border-slate-100 px-6 py-2 rounded-full font-black text-sm uppercase tracking-widest shadow-lg z-20 animate-in slide-in-from-top-4 flex items-center space-x-6">
+                       <span className="text-sky-500 flex items-center gap-2"><Trophy size={14}/> {teamAScore}</span>
+                       <span className="text-slate-200">|</span>
+                       <span className="text-rose-500 flex items-center gap-2">{teamBScore} <Trophy size={14}/></span>
+                     </div>
+                   )}
+                   <div className="px-3 py-1 rounded-full bg-sky-500/10 text-sky-600 text-[10px] font-black uppercase tracking-[0.2em] inline-block mb-8 mt-4">Team Versus</div>
+                   
+                   {classTeams.teamA.length > 0 || classTeams.teamB.length > 0 ? (
+                     <div className={`w-full flex-1 flex transition-all duration-150 ${isShufflingClass ? 'blur-sm scale-95 opacity-50' : 'opacity-100 scale-100 animate-in zoom-in-90 duration-500'}`}>
+                        {/* Team A */}
+                        <div 
+                          className="w-[45%] bg-sky-50 rounded-2xl p-4 border-2 border-sky-100 flex flex-col min-h-[160px]"
+                          onDragOver={(e) => e.preventDefault()}
+                          onDrop={(e) => handleDropContainer(e, 'teamA')}
+                        >
+                          <h4 className="font-black text-sky-600 mb-4 text-center text-xs uppercase tracking-widest h-4 leading-4">Team A</h4>
+                          <div className="flex flex-col gap-3">
+                            {classTeams.teamA.map((s, i) => {
+                              const isWinner = rowWinners[i] === 'teamA';
+                              const isLoser = rowWinners[i] === 'teamB';
+                              return (
+                                <div 
+                                  key={s.id} 
+                                  draggable
+                                  onDragStart={(e) => handleDragStart(e, s, 'teamA')}
+                                  onDragEnd={handleDragEnd}
+                                  onDragOver={(e) => e.preventDefault()}
+                                  onDrop={(e) => handleDropItem(e, 'teamA', s.id)}
+                                  onClick={() => toggleRowWinner(i, 'teamA')}
+                                  className={`flex items-center h-12 w-full text-xs md:text-sm font-bold px-3 rounded-xl shadow-sm border cursor-grab active:cursor-grabbing transition-all ${
+                                    isWinner 
+                                      ? 'bg-sky-500 text-white border-sky-600 scale-[1.05] shadow-lg z-10' 
+                                      : isLoser
+                                      ? 'bg-slate-100 text-slate-400 border-slate-200 opacity-40 grayscale saturate-0'
+                                      : 'bg-white text-slate-700 border-slate-200 hover:scale-[1.02] hover:border-sky-400 hover:shadow-md'
+                                  }`}
+                                  title={s.name}
+                                >
+                                  <span className="text-lg md:text-xl mr-2 md:mr-3 pointer-events-none shrink-0">{s.avatar}</span> 
+                                  <span className="truncate pointer-events-none">{s.name}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        
+                        {/* VS Column */}
+                        <div className="w-[10%] flex flex-col items-center pt-12 gap-3">
+                           {Array.from({ length: Math.max(classTeams.teamA.length, classTeams.teamB.length) }).map((_, i) => (
+                              <div key={i} className="h-12 flex items-center justify-center">
+                                 <span className="text-[10px] md:text-xs font-black text-slate-400 uppercase">VS</span>
+                              </div>
+                           ))}
+                        </div>
+
+                        {/* Team B */}
+                        <div 
+                          className="w-[45%] bg-rose-50 rounded-2xl p-4 border-2 border-rose-100 flex flex-col min-h-[160px]"
+                          onDragOver={(e) => e.preventDefault()}
+                          onDrop={(e) => handleDropContainer(e, 'teamB')}
+                        >
+                           <h4 className="font-black text-rose-600 mb-4 text-center text-xs uppercase tracking-widest h-4 leading-4">Team B</h4>
+                           <div className="flex flex-col gap-3">
+                            {classTeams.teamB.map((s, i) => {
+                              const isWinner = rowWinners[i] === 'teamB';
+                              const isLoser = rowWinners[i] === 'teamA';
+                              return (
+                                <div 
+                                  key={s.id} 
+                                  draggable
+                                  onDragStart={(e) => handleDragStart(e, s, 'teamB')}
+                                  onDragEnd={handleDragEnd}
+                                  onDragOver={(e) => e.preventDefault()}
+                                  onDrop={(e) => handleDropItem(e, 'teamB', s.id)}
+                                  onClick={() => toggleRowWinner(i, 'teamB')}
+                                  className={`flex items-center h-12 w-full text-xs md:text-sm font-bold px-3 rounded-xl shadow-sm border cursor-grab active:cursor-grabbing transition-all ${
+                                    isWinner 
+                                      ? 'bg-sky-500 text-white border-sky-600 scale-[1.05] shadow-lg z-10' 
+                                      : isLoser
+                                      ? 'bg-slate-100 text-slate-400 border-slate-200 opacity-40 grayscale saturate-0'
+                                      : 'bg-white text-slate-700 border-slate-200 hover:scale-[1.02] hover:border-rose-400 hover:shadow-md'
+                                  }`}
+                                  title={s.name}
+                                >
+                                  <span className="text-lg md:text-xl mr-2 md:mr-3 pointer-events-none shrink-0">{s.avatar}</span> 
+                                  <span className="truncate pointer-events-none">{s.name}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                     </div>
+                   ) : (
+                     <div className="flex flex-col items-center justify-center flex-1 opacity-30 py-10">
+                        <Users size={64} className="mb-4" />
+                        <p className="text-sm font-bold text-center px-8">Split the class into two teams</p>
+                     </div>
+                   )}
+
+                  <button 
+                    onClick={handleClassShowdown}
+                    disabled={isShufflingClass}
+                    className={`mt-10 w-full h-14 rounded-2xl font-black uppercase tracking-widest shadow-lg flex items-center justify-center space-x-3 transition-all active:scale-95 ${isShufflingClass ? 'bg-slate-100 text-slate-400' : 'bg-sky-500 text-white hover:bg-sky-600'}`}
+                  >
+                    <Users size={18} className={isShufflingClass ? 'animate-bounce' : ''} />
+                    <span>{isShufflingClass ? 'Splitting...' : 'Split Class Teams'}</span>
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          )}
+
+        </main>
+      </div>
+
+      {/* SETTINGS MODAL */}
+      {isSettingsOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsSettingsOpen(false)} />
+          <form onSubmit={saveSettings} className={`relative w-full max-w-sm rounded-[2rem] shadow-2xl p-8 animate-in zoom-in-95 duration-300 border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
+            <h2 className="text-xl font-black uppercase tracking-widest mb-8">Adjust Range</h2>
+            <div className="space-y-6">
+              {['min', 'max'].map(field => (
+                <div key={field}>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">{field === 'min' ? 'Minimum' : 'Maximum'}</label>
+                  <input type="number" value={tempRange[field]} onChange={(e) => setTempRange({ ...tempRange, [field]: e.target.value })} className="w-full h-14 rounded-2xl px-6 font-bold text-lg bg-slate-50 border-slate-200 outline-none focus:ring-2 focus:ring-sky-500/20 transition-all" />
+                </div>
+              ))}
+              <button type="submit" className="w-full h-14 rounded-2xl font-black uppercase bg-sky-500 text-white shadow-lg hover:opacity-90 active:scale-95 transition-all">Apply Changes</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* HOW TO PLAY MODAL */}
+      {isHelpOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsHelpOpen(false)} />
+          <div className={`relative w-full max-w-md rounded-[2.5rem] shadow-2xl p-10 animate-in zoom-in-95 duration-300 border flex flex-col items-center text-center ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
+            <button 
+              onClick={() => setIsHelpOpen(false)}
+              className="absolute top-6 right-6 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 transition-colors"
+            >
+              <X size={20} />
+            </button>
+            
+            <div className="w-20 h-20 rounded-full bg-sky-100 flex items-center justify-center text-sky-500 mb-6 border-4 border-sky-50">
+              <HelpCircle size={40} />
+            </div>
+            
+            <h2 className={`text-2xl font-black uppercase tracking-widest mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+              How to Play
+            </h2>
+            <h3 className="text-lg font-bold text-sky-500 mb-6">
+              {tiebreakerMethods[selectedMethodIdx].title}
+            </h3>
+            
+            <div className={`p-6 rounded-2xl ${isDarkMode ? 'bg-slate-800/50' : 'bg-slate-50'} border border-slate-100 dark:border-slate-800 w-full`}>
+              <p className={`text-lg font-medium leading-relaxed ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                {tiebreakerMethods[selectedMethodIdx].rules}
+              </p>
+            </div>
+            
+            <button 
+              onClick={() => setIsHelpOpen(false)}
+              className="mt-8 w-full h-14 rounded-2xl font-black uppercase tracking-widest bg-sky-500 text-white shadow-lg hover:opacity-90 active:scale-95 transition-all"
+            >
+              Got it!
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default App;

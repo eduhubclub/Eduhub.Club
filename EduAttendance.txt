@@ -1,0 +1,1607 @@
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { 
+  Menu, 
+  ChevronLeft, 
+  ChevronDown,
+  Home, 
+  BarChart2, 
+  Users, 
+  Settings, 
+  HelpCircle, 
+  Layers,
+  ArrowLeftRight,
+  Bell,
+  Search,
+  MoreVertical,
+  Plus,
+  Edit,
+  Trash2,
+  ExternalLink,
+  Library,
+  ChevronRight,
+  Inbox,
+  Send,
+  Archive,
+  Grid,
+  User,
+  X,
+  Sun,
+  Moon,
+  ClipboardCheck,
+  List,
+  LayoutGrid,
+  Check,
+  Utensils,
+  Move,
+  Save,
+  AlertTriangle,
+  FileText,
+  Calendar,
+  ArrowUpDown,
+  Printer,
+  Award,
+  Target,
+  Trophy,
+  Medal,
+  Star
+} from 'lucide-react';
+
+const STUDENT_DATABASE = [
+  { id: 1, name: "Aiden Thompson", avatar: "🦁" },
+  { id: 2, name: "Bella Rodriguez", avatar: "🦋" },
+  { id: 3, name: "Caleb Wright", avatar: "🦊" },
+  { id: 4, name: "Dakota Smith", avatar: "🎨" },
+  { id: 5, name: "Elena Gilbert", avatar: "⭐" },
+  { id: 6, name: "Finn O'Shea", avatar: "🐳" },
+  { id: 7, name: "Grace Miller", avatar: "🌻" },
+  { id: 8, name: "Hunter Reed", avatar: "🏹" },
+  { id: 9, name: "Isla Brown", avatar: "🦄" },
+  { id: 10, name: "Julian Vance", avatar: "🚀" },
+  { id: 11, name: "Kai Nguyen", avatar: "🌊" },
+  { id: 12, name: "Lily Chen", avatar: "🌸" },
+  { id: 13, name: "Mason Davis", avatar: "🧱" },
+  { id: 14, name: "Nora Quinn", avatar: "🌙" },
+  { id: 15, name: "Owen Taylor", avatar: "🦉" },
+  { id: 16, name: "Piper Hall", avatar: "🍭" },
+  { id: 17, name: "Quinn Adams", avatar: "🐧" },
+  { id: 18, name: "Riley Cooper", avatar: "🐶" }
+];
+
+/**
+ * EduHub Primary Logo Components
+ */
+const LogoHorizontal = ({ className = "h-8 w-auto" }) => (
+  <svg viewBox="0 0 100 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <circle cx="12" cy="12" r="9.5" className="text-rose-500" />
+    <path d="M37 3 L46 19 H28 L37 3 Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" className="text-orange-500" />
+    <rect x="53" y="2.5" width="19" height="19" rx="3" className="text-emerald-500" />
+    <path d="M88 4 C 96 4, 98 12, 94 18 C 88 24, 78 18, 80 10 C 82 4, 94 8, 92 14 C 90 20, 82 18, 84 12 C 86 6, 92 10, 88 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky-500" />
+  </svg>
+);
+
+const LogoIcon2x2 = ({ className = "w-16 h-16" }) => (
+  <svg viewBox="0 0 44 44" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <circle cx="10" cy="10" r="8" className="text-rose-500" />
+    <path d="M34 2 L42 18 H26 L34 2 Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" className="text-orange-500" />
+    <rect x="2" y="26" width="16" height="16" rx="3" className="text-emerald-500" />
+    <path d="M34 26 C 40 26, 42 32, 39 36 C 34 41, 27 37, 28 31 C 29 27, 38 30, 37 34 C 36 38, 30 37, 31 32 C 32 28, 37 31, 34 35" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky-500" />
+  </svg>
+);
+
+const App = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [sidebarSide, setSidebarSide] = useState('left');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [activeTab, setActiveTab] = useState('Dashboard');
+  const [expandedItem, setExpandedItem] = useState(null); 
+  const [popoutItem, setPopoutItem] = useState(null); 
+  const [panelItem, setPanelItem] = useState(null); 
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [useOverlaySearch, setUseOverlaySearch] = useState(false);
+  
+  const [viewMode, setViewMode] = useState('grid');
+  const [lunchViewMode, setLunchViewMode] = useState('grid');
+  const [reportViewMode, setReportViewMode] = useState('calendar');
+  const [reportSortOrder, setReportSortOrder] = useState('desc');
+  const [expandedReports, setExpandedReports] = useState({});
+  const [attendance, setAttendance] = useState({});
+  const [lunchChoices, setLunchChoices] = useState({});
+  const [showUnmarkedPrompt, setShowUnmarkedPrompt] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  
+  const todayRef = useRef(new Date());
+  const [reportMonth, setReportMonth] = useState(todayRef.current.getMonth());
+  const [reportYear, setReportYear] = useState(todayRef.current.getFullYear());
+  
+  // Awards & Goals State
+  const [yearlyClassGoal, setYearlyClassGoal] = useState(95);
+  const [monthlyClassGoal, setMonthlyClassGoal] = useState(95);
+  const [totalSchoolDays, setTotalSchoolDays] = useState(180);
+  const [isAwardsSettingsOpen, setIsAwardsSettingsOpen] = useState(false);
+  const [globalIndividualGoal, setGlobalIndividualGoal] = useState(20);
+
+  const [studentGoals, setStudentGoals] = useState(
+    STUDENT_DATABASE.reduce((acc, s) => ({...acc, [s.id]: 20}), {})
+  );
+  
+  // Mock Progress Data for visual demonstration
+  const studentProgress = useMemo(() => (
+    STUDENT_DATABASE.reduce((acc, s) => ({...acc, [s.id]: Math.floor(Math.random() * 22)}), {})
+  ), []);
+  const yearlyClassProgress = 91; 
+  const monthlyClassProgress = 92; 
+  
+  const currentReports = useMemo(() => {
+    const data = {};
+    const today = todayRef.current;
+    const daysInMonth = new Date(reportYear, reportMonth + 1, 0).getDate();
+
+    for (let i = 1; i <= daysInMonth; i++) {
+      const d = new Date(reportYear, reportMonth, i);
+      if (d.getDay() === 0 || d.getDay() === 6) continue; // Skip weekends
+      if (d > today) continue; // Skip future dates
+
+      const total = STUDENT_DATABASE.length;
+      // Using a pseudo-random approach based on date so it stays consistent between toggles
+      const pseudoRandom1 = (reportYear + reportMonth + i) % 4; 
+      const pseudoRandom2 = (reportYear + reportMonth + i) % 7;
+      
+      const absent = pseudoRandom1; 
+      const present = total - absent;
+      const homeLunch = pseudoRandom2 + 2; 
+      const schoolLunch = present - homeLunch; 
+
+      // Create consistent lists of students for the expanded view
+      const offset = (reportYear + reportMonth + i) % total;
+      const shiftedStudents = [...STUDENT_DATABASE.slice(offset), ...STUDENT_DATABASE.slice(0, offset)];
+      
+      const absentStudents = shiftedStudents.slice(0, absent);
+      const presentStudents = shiftedStudents.slice(absent);
+      const homeLunchStudents = presentStudents.slice(0, homeLunch);
+      const schoolLunchStudents = presentStudents.slice(homeLunch);
+
+      data[i] = {
+        date: d,
+        present,
+        absent,
+        schoolLunch,
+        homeLunch,
+        presentStudents,
+        absentStudents,
+        schoolLunchStudents,
+        homeLunchStudents,
+        isToday: d.getDate() === today.getDate() && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear()
+      };
+    }
+    return data;
+  }, [reportMonth, reportYear]);
+  
+  const currentAppName = "Attendance"; 
+  
+  const appThemes = {
+    "Attendance": { primary: "purple-500", bg: "bg-purple-500", text: "text-purple-500", border: "border-purple-500", hoverBg: "hover:bg-purple-50", ring: "ring-purple-500" },
+    "Hub": { primary: "purple-500", bg: "bg-purple-500", text: "text-purple-500", border: "border-purple-500", hoverBg: "hover:bg-purple-50", ring: "ring-purple-500" },
+    "District": { primary: "rose-500", bg: "bg-rose-500", text: "text-rose-500", border: "border-rose-500", hoverBg: "hover:bg-rose-50", ring: "ring-rose-500" },
+    "Admin": { primary: "emerald-500", bg: "bg-emerald-500", text: "text-emerald-500", border: "border-emerald-500", hoverBg: "hover:bg-emerald-50", ring: "ring-emerald-500" },
+    "Analytics": { primary: "orange-500", bg: "bg-orange-500", text: "text-orange-500", border: "border-orange-500", hoverBg: "hover:bg-orange-50", ring: "ring-orange-500" }
+  };
+
+  const theme = appThemes[currentAppName] || appThemes["Hub"];
+  const popoutRef = useRef(null);
+  const searchRef = useRef(null);
+  const isLeft = sidebarSide === 'left';
+
+  const toggleAttendance = (id, status) => {
+    setAttendance(prev => ({
+      ...prev,
+      [id]: prev[id] === status ? null : status
+    }));
+  };
+
+  const toggleLunch = (id, choice) => {
+    setLunchChoices(prev => ({
+      ...prev,
+      [id]: prev[id] === choice ? null : choice
+    }));
+  };
+
+  const toggleReportExpansion = (dateStr) => {
+    setExpandedReports(prev => ({
+      ...prev,
+      [dateStr]: !prev[dateStr]
+    }));
+  };
+
+  const handleSaveAttendance = () => {
+    const unmarked = STUDENT_DATABASE.filter(s => !attendance[s.id]);
+    if (unmarked.length > 0) {
+      setShowUnmarkedPrompt(true);
+    } else {
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    }
+  };
+
+  const confirmMarkAbsent = () => {
+    const newAttendance = { ...attendance };
+    STUDENT_DATABASE.forEach(s => {
+      if (!newAttendance[s.id]) newAttendance[s.id] = 'absent';
+    });
+    setAttendance(newAttendance);
+    setShowUnmarkedPrompt(false);
+    
+    setSaveSuccess(true);
+    setTimeout(() => setSaveSuccess(false), 3000);
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      setUseOverlaySearch(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (popoutRef.current && !popoutRef.current.contains(event.target)) {
+        setPopoutItem(null);
+      }
+      if (searchRef.current && !searchRef.current.contains(event.target) && !searchQuery) {
+        setIsSearchExpanded(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [searchQuery]);
+
+  const navigationItems = [
+    { id: 'daily-attendance', name: 'Daily Attendance', icon: ClipboardCheck, type: 'link' },
+    { id: 'lunch-count', name: 'Lunch Count', icon: Utensils, type: 'link' },
+    { id: 'reports', name: 'Reports', icon: FileText, type: 'link' },
+    { id: 'awards', name: 'Awards', icon: Award, type: 'link' }
+  ];
+
+  const sidebarWidth = isSidebarOpen ? 'w-64' : 'w-20';
+  const navHeight = 'h-16';
+
+  const handleItemClick = (item) => {
+    if (item.type === 'link') {
+      setActiveTab(item.name);
+      setExpandedItem(null);
+      setPanelItem(null);
+    } else if (item.type === 'accordion') {
+      if (!isSidebarOpen) setIsSidebarOpen(true);
+      setExpandedItem(expandedItem === item.id ? null : item.id);
+      setPanelItem(null);
+    } else if (item.type === 'popout') {
+      setPopoutItem(popoutItem === item.id ? null : item.id);
+    } else if (item.type === 'panel') {
+      const isOpening = panelItem !== item.id;
+      setPanelItem(isOpening ? item.id : null);
+      setExpandedItem(null);
+      if (isOpening) setActiveTab(null);
+    }
+  };
+
+  const renderDraggableStudent = (student) => (
+    <div 
+      key={student.id}
+      draggable
+      onDragStart={(e) => e.dataTransfer.setData('studentId', student.id.toString())}
+      className={`flex items-center px-2 py-1.5 rounded-lg border shadow-sm cursor-grab active:cursor-grabbing transition-all hover:scale-105 ${isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-white' : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-800'}`}
+    >
+      <span className="text-sm mr-1.5 pointer-events-none">{student.avatar}</span>
+      <span className={`text-[11px] font-semibold whitespace-nowrap pointer-events-none`}>
+        {student.name}
+      </span>
+    </div>
+  );
+
+  const getStudentCardClass = (studentId, type) => {
+    const base = `flex transition-all duration-200 group `;
+    const mode = type === 'lunch' ? lunchViewMode : viewMode;
+    
+    let viewClass = '';
+    if (mode === 'grid') {
+      viewClass = 'flex-col items-center justify-center p-4 text-center aspect-square cursor-pointer border rounded-2xl ';
+    } else {
+      viewClass = 'flex-row items-center px-4 py-2 sm:px-6 sm:py-3 ';
+    }
+    
+    let stateClass = '';
+    if (type === 'lunch') {
+      const choice = lunchChoices[studentId];
+      if (choice === 'school') stateClass = isDarkMode ? 'bg-sky-900/30' : 'bg-sky-50';
+      else if (choice === 'home') stateClass = isDarkMode ? 'bg-amber-900/30' : 'bg-amber-50';
+      else stateClass = isDarkMode ? 'bg-transparent hover:bg-slate-800/50' : 'bg-transparent hover:bg-slate-50';
+      
+      if (mode === 'grid') {
+        if (choice === 'school') stateClass += isDarkMode ? ' border-sky-500/30' : ' border-sky-200';
+        else if (choice === 'home') stateClass += isDarkMode ? ' border-amber-500/30' : ' border-amber-200';
+        else stateClass += isDarkMode ? ' border-slate-800 hover:border-slate-700' : ' border-slate-200 hover:border-slate-300 hover:shadow-md';
+      }
+    } else {
+      const status = attendance[studentId];
+      if (status === 'present') stateClass = isDarkMode ? 'bg-emerald-900/30' : 'bg-emerald-50';
+      else if (status === 'absent') stateClass = isDarkMode ? 'bg-rose-900/30' : 'bg-rose-50';
+      else stateClass = isDarkMode ? 'bg-transparent hover:bg-slate-800/50' : 'bg-transparent hover:bg-slate-50';
+
+      if (mode === 'grid') {
+        if (status === 'present') stateClass += isDarkMode ? ' border-emerald-500/30' : ' border-emerald-200';
+        else if (status === 'absent') stateClass += isDarkMode ? ' border-rose-500/30' : ' border-rose-200';
+        else stateClass += isDarkMode ? ' border-slate-800 hover:border-slate-700' : ' border-slate-200 hover:border-slate-300 hover:shadow-md';
+      }
+    }
+    return base + viewClass + stateClass;
+  };
+
+  const getAvatarRingClass = (studentId, type) => {
+    if (type === 'lunch') {
+      if (lunchChoices[studentId] === 'school') return 'ring-2 ring-sky-500/50';
+      if (lunchChoices[studentId] === 'home') return 'ring-2 ring-amber-500/50';
+    } else {
+      if (attendance[studentId] === 'present') return 'ring-2 ring-emerald-500/50';
+      if (attendance[studentId] === 'absent') return 'ring-2 ring-rose-500/50';
+    }
+    return '';
+  };
+
+  const renderDailyAttendance = () => (
+    <div className="max-w-6xl mx-auto animate-in fade-in duration-300 relative">
+      
+      {/* Header & Controls */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div>
+          <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Daily Attendance</h1>
+          <p className={`text-sm mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Mark students as present or absent.</p>
+        </div>
+        
+        {/* View Toggles */}
+        <div className={`flex items-center p-1 rounded-lg ${isDarkMode ? 'bg-slate-900 border border-slate-800' : 'bg-slate-100'}`}>
+          <button
+            onClick={() => setViewMode('grid')}
+            className={`flex items-center px-4 py-2 text-sm font-semibold rounded-md transition-all duration-200 ${viewMode === 'grid' ? (isDarkMode ? 'bg-slate-800 text-white shadow-sm' : 'bg-white text-slate-900 shadow-sm') : (isDarkMode ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-700')}`}
+          >
+            <LayoutGrid size={16} className="mr-2" />
+            Grid
+          </button>
+          <button
+            onClick={() => setViewMode('list')}
+            className={`flex items-center px-4 py-2 text-sm font-semibold rounded-md transition-all duration-200 ${viewMode === 'list' ? (isDarkMode ? 'bg-slate-800 text-white shadow-sm' : 'bg-white text-slate-900 shadow-sm') : (isDarkMode ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-700')}`}
+          >
+            <List size={16} className="mr-2" />
+            List
+          </button>
+          <button
+            onClick={() => setViewMode('drag')}
+            className={`flex items-center px-4 py-2 text-sm font-semibold rounded-md transition-all duration-200 ${viewMode === 'drag' ? (isDarkMode ? 'bg-slate-800 text-white shadow-sm' : 'bg-white text-slate-900 shadow-sm') : (isDarkMode ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-700')}`}
+          >
+            <Move size={16} className="mr-2" />
+            Drag & Drop
+          </button>
+        </div>
+      </div>
+
+      {/* Counters & Submit Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className={`flex items-center px-3 py-1.5 rounded-lg ${isDarkMode ? 'bg-emerald-900/20 border border-emerald-500/30 text-emerald-400' : 'bg-emerald-50 border border-emerald-200 text-emerald-700'}`}>
+            <Check size={16} className="mr-2" />
+            <span className="text-sm font-bold">Present: {STUDENT_DATABASE.filter(s => attendance[s.id] === 'present').length}</span>
+          </div>
+          <div className={`flex items-center px-3 py-1.5 rounded-lg ${isDarkMode ? 'bg-rose-900/20 border border-rose-500/30 text-rose-400' : 'bg-rose-50 border border-rose-200 text-rose-700'}`}>
+            <X size={16} className="mr-2" />
+            <span className="text-sm font-bold">Absent: {STUDENT_DATABASE.filter(s => attendance[s.id] === 'absent').length}</span>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          {saveSuccess && (
+            <span className={`text-sm font-bold animate-in fade-in slide-in-from-right-4 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
+              ✓ Saved successfully!
+            </span>
+          )}
+          <button 
+            onClick={handleSaveAttendance} 
+            className={`flex items-center px-4 py-2 rounded-xl font-bold text-sm shadow-sm transition-all text-white hover:opacity-90 ${theme.bg}`}
+          >
+            <Save size={16} className="mr-2" />
+            Submit Attendance
+          </button>
+        </div>
+      </div>
+
+      {viewMode === 'drag' ? (
+        <div className="flex flex-col space-y-6">
+          <div 
+            className={`p-4 rounded-xl border transition-colors ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              const id = e.dataTransfer.getData('studentId');
+              if (id) setAttendance(prev => ({ ...prev, [id]: null }));
+            }}
+          >
+            <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Unmarked Students</h3>
+            <div className="flex flex-wrap gap-2 min-h-[40px] items-center">
+              {STUDENT_DATABASE.filter(student => !attendance[student.id]).length === 0 && (
+                <p className={`text-xs italic ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>All students marked.</p>
+              )}
+              {STUDENT_DATABASE.filter(student => !attendance[student.id]).map(renderDraggableStudent)}
+            </div>
+          </div>
+
+          <div className={`flex-1 min-h-[400px] rounded-2xl border-2 flex overflow-hidden transition-colors ${isDarkMode ? 'border-slate-800 bg-slate-900/40' : 'border-slate-300 bg-white'}`}>
+            <div 
+              className={`flex-1 p-6 flex flex-col border-r-2 transition-colors ${isDarkMode ? 'border-slate-800 hover:bg-slate-800/30' : 'border-slate-300 hover:bg-slate-50/50'}`}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                const id = e.dataTransfer.getData('studentId');
+                if (id) setAttendance(prev => ({ ...prev, [id]: 'present' }));
+              }}
+            >
+              <div className={`flex items-center justify-center mb-4 pb-4 border-b-2 border-dashed ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}>
+                <Check size={20} className={`mr-2 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-500'}`} />
+                <h3 className={`font-bold text-lg ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>Present</h3>
+                <span className={`ml-3 px-2 py-0.5 rounded-full text-xs font-bold ${isDarkMode ? 'bg-emerald-900/50 text-emerald-400' : 'bg-emerald-100 text-emerald-600'}`}>
+                  {STUDENT_DATABASE.filter(s => attendance[s.id] === 'present').length}
+                </span>
+              </div>
+              <div className={`flex-1 rounded-xl p-4 flex flex-col border-2 border-dashed transition-colors ${isDarkMode ? 'border-emerald-900/50 bg-emerald-900/10' : 'border-emerald-200 bg-emerald-50/50'}`}>
+                  {STUDENT_DATABASE.filter(s => attendance[s.id] === 'present').length === 0 ? (
+                    <div className="flex-1 flex items-center justify-center text-center">
+                      <p className={`text-sm font-medium ${isDarkMode ? 'text-emerald-700/50' : 'text-emerald-300'}`}>Drop students here</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap gap-2 content-start">
+                      {STUDENT_DATABASE.filter(s => attendance[s.id] === 'present').map(renderDraggableStudent)}
+                    </div>
+                  )}
+              </div>
+            </div>
+
+            <div 
+              className={`flex-1 p-6 flex flex-col transition-colors ${isDarkMode ? 'hover:bg-slate-800/30' : 'hover:bg-slate-50/50'}`}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                const id = e.dataTransfer.getData('studentId');
+                if (id) setAttendance(prev => ({ ...prev, [id]: 'absent' }));
+              }}
+            >
+              <div className={`flex items-center justify-center mb-4 pb-4 border-b-2 border-dashed ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}>
+                <X size={20} className={`mr-2 ${isDarkMode ? 'text-rose-400' : 'text-rose-500'}`} />
+                <h3 className={`font-bold text-lg ${isDarkMode ? 'text-rose-400' : 'text-rose-600'}`}>Absent</h3>
+                <span className={`ml-3 px-2 py-0.5 rounded-full text-xs font-bold ${isDarkMode ? 'bg-rose-900/50 text-rose-400' : 'bg-rose-100 text-rose-600'}`}>
+                  {STUDENT_DATABASE.filter(s => attendance[s.id] === 'absent').length}
+                </span>
+              </div>
+              <div className={`flex-1 rounded-xl p-4 flex flex-col border-2 border-dashed transition-colors ${isDarkMode ? 'border-rose-900/50 bg-rose-900/10' : 'border-rose-200 bg-rose-50/50'}`}>
+                {STUDENT_DATABASE.filter(s => attendance[s.id] === 'absent').length === 0 ? (
+                    <div className="flex-1 flex items-center justify-center text-center">
+                      <p className={`text-sm font-medium ${isDarkMode ? 'text-rose-700/50' : 'text-rose-300'}`}>Drop students here</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap gap-2 content-start">
+                      {STUDENT_DATABASE.filter(s => attendance[s.id] === 'absent').map(renderDraggableStudent)}
+                    </div>
+                  )}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className={viewMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4' : `flex flex-col border rounded-xl overflow-hidden divide-y ${isDarkMode ? 'border-slate-800 divide-slate-800/50' : 'border-slate-200 divide-slate-100'}`}>
+          {STUDENT_DATABASE.map(student => (
+            <div 
+              key={student.id} 
+              onClick={() => {
+                if (viewMode === 'grid') {
+                  toggleAttendance(student.id, attendance[student.id] === 'present' ? 'absent' : 'present');
+                }
+              }}
+              className={getStudentCardClass(student.id, 'attendance')}
+            >
+              <div className={`flex items-center justify-center shrink-0 ${viewMode === 'grid' ? 'text-4xl mb-3 w-16 h-16' : 'text-xl mr-4 w-10 h-10'} rounded-full transition-colors ${isDarkMode ? 'bg-slate-800 group-hover:bg-slate-700' : 'bg-slate-50 group-hover:bg-slate-100'} ${getAvatarRingClass(student.id, 'attendance')}`}>
+                {student.avatar}
+              </div>
+              <div className={viewMode === 'grid' ? 'w-full' : 'flex-1'}>
+                  <span className={`block truncate ${viewMode === 'grid' ? 'text-base font-bold' : 'text-sm font-semibold'} ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>
+                    {student.name}
+                  </span>
+              </div>
+
+              {/* List View Controls */}
+              {viewMode === 'list' && (
+                <div className="flex items-center space-x-2 shrink-0 ml-4">
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); toggleAttendance(student.id, 'present'); }}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${attendance[student.id] === 'present' ? 'bg-emerald-500 text-white shadow-md scale-110' : isDarkMode ? 'text-slate-500 hover:bg-slate-800 hover:text-emerald-400' : 'text-slate-400 hover:bg-slate-100 hover:text-emerald-500'}`}
+                    title="Mark Present"
+                  >
+                    <Check size={16} strokeWidth={attendance[student.id] === 'present' ? 3 : 2} />
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); toggleAttendance(student.id, 'absent'); }}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${attendance[student.id] === 'absent' ? 'bg-rose-500 text-white shadow-md scale-110' : isDarkMode ? 'text-slate-500 hover:bg-slate-800 hover:text-rose-400' : 'text-slate-400 hover:bg-slate-100 hover:text-rose-500'}`}
+                    title="Mark Absent"
+                  >
+                    <X size={16} strokeWidth={attendance[student.id] === 'absent' ? 3 : 2} />
+                  </button>
+                </div>
+              )}
+
+              {/* Grid View Controls */}
+              {viewMode === 'grid' && (
+                <div className="flex items-center justify-center space-x-3 mt-4 shrink-0 w-full">
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); toggleAttendance(student.id, 'present'); }}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${attendance[student.id] === 'present' ? 'bg-emerald-500 text-white shadow-md scale-110' : isDarkMode ? 'bg-slate-800 text-slate-400 hover:text-emerald-400' : 'bg-slate-100 text-slate-400 hover:text-emerald-500'}`}
+                    title="Mark Present"
+                  >
+                    <Check size={18} strokeWidth={attendance[student.id] === 'present' ? 3 : 2} />
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); toggleAttendance(student.id, 'absent'); }}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${attendance[student.id] === 'absent' ? 'bg-rose-500 text-white shadow-md scale-110' : isDarkMode ? 'bg-slate-800 text-slate-400 hover:text-rose-400' : 'bg-slate-100 text-slate-400 hover:text-rose-500'}`}
+                    title="Mark Absent"
+                  >
+                    <X size={18} strokeWidth={attendance[student.id] === 'absent' ? 3 : 2} />
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Unmarked Students Modal Prompt */}
+      {showUnmarkedPrompt && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className={`max-w-md w-full p-6 rounded-2xl shadow-xl flex flex-col ${isDarkMode ? 'bg-slate-900 border border-slate-800' : 'bg-white border border-slate-200'}`}>
+             <div className="flex items-center space-x-3 mb-4 text-amber-500">
+               <AlertTriangle size={24} />
+               <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Unmarked Students</h3>
+             </div>
+             <p className={`text-sm mb-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+               The following {STUDENT_DATABASE.filter(s => !attendance[s.id]).length} students have not been marked present or absent. Would you like to automatically mark them as absent?
+             </p>
+             <div className={`max-h-48 overflow-y-auto mb-6 p-3 rounded-xl border ${isDarkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-100'}`}>
+                <ul className="space-y-2">
+                  {STUDENT_DATABASE.filter(s => !attendance[s.id]).map(student => (
+                    <li key={student.id} className={`flex items-center text-sm font-medium ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                      <span className="mr-2 text-lg">{student.avatar}</span> {student.name}
+                    </li>
+                  ))}
+                </ul>
+             </div>
+             <div className="flex space-x-3 mt-auto">
+               <button 
+                 onClick={() => setShowUnmarkedPrompt(false)} 
+                 className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-colors ${isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+               >
+                 Review Remaining
+               </button>
+               <button 
+                 onClick={confirmMarkAbsent} 
+                 className="flex-1 py-2.5 rounded-xl font-bold text-sm bg-rose-500 hover:bg-rose-600 text-white transition-colors shadow-sm"
+               >
+                 Mark Absent
+               </button>
+             </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderLunchCount = () => (
+    <div className="max-w-6xl mx-auto animate-in fade-in duration-300">
+      
+      {/* Header & Controls */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <div>
+          <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Lunch Count</h1>
+          <p className={`text-sm mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Record student lunch choices.</p>
+        </div>
+        
+        {/* View Toggles */}
+        <div className={`flex items-center p-1 rounded-lg ${isDarkMode ? 'bg-slate-900 border border-slate-800' : 'bg-slate-100'}`}>
+          <button
+            onClick={() => setLunchViewMode('grid')}
+            className={`flex items-center px-4 py-2 text-sm font-semibold rounded-md transition-all duration-200 ${lunchViewMode === 'grid' ? (isDarkMode ? 'bg-slate-800 text-white shadow-sm' : 'bg-white text-slate-900 shadow-sm') : (isDarkMode ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-700')}`}
+          >
+            <LayoutGrid size={16} className="mr-2" />
+            Grid
+          </button>
+          <button
+            onClick={() => setLunchViewMode('list')}
+            className={`flex items-center px-4 py-2 text-sm font-semibold rounded-md transition-all duration-200 ${lunchViewMode === 'list' ? (isDarkMode ? 'bg-slate-800 text-white shadow-sm' : 'bg-white text-slate-900 shadow-sm') : (isDarkMode ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-700')}`}
+          >
+            <List size={16} className="mr-2" />
+            List
+          </button>
+          <button
+            onClick={() => setLunchViewMode('drag')}
+            className={`flex items-center px-4 py-2 text-sm font-semibold rounded-md transition-all duration-200 ${lunchViewMode === 'drag' ? (isDarkMode ? 'bg-slate-800 text-white shadow-sm' : 'bg-white text-slate-900 shadow-sm') : (isDarkMode ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-700')}`}
+          >
+            <Move size={16} className="mr-2" />
+            Drag & Drop
+          </button>
+        </div>
+      </div>
+
+      {lunchViewMode === 'drag' ? (
+        <div className="flex flex-col space-y-6">
+          <div 
+            className={`p-4 rounded-xl border transition-colors ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              const id = e.dataTransfer.getData('studentId');
+              if (id) setLunchChoices(prev => ({ ...prev, [id]: null }));
+            }}
+          >
+            <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Unassigned Students</h3>
+            <div className="flex flex-wrap gap-2 min-h-[40px] items-center">
+              {STUDENT_DATABASE.filter(student => !lunchChoices[student.id]).length === 0 && (
+                <p className={`text-xs italic ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>All students assigned.</p>
+              )}
+              {STUDENT_DATABASE.filter(student => !lunchChoices[student.id]).map(renderDraggableStudent)}
+            </div>
+          </div>
+
+          <div className={`flex-1 min-h-[400px] rounded-2xl border-2 flex overflow-hidden transition-colors ${isDarkMode ? 'border-slate-800 bg-slate-900/40' : 'border-slate-300 bg-white'}`}>
+            <div 
+              className={`flex-1 p-6 flex flex-col border-r-2 transition-colors ${isDarkMode ? 'border-slate-800 hover:bg-slate-800/30' : 'border-slate-300 hover:bg-slate-50/50'}`}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                const id = e.dataTransfer.getData('studentId');
+                if (id) setLunchChoices(prev => ({ ...prev, [id]: 'school' }));
+              }}
+            >
+              <div className={`flex items-center justify-center mb-4 pb-4 border-b-2 border-dashed ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}>
+                <Utensils size={20} className={`mr-2 ${isDarkMode ? 'text-sky-400' : 'text-sky-500'}`} />
+                <h3 className={`font-bold text-lg ${isDarkMode ? 'text-sky-400' : 'text-sky-600'}`}>School Lunch</h3>
+                <span className={`ml-3 px-2 py-0.5 rounded-full text-xs font-bold ${isDarkMode ? 'bg-sky-900/50 text-sky-400' : 'bg-sky-100 text-sky-600'}`}>
+                  {STUDENT_DATABASE.filter(s => lunchChoices[s.id] === 'school').length}
+                </span>
+              </div>
+              <div className={`flex-1 rounded-xl p-4 flex flex-col border-2 border-dashed transition-colors ${isDarkMode ? 'border-sky-900/50 bg-sky-900/10' : 'border-sky-200 bg-sky-50/50'}`}>
+                  {STUDENT_DATABASE.filter(s => lunchChoices[s.id] === 'school').length === 0 ? (
+                    <div className="flex-1 flex items-center justify-center text-center">
+                      <p className={`text-sm font-medium ${isDarkMode ? 'text-sky-700/50' : 'text-sky-300'}`}>Drop students here</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap gap-2 content-start">
+                      {STUDENT_DATABASE.filter(s => lunchChoices[s.id] === 'school').map(renderDraggableStudent)}
+                    </div>
+                  )}
+              </div>
+            </div>
+
+            <div 
+              className={`flex-1 p-6 flex flex-col transition-colors ${isDarkMode ? 'hover:bg-slate-800/30' : 'hover:bg-slate-50/50'}`}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                const id = e.dataTransfer.getData('studentId');
+                if (id) setLunchChoices(prev => ({ ...prev, [id]: 'home' }));
+              }}
+            >
+              <div className={`flex items-center justify-center mb-4 pb-4 border-b-2 border-dashed ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}>
+                <Home size={20} className={`mr-2 ${isDarkMode ? 'text-amber-400' : 'text-amber-500'}`} />
+                <h3 className={`font-bold text-lg ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>Home Lunch</h3>
+                <span className={`ml-3 px-2 py-0.5 rounded-full text-xs font-bold ${isDarkMode ? 'bg-amber-900/50 text-amber-400' : 'bg-amber-100 text-amber-600'}`}>
+                  {STUDENT_DATABASE.filter(s => lunchChoices[s.id] === 'home').length}
+                </span>
+              </div>
+              <div className={`flex-1 rounded-xl p-4 flex flex-col border-2 border-dashed transition-colors ${isDarkMode ? 'border-amber-900/50 bg-amber-900/10' : 'border-amber-200 bg-amber-50/50'}`}>
+                {STUDENT_DATABASE.filter(s => lunchChoices[s.id] === 'home').length === 0 ? (
+                    <div className="flex-1 flex items-center justify-center text-center">
+                      <p className={`text-sm font-medium ${isDarkMode ? 'text-amber-700/50' : 'text-amber-300'}`}>Drop students here</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap gap-2 content-start">
+                      {STUDENT_DATABASE.filter(s => lunchChoices[s.id] === 'home').map(renderDraggableStudent)}
+                    </div>
+                  )}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className={lunchViewMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4' : `flex flex-col border rounded-xl overflow-hidden divide-y ${isDarkMode ? 'border-slate-800 divide-slate-800/50' : 'border-slate-200 divide-slate-100'}`}>
+          {STUDENT_DATABASE.map(student => (
+            <div 
+              key={student.id} 
+              onClick={() => {
+                if (lunchViewMode === 'grid') {
+                  toggleLunch(student.id, lunchChoices[student.id] === 'school' ? 'home' : 'school');
+                }
+              }}
+              className={getStudentCardClass(student.id, 'lunch')}
+            >
+              <div className={`flex items-center justify-center shrink-0 ${lunchViewMode === 'grid' ? 'text-4xl mb-3 w-16 h-16' : 'text-xl mr-4 w-10 h-10'} rounded-full transition-colors ${isDarkMode ? 'bg-slate-800 group-hover:bg-slate-700' : 'bg-slate-50 group-hover:bg-slate-100'} ${getAvatarRingClass(student.id, 'lunch')}`}>
+                {student.avatar}
+              </div>
+              <div className={lunchViewMode === 'grid' ? 'w-full' : 'flex-1'}>
+                  <span className={`block truncate ${lunchViewMode === 'grid' ? 'text-base font-bold' : 'text-sm font-semibold'} ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>
+                    {student.name}
+                  </span>
+              </div>
+
+              {lunchViewMode === 'list' && (
+                <div className="flex items-center space-x-2 shrink-0 ml-2 sm:ml-4">
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); toggleLunch(student.id, 'school'); }}
+                    className={`flex items-center px-2 py-1.5 sm:px-3 sm:py-1.5 rounded-lg transition-all duration-200 text-[11px] sm:text-xs font-semibold whitespace-nowrap ${
+                      lunchChoices[student.id] === 'school' 
+                        ? 'bg-sky-500 text-white shadow-md' 
+                        : isDarkMode ? 'bg-slate-800 text-slate-400 hover:text-sky-400' : 'bg-slate-100 text-slate-500 hover:text-sky-600'
+                    }`}
+                  >
+                    <Utensils size={12} className="mr-1.5" />
+                    <span className="hidden sm:inline">School Lunch</span>
+                    <span className="sm:hidden">School</span>
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); toggleLunch(student.id, 'home'); }}
+                    className={`flex items-center px-2 py-1.5 sm:px-3 sm:py-1.5 rounded-lg transition-all duration-200 text-[11px] sm:text-xs font-semibold whitespace-nowrap ${
+                      lunchChoices[student.id] === 'home' 
+                        ? 'bg-amber-500 text-white shadow-md' 
+                        : isDarkMode ? 'bg-slate-800 text-slate-400 hover:text-amber-400' : 'bg-slate-100 text-slate-500 hover:text-amber-600'
+                    }`}
+                  >
+                    <Home size={12} className="mr-1.5" />
+                    <span className="hidden sm:inline">Home Lunch</span>
+                    <span className="sm:hidden">Home</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Grid View Controls */}
+              {lunchViewMode === 'grid' && (
+                <div className="flex items-center justify-center space-x-3 mt-4 shrink-0 w-full">
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); toggleLunch(student.id, 'school'); }}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${lunchChoices[student.id] === 'school' ? 'bg-sky-500 text-white shadow-md scale-110' : isDarkMode ? 'bg-slate-800 text-slate-400 hover:text-sky-400' : 'bg-slate-100 text-slate-400 hover:text-sky-500'}`}
+                    title="School Lunch"
+                  >
+                    <Check size={18} strokeWidth={lunchChoices[student.id] === 'school' ? 3 : 2} />
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); toggleLunch(student.id, 'home'); }}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${lunchChoices[student.id] === 'home' ? 'bg-amber-500 text-white shadow-md scale-110' : isDarkMode ? 'bg-slate-800 text-slate-400 hover:text-amber-400' : 'bg-slate-100 text-slate-400 hover:text-amber-500'}`}
+                    title="Home Lunch"
+                  >
+                    <X size={18} strokeWidth={lunchChoices[student.id] === 'home' ? 3 : 2} />
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const renderReports = () => {
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const years = Array.from({ length: 5 }, (_, i) => todayRef.current.getFullYear() - i);
+
+    const daysInMonth = new Date(reportYear, reportMonth + 1, 0).getDate();
+    const firstDay = new Date(reportYear, reportMonth, 1).getDay();
+
+    const blanks = Array.from({ length: firstDay }, (_, i) => i);
+    const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+    return (
+      <div className="max-w-6xl mx-auto animate-in fade-in duration-300 relative pb-24">
+        
+        {/* Header & Controls */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+          <div>
+            <h1 className={`text-2xl font-bold flex items-center ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+               <FileText size={24} className="mr-3" />
+               Reports
+            </h1>
+            <p className={`text-sm mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+              Historical attendance and lunch count records for {months[reportMonth]} {reportYear}.
+            </p>
+          </div>
+          
+          {/* View Toggles */}
+          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3">
+            {/* Month/Year Selection Tool */}
+            <div className={`flex items-center space-x-2 p-1 rounded-lg ${isDarkMode ? 'bg-slate-900 border border-slate-800' : 'bg-slate-100'}`}>
+              <div className="relative">
+                <select 
+                  value={reportMonth}
+                  onChange={(e) => setReportMonth(Number(e.target.value))}
+                  className={`pl-3 pr-8 py-2 text-sm font-semibold rounded-md outline-none transition-colors cursor-pointer appearance-none ${isDarkMode ? 'bg-slate-800 text-white' : 'bg-white text-slate-900 shadow-sm'}`}
+                >
+                  {months.map((m, idx) => <option key={m} value={idx}>{m}</option>)}
+                </select>
+                <ChevronDown size={14} className={`absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`} />
+              </div>
+              <div className="relative">
+                <select 
+                  value={reportYear}
+                  onChange={(e) => setReportYear(Number(e.target.value))}
+                  className={`pl-3 pr-8 py-2 text-sm font-semibold rounded-md outline-none transition-colors cursor-pointer appearance-none ${isDarkMode ? 'bg-slate-800 text-white' : 'bg-white text-slate-900 shadow-sm'}`}
+                >
+                  {years.map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
+                <ChevronDown size={14} className={`absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`} />
+              </div>
+            </div>
+
+            {reportViewMode === 'list' && (
+              <button
+                onClick={() => setReportSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
+                className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center transition-all duration-200 border shadow-sm ${isDarkMode ? 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800 hover:text-white' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:shadow-md'}`}
+                title={reportSortOrder === 'desc' ? "Sort Ascending (1 -> 31)" : "Sort Descending (31 -> 1)"}
+              >
+                <ArrowUpDown size={18} />
+              </button>
+            )}
+
+            <div className={`flex items-center p-1 rounded-lg ${isDarkMode ? 'bg-slate-900 border border-slate-800' : 'bg-slate-100'}`}>
+              <button
+                onClick={() => setReportViewMode('calendar')}
+                className={`flex items-center px-4 py-2 text-sm font-semibold rounded-md transition-all duration-200 ${reportViewMode === 'calendar' ? (isDarkMode ? 'bg-slate-800 text-white shadow-sm' : 'bg-white text-slate-900 shadow-sm') : (isDarkMode ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-700')}`}
+              >
+                <Calendar size={16} className="mr-2" />
+                Calendar
+              </button>
+              <button
+                onClick={() => setReportViewMode('list')}
+                className={`flex items-center px-4 py-2 text-sm font-semibold rounded-md transition-all duration-200 ${reportViewMode === 'list' ? (isDarkMode ? 'bg-slate-800 text-white shadow-sm' : 'bg-white text-slate-900 shadow-sm') : (isDarkMode ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-700')}`}
+              >
+                <List size={16} className="mr-2" />
+                List
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {reportViewMode === 'calendar' ? (
+          <div className={`grid grid-cols-7 gap-px rounded-2xl overflow-hidden border ${isDarkMode ? 'bg-slate-800 border-slate-800' : 'bg-slate-200 border-slate-200'}`}>
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+              <div key={day} className={`p-3 text-center text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'bg-slate-900 text-slate-400' : 'bg-slate-50 text-slate-500'}`}>
+                {day}
+              </div>
+            ))}
+            {blanks.map(b => <div key={`blank-${b}`} className={`min-h-[120px] ${isDarkMode ? 'bg-slate-900/50' : 'bg-slate-50/50'}`} />)}
+            {days.map(day => {
+              const report = currentReports[day];
+              return (
+                 <div key={day} className={`min-h-[120px] p-3 flex flex-col transition-colors ${isDarkMode ? 'bg-slate-900 hover:bg-slate-800/50' : 'bg-white hover:bg-slate-50'}`}>
+                    <div className="flex justify-end items-center mb-2">
+                       <span className={`text-sm font-bold flex items-center justify-center w-7 h-7 rounded-full ${report?.isToday ? (isDarkMode ? 'bg-purple-500 text-white shadow-md' : 'bg-purple-600 text-white shadow-md') : (isDarkMode ? 'text-slate-400' : 'text-slate-500')}`}>
+                         {day}
+                       </span>
+                    </div>
+                    {report && (
+                      <div className="flex flex-col gap-1.5 mt-auto">
+                         <div className={`text-[10px] sm:text-xs px-2 py-1 rounded-md flex justify-between items-center border ${isDarkMode ? 'bg-emerald-900/20 border-emerald-500/30 text-emerald-400' : 'bg-emerald-50 border-emerald-100 text-emerald-700'}`}>
+                           <span className="hidden sm:inline">Present</span>
+                           <span className="sm:hidden">P</span>
+                           <span className="font-bold">{report.present}/{STUDENT_DATABASE.length}</span>
+                         </div>
+                         <div className={`text-[10px] sm:text-xs px-2 py-1 rounded-md flex justify-between items-center border ${isDarkMode ? 'bg-sky-900/20 border-sky-500/30 text-sky-400' : 'bg-sky-50 border-sky-100 text-sky-700'}`}>
+                           <span className="hidden sm:inline">School Lunch</span>
+                           <span className="sm:hidden">SL</span>
+                           <span className="font-bold">{report.schoolLunch}</span>
+                         </div>
+                      </div>
+                    )}
+                 </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className={`flex flex-col border rounded-xl overflow-hidden divide-y ${isDarkMode ? 'border-slate-800 divide-slate-800/50' : 'border-slate-200 divide-slate-100'}`}>
+            {Object.values(currentReports)
+              .sort((a, b) => reportSortOrder === 'desc' ? b.date.getTime() - a.date.getTime() : a.date.getTime() - b.date.getTime())
+              .map(report => {
+                const dateKey = report.date.toString();
+                const isExpanded = expandedReports[dateKey];
+                
+                return (
+                  <div key={dateKey} className={`flex flex-col transition-colors ${isDarkMode ? 'bg-transparent hover:bg-slate-800/30' : 'bg-transparent hover:bg-slate-50'}`}>
+                    {/* Clickable Header */}
+                    <div 
+                      onClick={() => toggleReportExpansion(dateKey)}
+                      className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 cursor-pointer"
+                    >
+                      <div className="flex items-center">
+                        <div className={`w-12 h-12 rounded-lg flex flex-col items-center justify-center mr-4 shrink-0 border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-100'}`}>
+                          <span className={`text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>{report.date.toLocaleString('default', { month: 'short' })}</span>
+                          <span className={`text-lg font-black leading-none ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>{report.date.getDate()}</span>
+                        </div>
+                        
+                        {/* Collapsed Summary */}
+                        {!isExpanded && (
+                          <div className={`flex items-center gap-3 sm:gap-6 text-xs sm:text-sm font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                            <div className="flex items-center"><Check size={14} className="mr-1 text-emerald-500"/> {report.present}</div>
+                            <div className="flex items-center"><X size={14} className="mr-1 text-rose-500"/> {report.absent}</div>
+                            <div className="flex items-center"><Utensils size={14} className="mr-1 text-sky-500"/> {report.schoolLunch}</div>
+                            <div className="flex items-center hidden sm:flex"><Home size={14} className="mr-1 text-amber-500"/> {report.homeLunch}</div>
+                          </div>
+                        )}
+                        
+                        {isExpanded && (
+                          <span className={`text-sm font-bold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Daily Details</span>
+                        )}
+                      </div>
+                      
+                      <button className={`p-1 rounded-full transition-colors ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'}`}>
+                        <ChevronDown size={20} className={`text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                      </button>
+                    </div>
+
+                    {/* Expanded Content */}
+                    {isExpanded && (
+                      <div className="px-4 pb-4 sm:px-6 sm:pb-5 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                          
+                          <div className={`flex flex-col p-3 rounded-xl border ${isDarkMode ? 'bg-emerald-900/10 border-emerald-500/20' : 'bg-emerald-50/50 border-emerald-100'}`}>
+                            <div className={`flex items-center justify-between mb-3 pb-2 border-b ${isDarkMode ? 'border-emerald-500/20' : 'border-emerald-200/50'}`}>
+                              <div className={`flex items-center text-[10px] sm:text-xs uppercase font-bold tracking-wider ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                                <Check size={14} className="mr-1.5" /> Present
+                              </div>
+                              <span className={`font-bold text-sm ${isDarkMode ? 'text-emerald-300' : 'text-emerald-700'}`}>{report.present}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {report.presentStudents && report.presentStudents.length > 0 ? report.presentStudents.map(s => (
+                                <div key={s.id} className={`flex items-center px-1.5 py-1 rounded-md text-[10px] font-bold ${isDarkMode ? 'bg-emerald-900/40 text-emerald-300' : 'bg-white text-emerald-700 shadow-sm border border-emerald-100/50'}`} title={s.name}>
+                                  <span className="mr-1 text-sm leading-none">{s.avatar}</span> {s.name.split(' ')[0]}
+                                </div>
+                              )) : <span className={`text-[10px] italic ${isDarkMode ? 'text-emerald-500/50' : 'text-emerald-600/50'}`}>None</span>}
+                            </div>
+                          </div>
+
+                          <div className={`flex flex-col p-3 rounded-xl border ${isDarkMode ? 'bg-rose-900/10 border-rose-500/20' : 'bg-rose-50/50 border-rose-100'}`}>
+                            <div className={`flex items-center justify-between mb-3 pb-2 border-b ${isDarkMode ? 'border-rose-500/20' : 'border-rose-200/50'}`}>
+                              <div className={`flex items-center text-[10px] sm:text-xs uppercase font-bold tracking-wider ${isDarkMode ? 'text-rose-400' : 'text-rose-600'}`}>
+                                <X size={14} className="mr-1.5" /> Absent
+                              </div>
+                              <span className={`font-bold text-sm ${isDarkMode ? 'text-rose-300' : 'text-rose-700'}`}>{report.absent}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {report.absentStudents && report.absentStudents.length > 0 ? report.absentStudents.map(s => (
+                                <div key={s.id} className={`flex items-center px-1.5 py-1 rounded-md text-[10px] font-bold ${isDarkMode ? 'bg-rose-900/40 text-rose-300' : 'bg-white text-rose-700 shadow-sm border border-rose-100/50'}`} title={s.name}>
+                                  <span className="mr-1 text-sm leading-none">{s.avatar}</span> {s.name.split(' ')[0]}
+                                </div>
+                              )) : <span className={`text-[10px] italic ${isDarkMode ? 'text-rose-500/50' : 'text-rose-600/50'}`}>None</span>}
+                            </div>
+                          </div>
+
+                          <div className={`flex flex-col p-3 rounded-xl border ${isDarkMode ? 'bg-sky-900/10 border-sky-500/20' : 'bg-sky-50/50 border-sky-100'}`}>
+                            <div className={`flex items-center justify-between mb-3 pb-2 border-b ${isDarkMode ? 'border-sky-500/20' : 'border-sky-200/50'}`}>
+                              <div className={`flex items-center text-[10px] sm:text-xs uppercase font-bold tracking-wider ${isDarkMode ? 'text-sky-400' : 'text-sky-600'}`}>
+                                <Utensils size={14} className="mr-1.5" /> School Lunch
+                              </div>
+                              <span className={`font-bold text-sm ${isDarkMode ? 'text-sky-300' : 'text-sky-700'}`}>{report.schoolLunch}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {report.schoolLunchStudents && report.schoolLunchStudents.length > 0 ? report.schoolLunchStudents.map(s => (
+                                <div key={s.id} className={`flex items-center px-1.5 py-1 rounded-md text-[10px] font-bold ${isDarkMode ? 'bg-sky-900/40 text-sky-300' : 'bg-white text-sky-700 shadow-sm border border-sky-100/50'}`} title={s.name}>
+                                  <span className="mr-1 text-sm leading-none">{s.avatar}</span> {s.name.split(' ')[0]}
+                                </div>
+                              )) : <span className={`text-[10px] italic ${isDarkMode ? 'text-sky-500/50' : 'text-sky-600/50'}`}>None</span>}
+                            </div>
+                          </div>
+
+                          <div className={`flex flex-col p-3 rounded-xl border ${isDarkMode ? 'bg-amber-900/10 border-amber-500/20' : 'bg-amber-50/50 border-amber-100'}`}>
+                            <div className={`flex items-center justify-between mb-3 pb-2 border-b ${isDarkMode ? 'border-amber-500/20' : 'border-amber-200/50'}`}>
+                              <div className={`flex items-center text-[10px] sm:text-xs uppercase font-bold tracking-wider ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>
+                                <Home size={14} className="mr-1.5" /> Home Lunch
+                              </div>
+                              <span className={`font-bold text-sm ${isDarkMode ? 'text-amber-300' : 'text-amber-700'}`}>{report.homeLunch}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {report.homeLunchStudents && report.homeLunchStudents.length > 0 ? report.homeLunchStudents.map(s => (
+                                <div key={s.id} className={`flex items-center px-1.5 py-1 rounded-md text-[10px] font-bold ${isDarkMode ? 'bg-amber-900/40 text-amber-300' : 'bg-white text-amber-700 shadow-sm border border-amber-100/50'}`} title={s.name}>
+                                  <span className="mr-1 text-sm leading-none">{s.avatar}</span> {s.name.split(' ')[0]}
+                                </div>
+                              )) : <span className={`text-[10px] italic ${isDarkMode ? 'text-amber-500/50' : 'text-amber-600/50'}`}>None</span>}
+                            </div>
+                          </div>
+                          
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+          </div>
+        )}
+
+        {/* Floating Print Button */}
+        <button
+          onClick={() => window.print()}
+          className={`fixed bottom-8 right-8 sm:bottom-12 sm:right-12 w-14 h-14 rounded-full shadow-2xl transition-all duration-300 hover:-translate-y-1 active:scale-95 z-50 flex items-center justify-center print:hidden ${theme.bg} text-white hover:opacity-90`}
+          title="Print Report"
+        >
+          <Printer size={24} />
+        </button>
+      </div>
+    );
+  };
+
+  const renderAwards = () => {
+    const eligibleStudents = STUDENT_DATABASE.filter(s => studentProgress[s.id] >= studentGoals[s.id]);
+    const winner = eligibleStudents.length > 0 
+      ? eligibleStudents.sort((a, b) => studentProgress[b.id] - studentProgress[a.id])[0] 
+      : null;
+
+    return (
+      <div className="max-w-6xl mx-auto animate-in fade-in duration-300 pb-12 relative">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+          <div>
+            <h1 className={`text-2xl font-bold flex items-center ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+               <Award size={24} className="mr-3" />
+               Awards & Goals
+            </h1>
+            <p className={`text-sm mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+              Set attendance goals and track achievements for the class and individual students.
+            </p>
+          </div>
+          
+          <button 
+            onClick={() => setIsAwardsSettingsOpen(true)}
+            className={`flex items-center px-4 py-2 text-sm font-semibold rounded-xl shadow-sm transition-all duration-200 ${isDarkMode ? 'bg-slate-800 text-white hover:bg-slate-700' : 'bg-white text-slate-900 border border-slate-200 hover:bg-slate-50'}`}
+          >
+            <Settings size={16} className="mr-2" />
+            Goal Settings
+          </button>
+        </div>
+
+        {/* Settings Modal */}
+        {isAwardsSettingsOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className={`max-w-md w-full p-6 sm:p-8 rounded-3xl shadow-2xl flex flex-col ${isDarkMode ? 'bg-slate-900 border border-slate-800' : 'bg-white border border-slate-200'}`}>
+              <div className="flex items-center justify-between mb-8">
+                <h3 className={`text-xl font-bold flex items-center ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                  <Settings size={22} className={`mr-3 ${theme.text}`} /> Goal Settings
+                </h3>
+                <button onClick={() => setIsAwardsSettingsOpen(false)} className={`p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-slate-800 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-900'}`}>
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <div className="space-y-6">
+                <div>
+                  <label className={`block text-sm font-bold mb-2 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Yearly Class Target (%)</label>
+                  <div className={`flex items-center px-4 py-2.5 rounded-xl border transition-colors ${isDarkMode ? 'bg-slate-800/50 border-slate-700 focus-within:border-purple-500' : 'bg-slate-50 border-slate-200 focus-within:border-purple-500'}`}>
+                    <input 
+                      type="number" 
+                      value={yearlyClassGoal} 
+                      onChange={e => setYearlyClassGoal(Number(e.target.value))} 
+                      className={`w-full bg-transparent outline-none font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`} 
+                      min="0" max="100" 
+                    />
+                    <span className={`font-bold ml-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>%</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-bold mb-2 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Total School Days</label>
+                  <p className={`text-xs mb-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Set the total number of instructional days in your school year.</p>
+                  <div className={`flex items-center px-4 py-2.5 rounded-xl border transition-colors ${isDarkMode ? 'bg-slate-800/50 border-slate-700 focus-within:border-purple-500' : 'bg-slate-50 border-slate-200 focus-within:border-purple-500'}`}>
+                    <input 
+                      type="number" 
+                      value={totalSchoolDays} 
+                      onChange={e => setTotalSchoolDays(Number(e.target.value))} 
+                      className={`w-full bg-transparent outline-none font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`} 
+                      min="1" max="365" 
+                    />
+                    <span className={`font-bold ml-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Days</span>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className={`block text-sm font-bold mb-2 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Monthly Class Target (%)</label>
+                  <div className={`flex items-center px-4 py-2.5 rounded-xl border transition-colors ${isDarkMode ? 'bg-slate-800/50 border-slate-700 focus-within:border-purple-500' : 'bg-slate-50 border-slate-200 focus-within:border-purple-500'}`}>
+                    <input 
+                      type="number" 
+                      value={monthlyClassGoal} 
+                      onChange={e => setMonthlyClassGoal(Number(e.target.value))} 
+                      className={`w-full bg-transparent outline-none font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`} 
+                      min="0" max="100" 
+                    />
+                    <span className={`font-bold ml-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>%</span>
+                  </div>
+                </div>
+                
+                <div className={`pt-6 border-t ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+                  <label className={`block text-sm font-bold mb-2 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Default Individual Goal (Days)</label>
+                  <p className={`text-xs mb-3 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Set a baseline target for perfect attendance days and apply it to all students at once.</p>
+                  <div className="flex gap-3">
+                    <div className={`flex-1 flex items-center px-4 py-2.5 rounded-xl border transition-colors ${isDarkMode ? 'bg-slate-800/50 border-slate-700 focus-within:border-purple-500' : 'bg-slate-50 border-slate-200 focus-within:border-purple-500'}`}>
+                      <input 
+                        type="number" 
+                        value={globalIndividualGoal} 
+                        onChange={e => setGlobalIndividualGoal(Number(e.target.value))} 
+                        className={`w-full bg-transparent outline-none font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`} 
+                        min="1" max="31" 
+                      />
+                    </div>
+                    <button 
+                      onClick={() => {
+                        const newGoals = {};
+                        STUDENT_DATABASE.forEach(s => newGoals[s.id] = globalIndividualGoal);
+                        setStudentGoals(newGoals);
+                        setIsAwardsSettingsOpen(false);
+                      }} 
+                      className={`px-4 py-2.5 rounded-xl font-bold text-sm shadow-sm transition-all text-white hover:opacity-90 ${theme.bg}`}
+                    >
+                      Apply to All
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Class Goal Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+          
+          {/* Yearly Goal Card */}
+          <div className={`p-6 sm:p-8 rounded-2xl border transition-colors ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+              <div className="flex items-center">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-4 ${isDarkMode ? 'bg-amber-900/30 text-amber-400' : 'bg-amber-100 text-amber-600'}`}>
+                  <Medal size={24} />
+                </div>
+                <div>
+                  <h2 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Yearly Goal</h2>
+                  <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Class attendance target for the year.</p>
+                </div>
+              </div>
+              <div className={`px-4 py-1.5 rounded-lg border font-black text-lg ${isDarkMode ? 'bg-slate-800 border-slate-700 text-amber-400' : 'bg-slate-50 border-slate-200 text-amber-600'}`}>
+                {yearlyClassGoal}%
+              </div>
+            </div>
+            
+            <div className="relative pt-2">
+              <div className="flex justify-between items-end mb-2">
+                <span className={`text-sm font-bold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Current: {yearlyClassProgress}%</span>
+                <span className={`text-xs font-semibold ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>{Math.max(0, yearlyClassGoal - yearlyClassProgress)}% to go</span>
+              </div>
+              <div className={`h-4 w-full rounded-full overflow-hidden ${isDarkMode ? 'bg-slate-800' : 'bg-slate-100'}`}>
+                <div 
+                  className="h-full rounded-full bg-amber-400 transition-all duration-1000 ease-out"
+                  style={{ width: `${Math.min(100, (yearlyClassProgress / yearlyClassGoal) * 100)}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Monthly Goal Card */}
+          <div className={`p-6 sm:p-8 rounded-2xl border transition-colors ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+              <div className="flex items-center">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-4 ${isDarkMode ? 'bg-purple-900/30 text-purple-400' : 'bg-purple-100 text-purple-600'}`}>
+                  <Trophy size={24} />
+                </div>
+                <div>
+                  <h2 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Monthly Goal</h2>
+                  <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Class attendance target this month.</p>
+                </div>
+              </div>
+              <div className={`px-4 py-1.5 rounded-lg border font-black text-lg ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'} ${theme.text}`}>
+                {monthlyClassGoal}%
+              </div>
+            </div>
+            
+            <div className="relative pt-2">
+              <div className="flex justify-between items-end mb-2">
+                <span className={`text-sm font-bold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Current: {monthlyClassProgress}%</span>
+                <span className={`text-xs font-semibold ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>{Math.max(0, monthlyClassGoal - monthlyClassProgress)}% to go</span>
+              </div>
+              <div className={`h-4 w-full rounded-full overflow-hidden ${isDarkMode ? 'bg-slate-800' : 'bg-slate-100'}`}>
+                <div 
+                  className={`h-full rounded-full ${theme.bg} transition-all duration-1000 ease-out`}
+                  style={{ width: `${Math.min(100, (monthlyClassProgress / monthlyClassGoal) * 100)}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Monthly Champion Card */}
+          <div className={`p-6 sm:p-8 rounded-2xl border transition-colors relative overflow-hidden ${isDarkMode ? 'bg-gradient-to-br from-amber-900/40 to-slate-900 border-amber-700/50' : 'bg-gradient-to-br from-amber-50 to-white border-amber-200 shadow-sm'}`}>
+            <div className="absolute -right-4 -top-4 text-amber-500/10 pointer-events-none">
+              <Award size={140} />
+            </div>
+            <div className="relative z-10 flex flex-col h-full">
+              <div className="flex items-center mb-4">
+                <Star className="text-amber-500 mr-2" size={20} fill="currentColor" />
+                <h2 className={`text-lg font-bold ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>Attendance Champion</h2>
+              </div>
+              
+              {winner ? (
+                <div className="mt-auto flex items-center">
+                  <div className={`w-14 h-14 rounded-full flex items-center justify-center text-3xl mr-4 shadow-sm border-2 ${isDarkMode ? 'bg-slate-800 border-amber-500/30' : 'bg-white border-amber-200'}`}>
+                    {winner.avatar}
+                  </div>
+                  <div>
+                    <p className={`font-black text-xl leading-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{winner.name}</p>
+                    <p className={`text-sm font-semibold mt-1 flex items-center ${isDarkMode ? 'text-amber-400/80' : 'text-amber-600/80'}`}>
+                      Goal Met: {studentProgress[winner.id]} Days
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-auto flex items-center opacity-70">
+                  <div className={`w-14 h-14 rounded-full flex items-center justify-center border-2 border-dashed mr-4 ${isDarkMode ? 'bg-slate-800/50 border-slate-700 text-slate-600' : 'bg-slate-50 border-slate-300 text-slate-400'}`}>
+                    <Target size={24} />
+                  </div>
+                  <div>
+                    <p className={`font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>No Winner Yet</p>
+                    <p className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Keep tracking attendance!</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+        </div>
+
+        {/* Individual Student Goals */}
+        <div>
+          <h2 className={`text-lg font-bold mb-4 flex items-center ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+            <Target size={20} className="mr-2" />
+            Individual Student Goals
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {STUDENT_DATABASE.map(student => {
+              const current = studentProgress[student.id];
+              const target = studentGoals[student.id];
+              const progressPct = Math.min(100, (current / target) * 100);
+              const isGoalMet = current >= target;
+
+              return (
+                <div key={student.id} className={`p-5 rounded-xl border flex flex-col transition-colors ${isDarkMode ? 'bg-slate-900 border-slate-800 hover:bg-slate-800/50' : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-sm'}`}>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl mr-3 ${isDarkMode ? 'bg-slate-800' : 'bg-slate-100'}`}>
+                        {student.avatar}
+                      </div>
+                      <span className={`font-bold ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>{student.name}</span>
+                    </div>
+                    {isGoalMet && (
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-amber-100 text-amber-500 animate-in zoom-in duration-300" title="Goal Met!">
+                        <Star size={16} className="fill-current" />
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={`text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Perfect Days</span>
+                    <div className="flex items-center">
+                      <span className={`text-sm font-bold mr-1 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>{current} /</span>
+                      <input 
+                        type="number"
+                        value={target}
+                        onChange={(e) => setStudentGoals(prev => ({...prev, [student.id]: Number(e.target.value)}))}
+                        className={`w-9 bg-transparent text-sm font-bold outline-none border-b text-center ${isDarkMode ? 'border-slate-700 text-white focus:border-purple-500' : 'border-slate-300 text-slate-900 focus:border-purple-500'}`}
+                        min="1" max="31"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className={`h-2 w-full rounded-full overflow-hidden mt-1 ${isDarkMode ? 'bg-slate-800' : 'bg-slate-100'}`}>
+                    <div 
+                      className={`h-full rounded-full transition-all duration-1000 ease-out ${isGoalMet ? 'bg-amber-400' : theme.bg}`}
+                      style={{ width: `${progressPct}%` }}
+                    ></div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+      </div>
+    );
+  };
+
+  return (
+    <div className={`flex min-h-screen font-sans transition-all duration-300 ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'} ${isLeft ? 'flex-row' : 'flex-row-reverse'}`}>
+      
+      {/* 1. PRIMARY SIDEBAR */}
+      <aside className={`relative z-50 transition-all duration-300 ease-in-out flex flex-col shadow-sm ${sidebarWidth} ${isLeft ? 'border-r' : 'border-l'} ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+        <div className={`flex items-center justify-center shrink-0 border-b ${navHeight} w-full ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+          <div className="flex items-center justify-center px-4">
+            {isSidebarOpen ? <LogoHorizontal className="h-6 w-auto" /> : <LogoIcon2x2 className="w-8 h-8" />}
+          </div>
+        </div>
+
+        <div className="pt-2 shrink-0"></div>
+
+        <nav className="flex-1 px-2 space-y-1 pt-2 pb-10 relative overflow-x-visible">
+          {navigationItems.map((item) => {
+            const isTabActive = activeTab === item.name || (item.type === 'accordion' && item.subItems.includes(activeTab));
+            const isPanelOpen = panelItem === item.id;
+            const isVisuallyActive = isTabActive || isPanelOpen;
+            const isExpanded = expandedItem === item.id;
+            const hasPopout = popoutItem === item.id;
+
+            return (
+              <div key={item.id} className="relative">
+                <button
+                  onClick={() => handleItemClick(item)}
+                  className={`flex items-center transition-all group relative rounded-xl h-12
+                    ${isSidebarOpen ? 'w-full px-3' : 'w-16 mx-auto justify-center'}
+                    ${isVisuallyActive ? `${theme.bg} text-white shadow-lg` : `${isDarkMode ? 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}`}
+                >
+                  <div className={`flex items-center justify-center shrink-0`}>
+                    <item.icon size={20} strokeWidth={isVisuallyActive ? 2.5 : 2} />
+                  </div>
+                  {isSidebarOpen && (
+                    <>
+                      <span className="ml-4 font-semibold text-sm flex-1 text-left truncate">{item.name}</span>
+                      {item.type === 'accordion' && (
+                        <ChevronDown size={14} className={`transition-transform duration-200 shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
+                      )}
+                      {item.type === 'panel' && (
+                        <ChevronRight size={14} className={`transition-all duration-200 shrink-0 ${isLeft ? '' : 'rotate-180'} ${isPanelOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-40'}`} />
+                      )}
+                      {item.type === 'popout' && <MoreVertical size={14} className="opacity-40 shrink-0" />}
+                    </>
+                  )}
+                  {!isSidebarOpen && (
+                    <div className={`absolute ${isLeft ? 'left-full ml-4' : 'right-full mr-4'} px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-[60] whitespace-nowrap shadow-xl`}>
+                      {item.name}
+                    </div>
+                  )}
+                </button>
+                {item.type === 'accordion' && isExpanded && isSidebarOpen && (
+                  <div className={`mt-1 space-y-1 ${isDarkMode ? 'border-slate-800' : 'border-slate-100'} ${isLeft ? 'ml-10 border-l-2' : 'mr-10 border-r-2'}`}>
+                    {item.subItems.map(sub => (
+                      <button 
+                        key={sub}
+                        onClick={() => setActiveTab(sub)}
+                        className={`block w-full text-left py-2 px-4 text-xs font-medium transition-colors
+                          ${isLeft ? 'rounded-r-lg' : 'rounded-l-lg text-right'}
+                          ${activeTab === sub ? `${theme.text} ${isDarkMode ? 'bg-slate-800' : 'bg-slate-50'} font-bold` : `${isDarkMode ? 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/50' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50/50'}`}`}
+                      >
+                        {sub}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {item.type === 'popout' && hasPopout && (
+                  <div 
+                    ref={popoutRef} 
+                    className={`absolute z-[100] border rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] py-2 min-w-[200px]
+                      ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}
+                      ${isLeft ? 'left-full ml-4' : 'right-full mr-4'}
+                      top-0`}
+                  >
+                    <div className={`px-3 py-2 mb-1 border-b ${isDarkMode ? 'border-slate-800/50' : 'border-slate-50'}`}>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.name} Options</p>
+                    </div>
+                    {item.actions.map(action => (
+                      <button
+                        key={action.name}
+                        className={`w-full flex items-center px-3 py-2.5 text-xs font-semibold transition-colors ${action.color || (isDarkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-50')}`}
+                        onClick={() => { setPopoutItem(null); setActiveTab(`${item.name}: ${action.name}`); }}
+                      >
+                        <div className={`w-6 h-6 rounded flex items-center justify-center mr-3 ${action.color ? 'bg-rose-50' : (isDarkMode ? 'bg-slate-800' : 'bg-slate-50')}`}>
+                           <action.icon size={12} />
+                        </div>
+                        {action.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </nav>
+
+        {/* BOTTOM QUICK SETTINGS SECTION */}
+        <div className={`p-2 border-t ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+           <div className={`flex transition-all duration-300 ${isSidebarOpen ? 'flex-row items-center space-x-2' : 'flex-col items-center space-y-2'}`}>
+              
+              <button 
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className={`flex items-center justify-center rounded-xl transition-all h-12 ${isSidebarOpen ? 'flex-1 px-3' : 'w-16'} ${isDarkMode ? 'text-amber-400 bg-slate-800 hover:bg-slate-700' : 'text-slate-400 bg-slate-50 hover:bg-slate-100 hover:text-slate-900'}`}
+                title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              >
+                <div className="shrink-0 flex items-center justify-center">
+                  {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+                </div>
+                {isSidebarOpen && <span className="ml-2 text-[9px] font-black uppercase tracking-tighter whitespace-nowrap">Dark</span>}
+              </button>
+
+              <button 
+                onClick={() => { setSidebarSide(isLeft ? 'right' : 'left'); setPanelItem(null); }}
+                className={`flex items-center justify-center rounded-xl transition-all h-12 ${isSidebarOpen ? 'flex-1 px-3' : 'w-16'} ${isDarkMode ? 'text-slate-500 hover:bg-slate-800 hover:text-slate-200' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`}
+                title="Flip Sidebar Side"
+              >
+                <div className="shrink-0 flex items-center justify-center">
+                  <ArrowLeftRight size={16} />
+                </div>
+                {isSidebarOpen && <span className="ml-2 text-[9px] font-black uppercase tracking-tighter whitespace-nowrap">Flip</span>}
+              </button>
+
+              <button
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className={`flex items-center justify-center transition-all rounded-xl h-12 ${isSidebarOpen ? 'flex-1 px-3' : 'mx-auto w-16'} ${isDarkMode ? 'text-slate-400 bg-slate-800/40 hover:bg-slate-700/60 hover:text-slate-200' : 'text-slate-400 bg-slate-50 hover:bg-slate-100 hover:text-slate-900'}`}
+                title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
+              >
+                <div className="shrink-0 flex items-center justify-center">
+                  {isSidebarOpen ? <ChevronLeft size={18} className={!isLeft ? 'rotate-180' : ''} /> : <Menu size={20} />}
+                </div>
+                {isSidebarOpen && <span className="ml-2 text-[9px] font-black uppercase tracking-tighter whitespace-nowrap">Menu</span>}
+              </button>
+           </div>
+        </div>
+      </aside>
+
+      {/* 2. SECONDARY SIDEBAR PANEL */}
+      <div 
+        className={`z-40 transition-all duration-300 ease-in-out overflow-hidden flex flex-col
+          ${panelItem ? 'w-72' : 'w-0'}
+          ${isDarkMode ? 'bg-slate-900' : 'bg-white'}
+          ${isLeft ? `border-r ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}` : `border-l ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}`}
+      >
+        <div className={`w-72 flex flex-col h-full transition-opacity duration-300 ${panelItem ? 'opacity-100' : 'opacity-0'}`}>
+          <div className={`flex items-center justify-between p-6 shrink-0 border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-100'} ${navHeight}`}>
+            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Resources</h2>
+            <button onClick={() => setPanelItem(null)} className={`p-1 rounded-md transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50'}`}>
+              <X size={16} />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {navigationItems.find(i => i.id === panelItem)?.panelContent?.map((sub, index, arr) => (
+              <button 
+                key={sub.label}
+                onClick={() => setActiveTab(`Resource: ${sub.label}`)}
+                className={`w-full flex items-center p-5 text-left group transition-all relative
+                  ${isDarkMode ? 'hover:bg-slate-800/50' : 'hover:bg-slate-50/50'}
+                  ${index !== arr.length - 1 ? `border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}` : ''}`}
+              >
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-400 group-hover:text-white group-hover:bg-slate-700' : 'bg-slate-50 border border-slate-100 text-slate-400 group-hover:bg-white group-hover:shadow-sm'} group-hover:${theme.text} group-hover:${theme.border}`}>
+                  <sub.icon size={18} />
+                </div>
+                <div className="ml-4 flex-1">
+                  <span className={`block text-sm font-bold group-hover:${theme.text} transition-colors ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>{sub.label}</span>
+                  <span className="block text-[10px] text-slate-500 font-medium uppercase tracking-tight">Access files</span>
+                </div>
+                <ChevronRight size={14} className={`text-slate-300 opacity-0 group-hover:opacity-100 transition-all transform ${isLeft ? 'group-hover:translate-x-1' : 'rotate-180 group-hover:-translate-x-1'} group-hover:${theme.text}`} />
+              </button>
+            ))}
+          </div>
+          <div className={`p-4 border-t ${isDarkMode ? 'bg-slate-900/50 border-slate-800' : 'bg-slate-50/50 border-slate-100'}`}>
+            <button className={`w-full py-3 px-4 rounded-xl border-2 border-dashed text-xs font-bold transition-all flex items-center justify-center ${isDarkMode ? 'border-slate-800 text-slate-500 hover:border-slate-700 hover:text-slate-300' : 'border-slate-200 text-slate-400 hover:border-slate-300 hover:text-slate-600'} hover:${theme.border} hover:${theme.text}`}>
+               <Plus size={14} className="mr-2" /> Create New
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* MAIN CONTENT AREA */}
+      <div className="flex-1 flex flex-col min-w-0 relative z-10">
+        <header className={`border-b flex items-center px-6 z-20 shrink-0 ${navHeight} sticky top-0 transition-colors duration-300 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+          
+          <div className={`transition-all duration-500 overflow-hidden flex items-center shrink-0 ${isSearchExpanded && !useOverlaySearch ? 'w-0 opacity-0 mr-0' : 'flex-1 opacity-100 mr-4'}`}>
+            <div className="flex items-center text-lg font-bold whitespace-nowrap tracking-tight">
+              <span className={isDarkMode ? 'text-white' : 'text-slate-900'}>Edu.</span>
+              <span className={theme.text}>{currentAppName}</span>
+            </div>
+          </div>
+          
+          {useOverlaySearch && isSearchExpanded && (
+            <div className={`absolute inset-x-0 inset-y-0 z-50 flex items-center px-4 animate-in fade-in slide-in-from-top-2 duration-300 ${isDarkMode ? 'bg-slate-900' : 'bg-white'}`}>
+                <Search size={18} className="text-slate-400 mr-3" />
+                <input
+                    type="text"
+                    placeholder="Search..."
+                    autoFocus
+                    className={`flex-1 bg-transparent border-none outline-none text-sm font-medium ${isDarkMode ? 'text-white' : 'text-slate-900'}`}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <button onClick={() => setIsSearchExpanded(false)} className="p-2 text-slate-400 hover:text-slate-900">
+                    <X size={18} />
+                </button>
+            </div>
+          )}
+          
+          <div className={`flex items-center justify-end flex-1 h-full relative`}>
+             {!useOverlaySearch && (
+               <div 
+                  ref={searchRef} 
+                  className={`flex items-center relative transition-all duration-500 ease-in-out h-10 justify-end
+                    ${isSearchExpanded ? 'flex-1 max-w-xl mr-4' : 'w-10'}`}
+               >
+                  <div className={`relative h-full transition-all duration-500 overflow-hidden flex items-center ${isSearchExpanded ? 'w-full' : 'w-0'}`}>
+                    <div className={`absolute left-0 flex items-center justify-center w-12 h-10 z-30 ${isSearchExpanded ? theme.text : 'text-slate-400'}`}>
+                        <Search size={18} />
+                    </div>
+
+                    <input
+                      type="text"
+                      placeholder="Search resources..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className={`w-full h-full border rounded-full pl-12 pr-12 text-sm font-medium outline-none focus:outline-none transition-all duration-300 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white focus:bg-slate-700 focus:border-slate-600' : 'bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-slate-300'}`}
+                      autoFocus={isSearchExpanded}
+                    />
+                    
+                    <div className="absolute right-0 flex items-center justify-center w-12 h-10 z-30">
+                        <button 
+                            onClick={(e) => { 
+                                e.stopPropagation();
+                                if (searchQuery) {
+                                    setSearchQuery("");
+                                } else {
+                                    setIsSearchExpanded(false);
+                                }
+                            }}
+                            className={`p-1.5 text-slate-400 hover:text-slate-900 transition-all duration-300 transform
+                            ${isSearchExpanded ? 'opacity-100 scale-100' : 'opacity-0 scale-50 pointer-events-none'}`}
+                        >
+                            <X size={16} strokeWidth={2.5} />
+                        </button>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={() => setIsSearchExpanded(true)}
+                    className={`absolute right-0 p-2 text-slate-400 hover:${theme.text} rounded-full transition-all duration-300 z-20 
+                      ${isSearchExpanded ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                  >
+                    <Search size={18} />
+                  </button>
+               </div>
+             )}
+
+             {useOverlaySearch && !isSearchExpanded && (
+                <button onClick={() => setIsSearchExpanded(true)} className="p-2 text-slate-400 hover:text-slate-900 rounded-full mr-2">
+                    <Search size={18} />
+                </button>
+             )}
+             
+             <div className={`flex items-center space-x-2 shrink-0 transition-all duration-300 ${isSearchExpanded && useOverlaySearch ? 'opacity-0' : 'opacity-100'}`}>
+                <button className={`p-2 text-slate-400 hover:${theme.text} rounded-full transition-colors`}>
+                  <Grid size={18} />
+                </button>
+                <button className={`p-2 text-slate-400 hover:${theme.text} rounded-full transition-colors relative`}>
+                  <Bell size={18} />
+                  <span className={`absolute top-2.5 right-2.5 w-1.5 h-1.5 ${theme.bg} rounded-full border border-white`}></span>
+                </button>
+                <div className={`h-6 w-[1px] mx-1 shrink-0 ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`}></div>
+                <button className={`w-9 h-9 rounded-full flex items-center justify-center transition-all shadow-sm ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white hover:border-slate-600' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-white hover:shadow-md'}`}>
+                  <User size={20} strokeWidth={2} />
+                </button>
+             </div>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-auto p-10 relative">
+          {activeTab === 'Daily Attendance' && renderDailyAttendance()}
+          {activeTab === 'Lunch Count' && renderLunchCount()}
+          {activeTab === 'Reports' && renderReports()}
+          {activeTab === 'Awards' && renderAwards()}
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default App;

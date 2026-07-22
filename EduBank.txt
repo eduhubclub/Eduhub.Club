@@ -1,0 +1,2299 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { 
+  Menu, 
+  ChevronLeft, 
+  ChevronDown,
+  Home, 
+  BarChart2, 
+  Users, 
+  Settings, 
+  HelpCircle, 
+  Layers,
+  ArrowLeftRight,
+  Bell,
+  Search,
+  MoreVertical,
+  Plus,
+  Edit,
+  Trash2,
+  ExternalLink,
+  Library,
+  ChevronRight,
+  Inbox,
+  Send,
+  Archive,
+  Grid,
+  List,
+  User,
+  X,
+  Sun,
+  Moon,
+  Lock,
+  Eye,
+  EyeOff,
+  RefreshCw,
+  QrCode,
+  Download,
+  Printer,
+  Snowflake,
+  Check,
+  Landmark,
+  DollarSign,
+  ArrowUpCircle,
+  ArrowDownCircle,
+  Camera,
+  AlertCircle,
+  FileText,
+  Briefcase,
+  Target,
+  Coins,
+  Award
+} from 'lucide-react';
+
+const STUDENT_DATABASE = [
+  { id: 1, name: "Aiden Thompson", avatar: "🦁" },
+  { id: 2, name: "Bella Rodriguez", avatar: "🦋" },
+  { id: 3, name: "Caleb Wright", avatar: "🦊" },
+  { id: 4, name: "Dakota Smith", avatar: "🎨" },
+  { id: 5, name: "Elena Gilbert", avatar: "⭐" },
+  { id: 6, name: "Finn O'Shea", avatar: "🐳" },
+  { id: 7, name: "Grace Miller", avatar: "🌻" },
+  { id: 8, name: "Hunter Reed", avatar: "🏹" },
+  { id: 9, name: "Isla Brown", avatar: "🦄" },
+  { id: 10, name: "Julian Vance", avatar: "🚀" },
+  { id: 11, name: "Kai Nguyen", avatar: "🌊" },
+  { id: 12, name: "Lily Chen", avatar: "🌸" },
+  { id: 13, name: "Mason Davis", avatar: "🧱" },
+  { id: 14, name: "Nora Quinn", avatar: "🌙" },
+  { id: 15, name: "Owen Taylor", avatar: "🦉" },
+  { id: 16, name: "Piper Hall", avatar: "🍭" },
+  { id: 17, name: "Quinn Adams", avatar: "🐧" },
+  { id: 18, name: "Riley Cooper", avatar: "🐶" },
+  { id: 19, name: "Sofia Lopez", avatar: "☀️" },
+  { id: 20, name: "Toby Wilson", avatar: "🐯" },
+  { id: 21, name: "Ursula King", avatar: "🐚" },
+  { id: 22, name: "Victor Hugo", avatar: "🎩" },
+  { id: 23, name: "Willow Brooks", avatar: "🌿" }
+];
+
+const INITIAL_JOBS = [
+  { id: 'j1', title: 'Line Leader', salary: 15, icon: '🚶' },
+  { id: 'j2', title: 'Paper Passer', salary: 10, icon: '📄' },
+  { id: 'j3', title: 'Tech Assistant', salary: 20, icon: '💻' },
+  { id: 'j4', title: 'Librarian', salary: 15, icon: '📚' },
+  { id: 'j5', title: 'Banker', salary: 25, icon: '🏦' },
+  { id: 'j6', title: 'Messenger', salary: 10, icon: '✉️' },
+  { id: 'j7', title: 'Board Eraser', salary: 10, icon: '🧽' }
+];
+
+const BEHAVIORS = {
+  positive: [
+    { id: 'p1', name: 'Helping Others', points: 1, icon: '🤝' },
+    { id: 'p2', name: 'On Task', points: 1, icon: '🎯' },
+    { id: 'p3', name: 'Teamwork', points: 2, icon: '👥' },
+    { id: 'p4', name: 'Participating', points: 1, icon: '🙋' },
+    { id: 'p5', name: 'Perseverance', points: 2, icon: '🧗' },
+    { id: 'p6', name: 'Working Hard', points: 1, icon: '💪' },
+  ],
+  needsWork: [
+    { id: 'n1', name: 'Off Task', points: -1, icon: '😴' },
+    { id: 'n2', name: 'Talking Out', points: -1, icon: '🗣️' },
+    { id: 'n3', name: 'Unprepared', points: -1, icon: '🎒' },
+    { id: 'n4', name: 'Disrespectful', points: -2, icon: '😠' },
+  ]
+};
+
+/**
+ * EduHub Primary Logo Components
+ */
+const LogoHorizontal = ({ className = "h-8 w-auto" }) => (
+  <svg viewBox="0 0 100 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <circle cx="12" cy="12" r="9.5" className="text-rose-500" />
+    <path d="M37 3 L46 19 H28 L37 3 Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" className="text-orange-500" />
+    <rect x="53" y="2.5" width="19" height="19" rx="3" className="text-emerald-500" />
+    <path d="M88 4 C 96 4, 98 12, 94 18 C 88 24, 78 18, 80 10 C 82 4, 94 8, 92 14 C 90 20, 82 18, 84 12 C 86 6, 92 10, 88 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky-500" />
+  </svg>
+);
+
+const LogoIcon2x2 = ({ className = "w-16 h-16" }) => (
+  <svg viewBox="0 0 44 44" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <circle cx="10" cy="10" r="8" className="text-rose-500" />
+    <path d="M34 2 L42 18 H26 L34 2 Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" className="text-orange-500" />
+    <rect x="2" y="26" width="16" height="16" rx="3" className="text-emerald-500" />
+    <path d="M34 26 C 40 26, 42 32, 39 36 C 34 41, 27 37, 28 31 C 29 27, 38 30, 37 34 C 36 38, 30 37, 31 32 C 32 28, 37 31, 34 35" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky-500" />
+  </svg>
+);
+
+const App = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [sidebarSide, setSidebarSide] = useState('left');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [activeTab, setActiveTab] = useState('Behavior');
+  const [expandedItem, setExpandedItem] = useState(null); 
+  const [popoutItem, setPopoutItem] = useState(null); 
+  const [panelItem, setPanelItem] = useState(null); 
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [useOverlaySearch, setUseOverlaySearch] = useState(false);
+  
+  const currentAppName = "ClassBank"; 
+  
+  const appThemes = {
+    "ClassBank": { primary: "green-500", bg: "bg-green-500", text: "text-green-500", border: "border-green-500", hoverBg: "hover:bg-green-50", ring: "ring-green-500" },
+    "Hub": { primary: "green-500", bg: "bg-green-500", text: "text-green-500", border: "border-green-500", hoverBg: "hover:bg-green-50", ring: "ring-green-500" },
+    "District": { primary: "rose-500", bg: "bg-rose-500", text: "text-rose-500", border: "border-rose-500", hoverBg: "hover:bg-rose-50", ring: "ring-rose-500" },
+    "Admin": { primary: "emerald-500", bg: "bg-emerald-500", text: "text-emerald-500", border: "border-emerald-500", hoverBg: "hover:bg-emerald-50", ring: "ring-emerald-500" },
+    "Analytics": { primary: "orange-500", bg: "bg-orange-500", text: "text-orange-500", border: "border-orange-500", hoverBg: "hover:bg-orange-50", ring: "ring-orange-500" }
+  };
+
+  const theme = appThemes[currentAppName] || appThemes["ClassBank"];
+  const popoutRef = useRef(null);
+  const searchRef = useRef(null);
+  const isLeft = sidebarSide === 'left';
+
+  // --- Core & Banking State ---
+  const [viewMode, setViewMode] = useState('grid');
+  const [bankViewMode, setBankViewMode] = useState('grid'); 
+  const [selectedStudent, setSelectedStudent] = useState(null); 
+  const [editedPin, setEditedPin] = useState(""); 
+  const [isEditingName, setIsEditingName] = useState(false); 
+  const [editedName, setEditedName] = useState("");
+  const [selectedQrStudent, setSelectedQrStudent] = useState(null); 
+  const [transactionModal, setTransactionModal] = useState(null); 
+  const [classDeposit, setClassDeposit] = useState(null); 
+  const [paydayModal, setPaydayModal] = useState(null); 
+  const [studentToDelete, setStudentToDelete] = useState(null); // State for Delete Confirmation
+  
+  // --- Jobs State ---
+  const [jobsList, setJobsList] = useState(INITIAL_JOBS);
+  const [manageJobModal, setManageJobModal] = useState(null); 
+  const [assignJobModal, setAssignJobModal] = useState(null); 
+  const [openTxMenuId, setOpenTxMenuId] = useState(null); // State for transaction row menus
+
+  // --- Behavior State ---
+  const [behaviorModal, setBehaviorModal] = useState(null); 
+  const [syncBehaviorToBank, setSyncBehaviorToBank] = useState(false); 
+
+  // --- Pending Approvals State ---
+  const [pendingApprovals, setPendingApprovals] = useState([
+    { id: 'pa1', studentId: 4, studentName: 'Dakota Smith', studentAvatar: '🎨', date: '10 mins ago', description: 'Class Store: Fancy Eraser', amount: 15, type: 'deduct' },
+    { id: 'pa2', studentId: 12, studentName: 'Lily Chen', studentAvatar: '🌸', date: '1 hour ago', description: 'Found a lost book', amount: 5, type: 'deposit' }
+  ]);
+
+  const [studentsData, setStudentsData] = useState(() => {
+    const goals = [{ item: "Homework Pass", amount: 150 }, { item: "Pizza Slice", amount: 300 }, { item: "Extra Recess", amount: 200 }, { item: "Prize Box", amount: 100 }];
+    
+    return STUDENT_DATABASE.map((student, index) => {
+      const assignedJob = INITIAL_JOBS[Math.floor(Math.random() * INITIAL_JOBS.length)];
+      return {
+        ...student,
+        pin: Math.floor(1000 + Math.random() * 9000).toString(),
+        isPinVisible: false,
+        balance: Math.floor(Math.random() * 300) + 20,
+        behaviorPoints: Math.floor(Math.random() * 10),
+        job: assignedJob.title,
+        salary: assignedJob.salary,
+        goal: goals[Math.floor(Math.random() * goals.length)],
+        transactions: [
+          { id: Date.now() - (index * 1000) - 10000, date: 'Today', description: 'Class Store Purchase', amount: 15, type: 'deduct' },
+          { id: Date.now() - (index * 1000) - 86400000, date: 'Yesterday', description: 'Weekly Allowance', amount: 50, type: 'deposit' },
+          { id: Date.now() - (index * 1000) - 172800000, date: 'Oct 24', description: 'Homework Bonus', amount: 10, type: 'deposit' }
+        ]
+      };
+    });
+  });
+
+  const togglePinVisibility = (id) => {
+    setStudentsData(prev => prev.map(s => 
+      s.id === id ? { ...s, isPinVisible: !s.isPinVisible } : s
+    ));
+  };
+
+  const savePin = () => {
+    if (editedPin.length === 4 && selectedStudent) {
+      setStudentsData(prev => prev.map(s => 
+        s.id === selectedStudent.id ? { ...s, pin: editedPin } : s
+      ));
+      setSelectedStudent(prev => ({ ...prev, pin: editedPin }));
+    }
+  };
+
+  const saveName = () => {
+    if (editedName.trim() && selectedStudent) {
+      setStudentsData(prev => prev.map(s => 
+        s.id === selectedStudent.id ? { ...s, name: editedName.trim() } : s
+      ));
+      setSelectedStudent(prev => ({ ...prev, name: editedName.trim() }));
+      setIsEditingName(false);
+    }
+  };
+
+  const executeTransaction = () => {
+    const amount = parseFloat(transactionModal.amount);
+    if (isNaN(amount) || amount <= 0) {
+      setTransactionModal(prev => ({ ...prev, error: 'Please enter a valid amount.' }));
+      return;
+    }
+    
+    if (transactionModal.mode === 'pin' && transactionModal.pin !== transactionModal.student.pin) {
+      setTransactionModal(prev => ({ ...prev, error: 'Incorrect PIN. Try again.' }));
+      return;
+    }
+
+    const newTx = {
+      id: Date.now(),
+      date: 'Just now',
+      description: transactionModal.description || (transactionModal.type === 'deposit' ? 'Deposit' : 'Deduction'),
+      amount: amount,
+      type: transactionModal.type
+    };
+
+    setStudentsData(prev => prev.map(s => {
+      if (s.id === transactionModal.student.id) {
+        return {
+          ...s,
+          balance: transactionModal.type === 'deposit' ? s.balance + amount : s.balance - amount,
+          transactions: [newTx, ...(s.transactions || [])]
+        };
+      }
+      return s;
+    }));
+    
+    setTransactionModal(null);
+  };
+
+  const executeClassDeposit = () => {
+    const amount = parseFloat(classDeposit.amount);
+    if (isNaN(amount) || amount <= 0) {
+      setClassDeposit(prev => ({ ...prev, error: 'Please enter a valid amount.' }));
+      return;
+    }
+    
+    if (classDeposit.teacherPin !== '1234') {
+      setClassDeposit(prev => ({ ...prev, error: 'Incorrect Teacher PIN. (Hint: use 1234)' }));
+      return;
+    }
+
+    const newTx = {
+      id: Date.now(),
+      date: 'Just now',
+      description: classDeposit.description || 'Class Deposit',
+      amount: amount,
+      type: 'deposit'
+    };
+
+    setStudentsData(prev => prev.map(s => ({
+      ...s,
+      balance: s.balance + amount,
+      transactions: [newTx, ...(s.transactions || [])]
+    })));
+    
+    setClassDeposit(null);
+  };
+
+  const executePayday = () => {
+    if (paydayModal.teacherPin !== '1234') {
+      setPaydayModal(prev => ({ ...prev, error: 'Incorrect Teacher PIN. (Hint: use 1234)' }));
+      return;
+    }
+    
+    if (paydayModal.selectedStudents.length === 0) {
+      setPaydayModal(prev => ({ ...prev, error: 'Please select at least one student.' }));
+      return;
+    }
+
+    setStudentsData(prev => prev.map(s => {
+      if (!paydayModal.selectedStudents.includes(s.id)) return s; 
+      
+      const salaryAmount = s.salary || 0;
+      if (salaryAmount === 0) return s; 
+      
+      const newTx = {
+        id: Date.now() + s.id, 
+        date: 'Just now',
+        description: `Payday: ${s.job}`,
+        amount: salaryAmount,
+        type: 'deposit'
+      };
+      
+      return {
+        ...s,
+        balance: s.balance + salaryAmount,
+        transactions: [newTx, ...(s.transactions || [])]
+      };
+    }));
+    
+    setPaydayModal(null);
+  };
+
+  const executeBehavior = (behavior) => {
+    if (!behaviorModal || behaviorModal.selectedStudents.length === 0) return;
+
+    setStudentsData(prev => prev.map(s => {
+      if (behaviorModal.selectedStudents.includes(s.id)) {
+         let updatedStudent = {
+           ...s,
+           behaviorPoints: (s.behaviorPoints || 0) + behavior.points
+         };
+
+         if (syncBehaviorToBank) {
+            const amount = Math.abs(behavior.points); 
+            const isDeposit = behavior.points > 0;
+            const newTx = {
+              id: Date.now() + s.id + Math.random(), 
+              date: 'Just now',
+              description: `Behavior: ${behavior.name}`,
+              amount: amount,
+              type: isDeposit ? 'deposit' : 'deduct'
+            };
+            updatedStudent.balance = isDeposit ? s.balance + amount : Math.max(0, s.balance - amount); 
+            updatedStudent.transactions = [newTx, ...(s.transactions || [])];
+         }
+         return updatedStudent;
+      }
+      return s;
+    }));
+    
+    setBehaviorModal(null);
+  };
+
+  const executeDeleteStudent = () => {
+    if (!studentToDelete) return;
+    
+    // Remove student from database
+    setStudentsData(prev => prev.filter(s => s.id !== studentToDelete.id));
+    
+    // Close modal and return to roster
+    setStudentToDelete(null);
+    setSelectedStudent(null);
+  };
+
+  const executeManageJob = () => {
+    if (!manageJobModal.job.title || manageJobModal.job.salary === '') {
+       setManageJobModal(prev => ({ ...prev, error: 'Title and Base Salary are required.' }));
+       return;
+    }
+    
+    if (manageJobModal.mode === 'create') {
+      setJobsList([...jobsList, manageJobModal.job]);
+    } else {
+      setJobsList(jobsList.map(j => j.id === manageJobModal.job.id ? manageJobModal.job : j));
+      // Update students who had the old job title
+      setStudentsData(prev => prev.map(s => 
+        s.job === manageJobModal.oldTitle 
+          ? { ...s, job: manageJobModal.job.title, salary: parseFloat(manageJobModal.job.salary) } 
+          : s
+      ));
+    }
+    setManageJobModal(null);
+  };
+
+  const executeDeleteJob = () => {
+    setJobsList(jobsList.filter(j => j.id !== manageJobModal.job.id));
+    // Set students with this job to unassigned
+    setStudentsData(prev => prev.map(s => 
+      s.job === manageJobModal.oldTitle 
+        ? { ...s, job: 'Unassigned', salary: 0 } 
+        : s
+    ));
+    setManageJobModal(null);
+  };
+
+  const executeAssignJob = () => {
+    setStudentsData(prev => prev.map(s => {
+      const isSelected = assignJobModal.selectedStudents.includes(s.id);
+      if (isSelected && s.job !== assignJobModal.job.title) {
+        // Give them this job
+        return { ...s, job: assignJobModal.job.title, salary: parseFloat(assignJobModal.job.salary) };
+      } else if (!isSelected && s.job === assignJobModal.job.title) {
+        // Remove this job if they had it
+        return { ...s, job: 'Unassigned', salary: 0 };
+      }
+      return s;
+    }));
+    setAssignJobModal(null);
+  };
+
+  const executeUndoTransaction = (studentId, transactionId) => {
+    setStudentsData(prev => prev.map(s => {
+      if (s.id !== studentId) return s;
+      
+      const txToUndo = s.transactions?.find(tx => tx.id === transactionId);
+      if (!txToUndo) return s;
+      
+      // Reverse the operation
+      const balanceChange = txToUndo.type === 'deposit' ? -txToUndo.amount : txToUndo.amount;
+      
+      return {
+        ...s,
+        balance: Math.max(0, s.balance + balanceChange),
+        transactions: s.transactions.filter(tx => tx.id !== transactionId)
+      };
+    }));
+    setOpenTxMenuId(null);
+  };
+
+  const handleApproveTransaction = (request) => {
+    setStudentsData(prev => prev.map(s => {
+      if (s.id === request.studentId) {
+        const newTx = {
+          id: Date.now(),
+          date: 'Just now',
+          description: request.description,
+          amount: request.amount,
+          type: request.type
+        };
+        return {
+          ...s,
+          balance: request.type === 'deposit' ? s.balance + request.amount : Math.max(0, s.balance - request.amount),
+          transactions: [newTx, ...(s.transactions || [])]
+        };
+      }
+      return s;
+    }));
+    // Remove from pending
+    setPendingApprovals(prev => prev.filter(req => req.id !== request.id));
+  };
+
+  const handleDenyTransaction = (requestId) => {
+    setPendingApprovals(prev => prev.filter(req => req.id !== requestId));
+  };
+  // -----------------------------
+
+  useEffect(() => {
+    const handleResize = () => {
+      setUseOverlaySearch(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (popoutRef.current && !popoutRef.current.contains(event.target)) {
+        setPopoutItem(null);
+      }
+      if (searchRef.current && !searchRef.current.contains(event.target) && !searchQuery) {
+        setIsSearchExpanded(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [searchQuery]);
+
+  const navigationItems = [
+    { id: 'bank', name: 'Bank', icon: Landmark, type: 'link' },
+    { id: 'behavior', name: 'Behavior', icon: Award, type: 'link' },
+    { id: 'jobs', name: 'Jobs', icon: Briefcase, type: 'link' },
+    { id: 'transactions', name: 'Transactions', icon: ArrowLeftRight, type: 'link' },
+    { id: 'students', name: 'Students', icon: Users, type: 'link' }
+  ];
+
+  const sidebarWidth = isSidebarOpen ? 'w-64' : 'w-20';
+  const navHeight = 'h-16';
+
+  const handleItemClick = (item) => {
+    if (item.type === 'link') {
+      setActiveTab(item.name);
+      setExpandedItem(null);
+      setPanelItem(null);
+    } else if (item.type === 'accordion') {
+      if (!isSidebarOpen) setIsSidebarOpen(true);
+      setExpandedItem(expandedItem === item.id ? null : item.id);
+      setPanelItem(null);
+    } else if (item.type === 'popout') {
+      setPopoutItem(popoutItem === item.id ? null : item.id);
+    } else if (item.type === 'panel') {
+      const isOpening = panelItem !== item.id;
+      setPanelItem(isOpening ? item.id : null);
+      setExpandedItem(null);
+      if (isOpening) setActiveTab(null);
+    }
+  };
+
+  return (
+    <div className={`flex h-screen overflow-hidden font-sans transition-all duration-300 ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'} ${isLeft ? 'flex-row' : 'flex-row-reverse'}`}>
+      
+      {/* 1. PRIMARY SIDEBAR */}
+      <aside className={`relative z-50 transition-all duration-300 ease-in-out flex flex-col shadow-sm ${sidebarWidth} ${isLeft ? 'border-r' : 'border-l'} ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+        <div className={`flex items-center justify-center shrink-0 border-b ${navHeight} w-full ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+          <div className="flex items-center justify-center px-4">
+            {isSidebarOpen ? <LogoHorizontal className="h-6 w-auto" /> : <LogoIcon2x2 className="w-8 h-8" />}
+          </div>
+        </div>
+
+        <div className="pt-2 shrink-0"></div>
+
+        <nav className="flex-1 px-2 space-y-1 pt-2 pb-4 relative overflow-y-auto overflow-x-hidden">
+          {navigationItems.map((item) => {
+            const isTabActive = activeTab === item.name || (item.type === 'accordion' && item.subItems.includes(activeTab));
+            const isPanelOpen = panelItem === item.id;
+            const isVisuallyActive = isTabActive || isPanelOpen;
+            const isExpanded = expandedItem === item.id;
+            const hasPopout = popoutItem === item.id;
+
+            return (
+              <div key={item.id} className="relative">
+                <button
+                  onClick={() => handleItemClick(item)}
+                  className={`flex items-center transition-all group relative rounded-xl h-12
+                    ${isSidebarOpen ? 'w-full px-3' : 'w-16 mx-auto justify-center'}
+                    ${isVisuallyActive ? `${theme.bg} text-white shadow-lg` : `${isDarkMode ? 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}`}
+                >
+                  <div className={`flex items-center justify-center shrink-0`}>
+                    <item.icon size={20} strokeWidth={isVisuallyActive ? 2.5 : 2} />
+                  </div>
+                  {isSidebarOpen && (
+                    <>
+                      <span className="ml-4 font-semibold text-sm flex-1 text-left truncate">{item.name}</span>
+                      {item.type === 'accordion' && (
+                        <ChevronDown size={14} className={`transition-transform duration-200 shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
+                      )}
+                      {item.type === 'panel' && (
+                        <ChevronRight size={14} className={`transition-all duration-200 shrink-0 ${isLeft ? '' : 'rotate-180'} ${isPanelOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-40'}`} />
+                      )}
+                      {item.type === 'popout' && <MoreVertical size={14} className="opacity-40 shrink-0" />}
+                    </>
+                  )}
+                  {!isSidebarOpen && (
+                    <div className={`absolute ${isLeft ? 'left-full ml-4' : 'right-full mr-4'} px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-[60] whitespace-nowrap shadow-xl`}>
+                      {item.name}
+                    </div>
+                  )}
+                </button>
+                {item.type === 'accordion' && isExpanded && isSidebarOpen && (
+                  <div className={`mt-1 space-y-1 ${isDarkMode ? 'border-slate-800' : 'border-slate-100'} ${isLeft ? 'ml-10 border-l-2' : 'mr-10 border-r-2'}`}>
+                    {item.subItems.map(sub => (
+                      <button 
+                        key={sub}
+                        onClick={() => setActiveTab(sub)}
+                        className={`block w-full text-left py-2 px-4 text-xs font-medium transition-colors
+                          ${isLeft ? 'rounded-r-lg' : 'rounded-l-lg text-right'}
+                          ${activeTab === sub ? `${theme.text} ${isDarkMode ? 'bg-slate-800' : 'bg-slate-50'} font-bold` : `${isDarkMode ? 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/50' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50/50'}`}`}
+                      >
+                        {sub}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {item.type === 'popout' && hasPopout && (
+                  <div 
+                    ref={popoutRef} 
+                    className={`absolute z-[100] border rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] py-2 min-w-[200px]
+                      ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}
+                      ${isLeft ? 'left-full ml-4' : 'right-full mr-4'}
+                      top-0`}
+                  >
+                    <div className={`px-3 py-2 mb-1 border-b ${isDarkMode ? 'border-slate-800/50' : 'border-slate-50'}`}>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.name} Options</p>
+                    </div>
+                    {item.actions.map(action => (
+                      <button
+                        key={action.name}
+                        className={`w-full flex items-center px-3 py-2.5 text-xs font-semibold transition-colors ${action.color || (isDarkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-50')}`}
+                        onClick={() => { setPopoutItem(null); setActiveTab(`${item.name}: ${action.name}`); }}
+                      >
+                        <div className={`w-6 h-6 rounded flex items-center justify-center mr-3 ${action.color ? 'bg-rose-50' : (isDarkMode ? 'bg-slate-800' : 'bg-slate-50')}`}>
+                           <action.icon size={12} />
+                        </div>
+                        {action.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </nav>
+
+        {/* BOTTOM QUICK SETTINGS SECTION */}
+        <div className={`p-2 shrink-0 border-t ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+           <div className={`flex transition-all duration-300 ${isSidebarOpen ? 'flex-row items-center space-x-2' : 'flex-col items-center space-y-2'}`}>
+              
+              {/* DARK MODE - LEFT / TOP */}
+              <button 
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className={`flex items-center justify-center rounded-xl transition-all h-12 ${isSidebarOpen ? 'flex-1 px-3' : 'w-16'} ${isDarkMode ? 'text-amber-400 bg-slate-800 hover:bg-slate-700' : 'text-slate-400 bg-slate-50 hover:bg-slate-100 hover:text-slate-900'}`}
+                title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              >
+                <div className="shrink-0 flex items-center justify-center">
+                  {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+                </div>
+                {isSidebarOpen && <span className="ml-2 text-[9px] font-black uppercase tracking-tighter whitespace-nowrap">Dark</span>}
+              </button>
+
+              {/* FLIP - MIDDLE */}
+              <button 
+                onClick={() => { setSidebarSide(isLeft ? 'right' : 'left'); setPanelItem(null); }}
+                className={`flex items-center justify-center rounded-xl transition-all h-12 ${isSidebarOpen ? 'flex-1 px-3' : 'w-16'} ${isDarkMode ? 'text-slate-500 hover:bg-slate-800 hover:text-slate-200' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`}
+                title="Flip Sidebar Side"
+              >
+                <div className="shrink-0 flex items-center justify-center">
+                  <ArrowLeftRight size={16} />
+                </div>
+                {isSidebarOpen && <span className="ml-2 text-[9px] font-black uppercase tracking-tighter whitespace-nowrap">Flip</span>}
+              </button>
+
+              {/* COLLAPSE - RIGHT / BOTTOM */}
+              <button
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className={`flex items-center justify-center transition-all rounded-xl h-12 ${isSidebarOpen ? 'flex-1 px-3' : 'mx-auto w-16'} ${isDarkMode ? 'text-slate-400 bg-slate-800/40 hover:bg-slate-700/60 hover:text-slate-200' : 'text-slate-400 bg-slate-50 hover:bg-slate-100 hover:text-slate-900'}`}
+                title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
+              >
+                <div className="shrink-0 flex items-center justify-center">
+                  {isSidebarOpen ? <ChevronLeft size={18} className={!isLeft ? 'rotate-180' : ''} /> : <Menu size={20} />}
+                </div>
+                {isSidebarOpen && <span className="ml-2 text-[9px] font-black uppercase tracking-tighter whitespace-nowrap">Menu</span>}
+              </button>
+           </div>
+        </div>
+      </aside>
+
+      {/* 2. SECONDARY SIDEBAR PANEL */}
+      <div 
+        className={`z-40 transition-all duration-300 ease-in-out overflow-hidden flex flex-col
+          ${panelItem ? 'w-72' : 'w-0'}
+          ${isDarkMode ? 'bg-slate-900' : 'bg-white'}
+          ${isLeft ? `border-r ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}` : `border-l ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}`}
+      >
+        <div className={`w-72 flex flex-col h-full transition-opacity duration-300 ${panelItem ? 'opacity-100' : 'opacity-0'}`}>
+          <div className={`flex items-center justify-between p-6 shrink-0 border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-100'} ${navHeight}`}>
+            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Resources</h2>
+            <button onClick={() => setPanelItem(null)} className={`p-1 rounded-md transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50'}`}>
+              <X size={16} />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {navigationItems.find(i => i.id === panelItem)?.panelContent?.map((sub, index, arr) => (
+              <button 
+                key={sub.label}
+                onClick={() => setActiveTab(`Resource: ${sub.label}`)}
+                className={`w-full flex items-center p-5 text-left group transition-all relative
+                  ${isDarkMode ? 'hover:bg-slate-800/50' : 'hover:bg-slate-50/50'}
+                  ${index !== arr.length - 1 ? `border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}` : ''}`}
+              >
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-400 group-hover:text-white group-hover:bg-slate-700' : 'bg-slate-50 border border-slate-100 text-slate-400 group-hover:bg-white group-hover:shadow-sm'} group-hover:${theme.text} group-hover:${theme.border}`}>
+                  <sub.icon size={18} />
+                </div>
+                <div className="ml-4 flex-1">
+                  <span className={`block text-sm font-bold group-hover:${theme.text} transition-colors ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>{sub.label}</span>
+                  <span className="block text-[10px] text-slate-500 font-medium uppercase tracking-tight">Access files</span>
+                </div>
+                <ChevronRight size={14} className={`text-slate-300 opacity-0 group-hover:opacity-100 transition-all transform ${isLeft ? 'group-hover:translate-x-1' : 'rotate-180 group-hover:-translate-x-1'} group-hover:${theme.text}`} />
+              </button>
+            ))}
+          </div>
+          <div className={`p-4 border-t ${isDarkMode ? 'bg-slate-900/50 border-slate-800' : 'bg-slate-50/50 border-slate-100'}`}>
+            <button className={`w-full py-3 px-4 rounded-xl border-2 border-dashed text-xs font-bold transition-all flex items-center justify-center ${isDarkMode ? 'border-slate-800 text-slate-500 hover:border-slate-700 hover:text-slate-300' : 'border-slate-200 text-slate-400 hover:border-slate-300 hover:text-slate-600'} hover:${theme.border} hover:${theme.text}`}>
+               <Plus size={14} className="mr-2" /> Create New
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* MAIN CONTENT AREA */}
+      <div className="flex-1 flex flex-col min-w-0 relative z-10">
+        <header className={`border-b flex items-center px-6 z-20 shrink-0 ${navHeight} sticky top-0 transition-colors duration-300 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+          
+          {/* LEFT: STATIC BRANDING SECTION */}
+          <div 
+            className={`transition-all duration-500 overflow-hidden flex items-center shrink-0 ${isSearchExpanded && !useOverlaySearch ? 'w-0 opacity-0 mr-0' : 'flex-1 opacity-100 mr-4'}`}
+          >
+            <div className="flex items-center text-lg font-bold whitespace-nowrap tracking-tight">
+              <span className={isDarkMode ? 'text-white' : 'text-slate-900'}>Edu.</span>
+              <span className={theme.text}>{currentAppName}</span>
+            </div>
+          </div>
+          
+          {/* MOBILE OVERLAY SEARCH */}
+          {useOverlaySearch && isSearchExpanded && (
+            <div className={`absolute inset-x-0 inset-y-0 z-50 flex items-center px-4 animate-in fade-in slide-in-from-top-2 duration-300 ${isDarkMode ? 'bg-slate-900' : 'bg-white'}`}>
+                <Search size={18} className="text-slate-400 mr-3" />
+                <input
+                    type="text"
+                    placeholder="Search..."
+                    autoFocus
+                    className={`flex-1 bg-transparent border-none outline-none text-sm font-medium ${isDarkMode ? 'text-white' : 'text-slate-900'}`}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <button onClick={() => setIsSearchExpanded(false)} className="p-2 text-slate-400 hover:text-slate-900">
+                    <X size={18} />
+                </button>
+            </div>
+          )}
+          
+          {/* NAV ACTIONS */}
+          <div className={`flex items-center justify-end flex-1 h-full relative`}>
+             
+             {!useOverlaySearch && (
+               <div 
+                  ref={searchRef} 
+                  className={`flex items-center relative transition-all duration-500 ease-in-out h-10 justify-end
+                    ${isSearchExpanded ? 'flex-1 max-w-xl mr-4' : 'w-10'}`}
+               >
+                  <div className={`relative h-full transition-all duration-500 overflow-hidden flex items-center ${isSearchExpanded ? 'w-full' : 'w-0'}`}>
+                    <div className={`absolute left-0 flex items-center justify-center w-12 h-10 z-30 ${isSearchExpanded ? theme.text : 'text-slate-400'}`}>
+                        <Search size={18} />
+                    </div>
+
+                    <input
+                      type="text"
+                      placeholder="Search resources..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className={`w-full h-full border rounded-full pl-12 pr-12 text-sm font-medium outline-none focus:outline-none transition-all duration-300 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white focus:bg-slate-700 focus:border-slate-600' : 'bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-slate-300'}`}
+                      autoFocus={isSearchExpanded}
+                    />
+                    
+                    <div className="absolute right-0 flex items-center justify-center w-12 h-10 z-30">
+                        <button 
+                            onClick={(e) => { 
+                                e.stopPropagation();
+                                if (searchQuery) {
+                                    setSearchQuery("");
+                                } else {
+                                    setIsSearchExpanded(false);
+                                }
+                            }}
+                            className={`p-1.5 text-slate-400 hover:text-slate-900 transition-all duration-300 transform
+                            ${isSearchExpanded ? 'opacity-100 scale-100' : 'opacity-0 scale-50 pointer-events-none'}`}
+                        >
+                            <X size={16} strokeWidth={2.5} />
+                        </button>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={() => setIsSearchExpanded(true)}
+                    className={`absolute right-0 p-2 text-slate-400 hover:${theme.text} rounded-full transition-all duration-300 z-20 
+                      ${isSearchExpanded ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                  >
+                    <Search size={18} />
+                  </button>
+               </div>
+             )}
+
+             {useOverlaySearch && !isSearchExpanded && (
+                <button onClick={() => setIsSearchExpanded(true)} className="p-2 text-slate-400 hover:text-slate-900 rounded-full mr-2">
+                    <Search size={18} />
+                </button>
+             )}
+             
+             {/* RIGHT-SIDE FIXED ACTIONS */}
+             <div className={`flex items-center space-x-2 shrink-0 transition-all duration-300 ${isSearchExpanded && useOverlaySearch ? 'opacity-0' : 'opacity-100'}`}>
+                <button className={`p-2 text-slate-400 hover:${theme.text} rounded-full transition-colors`}>
+                  <Grid size={18} />
+                </button>
+                <button className={`p-2 text-slate-400 hover:${theme.text} rounded-full transition-colors relative`}>
+                  <Bell size={18} />
+                  <span className={`absolute top-2.5 right-2.5 w-1.5 h-1.5 ${theme.bg} rounded-full border border-white`}></span>
+                </button>
+                <div className={`h-6 w-[1px] mx-1 shrink-0 ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`}></div>
+                <button className={`w-9 h-9 rounded-full flex items-center justify-center transition-all shadow-sm ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white hover:border-slate-600' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-white hover:shadow-md'}`}>
+                  <User size={20} strokeWidth={2} />
+                </button>
+             </div>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-auto p-6 md:p-10 relative">
+          {activeTab === 'Students' ? (
+            selectedStudent ? (() => {
+              const currentStudent = studentsData.find(s => s.id === selectedStudent.id) || selectedStudent;
+              const goalProgress = Math.min((currentStudent.balance / currentStudent.goal.amount) * 100, 100);
+              
+              return (
+                <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="mb-6 flex items-center justify-between">
+                    <button 
+                      onClick={() => { setSelectedStudent(null); setEditedPin(""); setIsEditingName(false); }}
+                      className={`flex items-center text-sm font-bold transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}
+                    >
+                      <ChevronLeft size={20} className="mr-1" /> Back to Roster
+                    </button>
+                    
+                    {/* System Controls (Moved out of card) */}
+                    <div className="flex items-center space-x-2">
+                       <button className={`flex items-center px-3 py-2 rounded-xl border text-sm font-bold transition-colors shadow-sm ${isDarkMode ? 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800' : 'bg-white border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`} title="Bank Permissions">
+                         <Settings size={16} className="sm:mr-2 shrink-0" />
+                         <span className="hidden sm:inline">Permissions</span>
+                       </button>
+                       <button className={`flex items-center px-3 py-2 rounded-xl border text-sm font-bold transition-colors shadow-sm ${isDarkMode ? 'bg-slate-900 border-slate-700 text-amber-500/80 hover:text-amber-400 hover:bg-slate-800' : 'bg-white border-slate-200 text-amber-600 hover:text-amber-700 hover:bg-amber-50'}`} title="Freeze Account">
+                         <Snowflake size={16} className="sm:mr-2 shrink-0" />
+                         <span className="hidden sm:inline">Freeze Account</span>
+                       </button>
+                       <button 
+                         onClick={() => setStudentToDelete(currentStudent)}
+                         className={`p-2 rounded-xl border transition-colors shadow-sm ${isDarkMode ? 'bg-slate-900 border-slate-700 text-rose-500/80 hover:text-rose-400 hover:bg-slate-800' : 'bg-white border-slate-200 text-rose-500 hover:text-rose-600 hover:bg-rose-50'}`} 
+                         title="Remove Student"
+                       >
+                         <Trash2 size={16} />
+                       </button>
+                    </div>
+                  </div>
+
+                  <div className={`space-y-6 ${!isSidebarOpen && 'md:space-y-8'}`}>
+                    
+                    {/* ROW 1: Identity, Banking, Access */}
+                    <div className={`grid grid-cols-1 md:grid-cols-2 ${isSidebarOpen ? 'xl:grid-cols-3' : 'lg:grid-cols-3'} gap-4 md:gap-6 ${!isSidebarOpen && 'lg:gap-8'}`}>
+                      
+                      {/* Profile Card */}
+                      <div className={`p-5 ${isSidebarOpen ? 'xl:p-6' : 'md:p-8'} rounded-3xl shadow-sm border flex flex-col items-center justify-center text-center ${isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}>
+                        <div className={`rounded-full flex items-center justify-center shadow-inner ${isDarkMode ? 'bg-slate-800' : 'bg-slate-50'} ${isSidebarOpen ? 'w-20 h-20 text-5xl mb-4' : 'w-28 h-28 text-6xl mb-6'}`}>
+                          {currentStudent.avatar}
+                        </div>
+                        {isEditingName ? (
+                          <div className="flex items-center justify-center space-x-2 w-full mb-2">
+                            <input
+                              type="text"
+                              value={editedName}
+                              onChange={(e) => setEditedName(e.target.value)}
+                              autoFocus
+                              className={`w-full max-w-[180px] px-3 py-1.5 rounded-xl border text-lg font-bold outline-none text-center transition-colors ${isDarkMode ? 'bg-slate-900 border-slate-700 text-white focus:border-slate-500' : 'bg-white border-slate-300 text-slate-900 focus:border-slate-400'}`}
+                              onKeyDown={(e) => e.key === 'Enter' && saveName()}
+                            />
+                            <button onClick={saveName} className={`p-1.5 rounded-lg border border-transparent text-white shadow-sm transition-all shrink-0 ${theme.bg} hover:opacity-90`} title="Save Name"><Check size={18} /></button>
+                            <button onClick={() => setIsEditingName(false)} className={`p-1.5 rounded-lg transition-colors shrink-0 ${isDarkMode ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`} title="Cancel"><X size={18} /></button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center space-x-2 mb-2">
+                            <h4 className={`font-bold truncate ${isSidebarOpen ? 'text-xl' : 'text-2xl'} ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>{currentStudent.name}</h4>
+                            <button onClick={() => { setIsEditingName(true); setEditedName(currentStudent.name); }} className={`p-1.5 rounded-md transition-colors shrink-0 ${isDarkMode ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`} title="Edit Name"><Edit size={16} /></button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Bank Actions / Balance Card */}
+                      <div className={`p-5 ${isSidebarOpen ? 'xl:p-6' : 'md:p-8'} rounded-3xl shadow-sm border flex flex-col ${isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}>
+                        <div className={`flex flex-col items-center justify-center flex-1 ${isSidebarOpen ? 'mb-4' : 'mb-6'}`}>
+                          <p className={`text-[10px] font-bold uppercase tracking-widest ${isSidebarOpen ? 'mb-2' : 'mb-3'} ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Current Balance</p>
+                          <div className={`flex items-center justify-center w-full ${isSidebarOpen ? 'py-3 rounded-2xl' : 'py-5 rounded-3xl'} border ${isDarkMode ? 'bg-slate-800/80 border-slate-700 text-emerald-400' : 'bg-emerald-50 border-emerald-100 text-emerald-700'}`}>
+                            <DollarSign size={isSidebarOpen ? 24 : 28} className="mr-1 opacity-70" />
+                            <span className={`font-black tracking-tight ${isSidebarOpen ? 'text-4xl' : 'text-5xl'}`}>{currentStudent.balance}</span>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 mt-auto">
+                          <button onClick={() => setTransactionModal({ student: currentStudent, type: 'deposit', amount: '', description: '', pin: '', mode: 'pin', error: '' })} className={`flex-1 flex items-center justify-center py-3 px-2 rounded-xl border text-sm font-bold transition-colors ${isDarkMode ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20' : 'border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100'}`}>
+                            <ArrowUpCircle size={18} className="mr-1.5 shrink-0" /> Deposit
+                          </button>
+                          <button onClick={() => setTransactionModal({ student: currentStudent, type: 'deduct', amount: '', description: '', pin: '', mode: 'pin', error: '' })} className={`flex-1 flex items-center justify-center py-3 px-2 rounded-xl border text-sm font-bold transition-colors ${isDarkMode ? 'border-rose-500/30 text-rose-400 bg-rose-500/10 hover:bg-rose-500/20' : 'border-rose-200 text-rose-700 bg-rose-50 hover:bg-rose-100'}`}>
+                            <ArrowDownCircle size={18} className="mr-1.5 shrink-0" /> Deduct
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Log In Access Card */}
+                      <div className={`p-5 ${isSidebarOpen ? 'xl:p-6' : 'md:p-8'} rounded-3xl shadow-sm border flex flex-col ${isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}>
+                        <div className={`flex items-center space-x-2 ${isSidebarOpen ? 'mb-4' : 'mb-6'}`}>
+                          <Lock size={18} className={theme.text} />
+                          <h4 className={`font-bold ${isSidebarOpen ? 'text-base' : 'text-lg'} ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Log In Access</h4>
+                        </div>
+                        <div className={`flex-1 flex flex-col justify-center ${isSidebarOpen ? 'space-y-4' : 'space-y-6'}`}>
+                          <div>
+                            <label className={`block text-[10px] font-bold uppercase tracking-widest ${isSidebarOpen ? 'mb-1' : 'mb-2'} ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Account PIN</label>
+                            <div className="flex items-center space-x-2">
+                              <div className={`flex items-center px-4 py-2.5 rounded-xl border flex-1 transition-colors ${isDarkMode ? 'bg-slate-800 border-slate-700 focus-within:border-slate-500' : 'bg-slate-50 border-slate-200 focus-within:border-slate-400'}`}>
+                                <Lock size={16} className={`mr-3 ${theme.text} opacity-50`} />
+                                <input type="text" value={editedPin} onChange={(e) => setEditedPin(e.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="0000" className={`bg-transparent border-none outline-none font-mono text-lg font-bold tracking-[0.2em] w-full ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`} />
+                              </div>
+                              {editedPin !== currentStudent.pin && editedPin.length === 4 && (
+                                <button onClick={savePin} className={`p-2.5 rounded-xl border border-transparent text-white shadow-sm transition-all animate-in zoom-in duration-200 ${theme.bg} hover:opacity-90`} title="Save New PIN"><Check size={18} /></button>
+                              )}
+                              <button onClick={() => setEditedPin(Math.floor(1000 + Math.random() * 9000).toString())} className={`p-2.5 rounded-xl border transition-colors ${isDarkMode ? 'border-slate-700 text-slate-300 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`} title="Generate Random PIN"><RefreshCw size={18} /></button>
+                            </div>
+                          </div>
+                          <button onClick={() => setSelectedQrStudent(currentStudent)} className={`w-full flex items-center justify-center px-4 py-3 rounded-xl text-sm font-bold border transition-colors ${isDarkMode ? 'border-slate-700 text-slate-300 bg-slate-800/50 hover:bg-slate-800' : 'border-slate-200 text-slate-700 bg-slate-50 hover:bg-slate-100'}`}>
+                            <QrCode size={18} className="mr-2 text-slate-400" /> View QR Code
+                          </button>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    {/* ROW 2: Class Job, Savings Goal */}
+                    <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 ${!isSidebarOpen && 'lg:gap-8'}`}>
+                      
+                      {/* Class Job Card */}
+                      <div className={`p-5 ${isSidebarOpen ? 'xl:p-6' : 'md:p-8'} rounded-3xl shadow-sm border flex flex-col ${isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}>
+                        <div className={`flex items-center justify-between ${isSidebarOpen ? 'mb-4' : 'mb-5'}`}>
+                          <div className="flex items-center space-x-2">
+                            <Briefcase size={18} className="text-amber-500" />
+                            <h4 className={`font-bold ${isSidebarOpen ? 'text-base' : 'text-lg'} ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Class Job</h4>
+                          </div>
+                          <button className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'text-slate-400 hover:bg-slate-800' : 'text-slate-400 hover:bg-slate-100'}`} title="Edit Job">
+                            <Edit size={16} />
+                          </button>
+                        </div>
+                        <div className={`p-4 rounded-2xl border flex-1 flex flex-col justify-center text-center ${isDarkMode ? 'bg-slate-800/50 border-slate-700/50' : 'bg-slate-50 border-slate-100'}`}>
+                          <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Current Role</p>
+                          <p className={`font-bold ${isSidebarOpen ? 'text-xl mb-3' : 'text-2xl mb-4'} ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>{currentStudent.job}</p>
+                          <div className="flex items-center justify-center border-t border-dashed pt-3 border-slate-200 dark:border-slate-700">
+                             <p className={`text-[10px] font-bold uppercase tracking-widest mr-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Salary:</p>
+                             <p className={`font-bold ${isSidebarOpen ? 'text-base' : 'text-lg'} ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>${currentStudent.salary} / week</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Savings Goal Card */}
+                      <div className={`p-5 ${isSidebarOpen ? 'xl:p-6' : 'md:p-8'} rounded-3xl shadow-sm border flex flex-col ${isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}>
+                        <div className={`flex items-center justify-between ${isSidebarOpen ? 'mb-4' : 'mb-5'}`}>
+                          <div className="flex items-center space-x-2">
+                            <Target size={18} className="text-sky-500" />
+                            <h4 className={`font-bold ${isSidebarOpen ? 'text-base' : 'text-lg'} ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Savings Goal</h4>
+                          </div>
+                          <button className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'text-slate-400 hover:bg-slate-800' : 'text-slate-400 hover:bg-slate-100'}`} title="Edit Goal">
+                            <Edit size={16} />
+                          </button>
+                        </div>
+                        <div className={`p-4 rounded-2xl border flex-1 flex flex-col justify-center ${isDarkMode ? 'bg-slate-800/50 border-slate-700/50' : 'bg-slate-50 border-slate-100'}`}>
+                          <div className="flex justify-between items-end mb-3">
+                             <div>
+                               <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Saving For</p>
+                               <p className={`font-bold leading-tight ${isSidebarOpen ? 'text-lg' : 'text-xl'} ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>{currentStudent.goal.item}</p>
+                             </div>
+                             <div className="text-right">
+                                <p className={`font-black ${isSidebarOpen ? 'text-xl' : 'text-2xl'} ${theme.text}`}>${currentStudent.goal.amount}</p>
+                             </div>
+                          </div>
+                          {/* Progress Bar */}
+                          <div className="relative pt-2 mt-auto">
+                            <div className={`flex mb-1.5 items-center justify-between`}>
+                              <div>
+                                <span className={`text-[10px] font-semibold inline-block py-0.5 px-2 uppercase rounded-full ${theme.text} ${theme.bg} bg-opacity-10`}>
+                                  {Math.round(goalProgress)}%
+                                </span>
+                              </div>
+                              <div className="text-right">
+                                <span className={`text-[10px] font-semibold inline-block ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                                  ${currentStudent.balance} / ${currentStudent.goal.amount}
+                                </span>
+                              </div>
+                            </div>
+                            <div className={`overflow-hidden h-2.5 flex rounded-full ${isDarkMode ? 'bg-slate-700' : 'bg-slate-200'}`}>
+                              <div style={{ width: `${goalProgress}%` }} className={`shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center ${theme.bg}`}></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    {/* ROW 3: Transaction History (Full Width) */}
+                    <div className={`p-5 ${isSidebarOpen ? 'xl:p-6' : 'md:p-8'} rounded-3xl shadow-sm border flex flex-col ${isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}>
+                      <div className="flex items-center justify-between mb-4 md:mb-6">
+                        <div>
+                          <h3 className={`font-bold text-xl ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Transaction History</h3>
+                          <p className={`text-sm mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Recent activity feed for {currentStudent.name}</p>
+                        </div>
+                        <button className={`text-sm font-bold transition-colors px-4 py-2 border rounded-xl ${isDarkMode ? 'border-slate-700 text-slate-300 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
+                          View All History
+                        </button>
+                      </div>
+                      
+                      {currentStudent.transactions && currentStudent.transactions.length > 0 ? (
+                        <div className="flex flex-col gap-3">
+                          {currentStudent.transactions.map((tx) => (
+                            <div key={tx.id} className={`flex items-center justify-between p-4 md:px-6 rounded-2xl border transition-all hover:shadow-sm ${isDarkMode ? 'bg-slate-800/50 border-slate-700 hover:border-slate-600' : 'bg-slate-50 border-slate-100 hover:border-slate-200 hover:bg-white'}`}>
+                              <div className="flex items-center space-x-4 flex-1">
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${tx.type === 'deposit' ? (isDarkMode ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-600') : (isDarkMode ? 'bg-rose-500/20 text-rose-400' : 'bg-rose-100 text-rose-600')}`}>
+                                  {tx.type === 'deposit' ? <ArrowUpCircle size={24} /> : <ArrowDownCircle size={24} />}
+                                </div>
+                                <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                                  <p className={`font-bold text-base sm:text-lg truncate mb-1 sm:mb-0 ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>{tx.description}</p>
+                                  <p className={`text-xs sm:text-sm font-semibold tracking-wider uppercase sm:ml-4 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>{tx.date}</p>
+                                </div>
+                              </div>
+                              <div className={`font-black text-xl sm:text-2xl shrink-0 ml-6 ${tx.type === 'deposit' ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                {tx.type === 'deposit' ? '+' : '-'}${tx.amount}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className={`py-12 flex flex-col items-center justify-center text-center ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                          <Layers size={56} className="mb-4 opacity-20" />
+                          <p className="font-semibold text-lg">No transactions yet</p>
+                          <p className="text-sm mt-1 max-w-sm">Activity will appear here when you deposit or deduct funds.</p>
+                        </div>
+                      )}
+                    </div>
+
+                  </div>
+                </div>
+              );
+            })() : (
+              <div className="max-w-7xl mx-auto animate-in fade-in duration-500">
+                {/* Header Section */}
+                <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Classroom Roster</h1>
+                    <p className={`mt-1 text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                      Manage student banking accounts, balances, and login PINs.
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    {/* View Toggle Group */}
+                    <div className={`flex items-center p-1 rounded-lg border ${isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-slate-100 border-slate-200'}`}>
+                      <button 
+                        onClick={() => setViewMode('grid')}
+                        className={`p-1.5 rounded-md transition-all ${viewMode === 'grid' ? (isDarkMode ? 'bg-slate-800 text-white shadow-sm' : 'bg-white text-slate-900 shadow-sm') : 'text-slate-400 hover:text-slate-600'}`}
+                        title="Grid View"
+                      >
+                        <Grid size={16} />
+                      </button>
+                      <button 
+                        onClick={() => setViewMode('list')}
+                        className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? (isDarkMode ? 'bg-slate-800 text-white shadow-sm' : 'bg-white text-slate-900 shadow-sm') : 'text-slate-400 hover:text-slate-600'}`}
+                        title="List View"
+                      >
+                        <List size={16} />
+                      </button>
+                    </div>
+                    <button className={`px-4 py-2 rounded-xl font-bold text-sm border transition-colors ${isDarkMode ? 'border-slate-700 text-slate-300 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-50'} hidden sm:block`}>
+                      Export Roster
+                    </button>
+                    <button className={`flex items-center px-4 py-2 rounded-xl text-white font-bold text-sm shadow-sm transition-all ${theme.bg} hover:opacity-90`}>
+                      <Plus size={16} className="mr-2" strokeWidth={3} /> Add Student
+                    </button>
+                  </div>
+                </div>
+
+                {/* Students Grid / List */}
+                <div className={viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5" : "flex flex-col space-y-3"}>
+                  {studentsData.map(student => (
+                    <div 
+                      key={student.id} 
+                      className={`transition-all duration-300 hover:shadow-lg border ${isDarkMode ? 'bg-slate-800 border-slate-700 hover:border-slate-600 shadow-none' : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm'} ${viewMode === 'grid' ? 'flex flex-col p-5 rounded-2xl' : 'flex flex-col md:flex-row md:items-center p-4 rounded-xl md:gap-6'}`}
+                    >
+                      {/* Avatar & Info */}
+                      <div className={`flex justify-between ${viewMode === 'grid' ? 'items-start mb-5' : 'items-center flex-1 min-w-[200px] mb-4 md:mb-0'}`}>
+                        <div className="flex items-center space-x-4 min-w-0">
+                          <div className={`rounded-full shrink-0 flex items-center justify-center text-3xl shadow-inner ${isDarkMode ? 'bg-slate-900' : 'bg-slate-50'} ${viewMode === 'grid' ? 'w-14 h-14' : 'w-12 h-12 text-2xl'}`}>
+                            {student.avatar}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className={`font-bold truncate ${isDarkMode ? 'text-slate-100' : 'text-slate-800'} ${viewMode === 'grid' ? 'text-lg' : 'text-base'}`}>
+                              {student.name}
+                            </h3>
+                          </div>
+                        </div>
+                        {viewMode === 'grid' && (
+                          <button 
+                            onClick={() => { setSelectedStudent(student); setEditedPin(student.pin); setIsEditingName(false); }}
+                            className={`p-1.5 -mr-2 -mt-2 rounded-lg transition-colors shrink-0 ${isDarkMode ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`} 
+                            title="Student Settings"
+                          >
+                            <MoreVertical size={18} />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* PIN Management */}
+                      <div className={`flex items-center justify-between border ${isDarkMode ? 'bg-slate-900/50 border-slate-700/50' : 'bg-slate-50 border-slate-100'} ${viewMode === 'grid' ? 'p-3.5 rounded-xl mb-4' : 'px-4 py-2 rounded-xl shrink-0 w-full md:w-auto mb-4 md:mb-0'}`}>
+                        <div className="flex items-center space-x-2.5">
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shadow-sm ${isDarkMode ? 'bg-slate-800' : 'bg-white'}`}>
+                            <Lock size={14} className={theme.text} />
+                          </div>
+                          <div className={`flex ${viewMode === 'grid' ? 'flex-col' : 'items-center space-x-3'}`}>
+                            <span className={`text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'text-slate-500' : 'text-slate-400'} ${viewMode === 'list' && 'hidden sm:inline'}`}>PIN</span>
+                            <span className={`text-sm font-mono tracking-[0.2em] font-black ${isDarkMode ? 'text-slate-200' : 'text-slate-700'} ${viewMode === 'list' && 'w-12 text-center'}`}>
+                              {student.isPinVisible ? student.pin : '••••'}
+                            </span>
+                          </div>
+                        </div>
+                        <button 
+                          onClick={() => togglePinVisibility(student.id)} 
+                          className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'text-slate-400 hover:bg-slate-800 hover:text-white' : 'text-slate-400 hover:bg-white hover:text-slate-900 shadow-sm'} ${viewMode === 'list' && 'ml-2'}`}
+                          title={student.isPinVisible ? "Hide PIN" : "Show PIN"}
+                        >
+                          {student.isPinVisible ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+
+                      {/* Actions */}
+                      <div className={`flex items-center space-x-2 ${viewMode === 'grid' ? 'mt-auto pt-2' : 'shrink-0 w-full md:w-auto'}`}>
+                        <button 
+                          onClick={() => setSelectedQrStudent(student)}
+                          className={`flex items-center justify-center p-2.5 rounded-xl border transition-colors ${isDarkMode ? 'border-slate-700 text-slate-300 hover:bg-slate-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                          title="Student Login QR Code"
+                        >
+                          <QrCode size={16} />
+                        </button>
+                        <button className={`flex-1 md:flex-none flex items-center justify-center py-2.5 px-4 rounded-xl border border-transparent text-xs font-bold transition-colors text-white shadow-sm ${theme.bg} hover:opacity-90`}>
+                          <span className="truncate">Bank View</span>
+                        </button>
+                        {viewMode === 'list' && (
+                          <button 
+                            onClick={() => { setSelectedStudent(student); setEditedPin(student.pin); setIsEditingName(false); }}
+                            className={`flex items-center justify-center p-2.5 rounded-xl border transition-colors ${isDarkMode ? 'border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-white' : 'border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-900'}`} 
+                            title="Student Settings"
+                          >
+                            <MoreVertical size={16} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          ) : activeTab === 'Bank' ? (
+            <div className="max-w-7xl mx-auto animate-in fade-in duration-500">
+              {/* Bank Header Section */}
+              <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Classroom Bank</h1>
+                  <p className={`mt-1 text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                    Manage class economy, award points, and track student balances.
+                  </p>
+                </div>
+                <div className="flex items-center space-x-3">
+                  {/* Bank View Toggle Group */}
+                  <div className={`flex items-center p-1 rounded-lg border ${isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-slate-100 border-slate-200'}`}>
+                    <button 
+                      onClick={() => setBankViewMode('grid')}
+                      className={`p-1.5 rounded-md transition-all ${bankViewMode === 'grid' ? (isDarkMode ? 'bg-slate-800 text-white shadow-sm' : 'bg-white text-slate-900 shadow-sm') : 'text-slate-400 hover:text-slate-600'}`}
+                      title="Grid View"
+                    >
+                      <Grid size={16} />
+                    </button>
+                    <button 
+                      onClick={() => setBankViewMode('list')}
+                      className={`p-1.5 rounded-md transition-all ${bankViewMode === 'list' ? (isDarkMode ? 'bg-slate-800 text-white shadow-sm' : 'bg-white text-slate-900 shadow-sm') : 'text-slate-400 hover:text-slate-600'}`}
+                      title="List View"
+                    >
+                      <List size={16} />
+                    </button>
+                  </div>
+                  <button className={`px-4 py-2 rounded-xl font-bold text-sm border transition-colors ${isDarkMode ? 'border-slate-700 text-slate-300 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-50'} hidden sm:block`}>
+                    Transaction Log
+                  </button>
+                  <button 
+                    onClick={() => setPaydayModal({ teacherPin: '', error: '', selectedStudents: studentsData.map(s => s.id) })}
+                    className="flex items-center px-4 py-2 rounded-xl text-white font-bold text-sm shadow-sm transition-all bg-amber-500 hover:bg-amber-600"
+                  >
+                    <Coins size={16} className="mr-1.5" /> Payday
+                  </button>
+                  <button 
+                    onClick={() => setClassDeposit({ amount: '', description: '', teacherPin: '', error: '' })}
+                    className={`flex items-center px-4 py-2 rounded-xl text-white font-bold text-sm shadow-sm transition-all ${theme.bg} hover:opacity-90`}
+                  >
+                    Class Deposit
+                  </button>
+                </div>
+              </div>
+
+              {/* Bank Grid / List */}
+              <div className={bankViewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5" : "flex flex-col space-y-3"}>
+                {studentsData.map(student => (
+                  <div 
+                    key={`bank-${student.id}`} 
+                    className={`transition-all duration-300 hover:shadow-lg border ${isDarkMode ? 'bg-slate-800 border-slate-700 hover:border-slate-600 shadow-none' : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm'} ${bankViewMode === 'grid' ? 'flex flex-col p-5 rounded-2xl' : 'flex flex-col md:flex-row md:items-center p-4 rounded-xl md:gap-6'}`}
+                  >
+                    {/* Avatar & Info */}
+                    <div className={`flex items-center space-x-4 ${bankViewMode === 'grid' ? 'mb-5' : 'flex-1 min-w-[200px] mb-4 md:mb-0'}`}>
+                      <div className={`rounded-full shrink-0 flex items-center justify-center text-3xl shadow-inner ${isDarkMode ? 'bg-slate-900' : 'bg-slate-50'} ${bankViewMode === 'grid' ? 'w-14 h-14' : 'w-12 h-12 text-2xl'}`}>
+                        {student.avatar}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className={`font-bold truncate ${isDarkMode ? 'text-slate-100' : 'text-slate-800'} ${bankViewMode === 'grid' ? 'text-lg' : 'text-base'}`}>
+                          {student.name}
+                        </h3>
+                      </div>
+                    </div>
+
+                    {/* Balance Display */}
+                    <div className={`flex items-center justify-between border ${isDarkMode ? 'bg-slate-900/50 border-slate-700/50' : 'bg-slate-50 border-slate-100'} ${bankViewMode === 'grid' ? 'p-3.5 rounded-xl mb-4' : 'px-4 py-2 rounded-xl shrink-0 w-full md:w-auto mb-4 md:mb-0'}`}>
+                      <div className="flex items-center space-x-3 w-full">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${theme.bg} bg-opacity-10 shadow-sm`}>
+                          <DollarSign size={16} className={theme.text} />
+                        </div>
+                        <div className={`flex flex-col flex-1 ${bankViewMode === 'list' ? 'mr-4' : ''}`}>
+                          <span className={`text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Balance</span>
+                          <span className={`text-lg font-black ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>
+                            ${student.balance}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Quick Transactions */}
+                    <div className={`flex items-center space-x-2 ${bankViewMode === 'grid' ? 'mt-auto pt-2' : 'shrink-0 w-full md:w-auto'}`}>
+                      <button 
+                        onClick={() => setTransactionModal({ student, type: 'deposit', amount: '', description: '', pin: '', mode: 'pin', error: '' })}
+                        className={`flex-1 md:flex-none flex items-center justify-center py-2.5 px-3 rounded-xl border text-xs font-bold transition-colors ${isDarkMode ? 'border-slate-700 text-emerald-400 hover:bg-slate-800' : 'border-slate-200 text-emerald-600 hover:bg-emerald-50'}`}
+                      >
+                        <ArrowUpCircle size={16} className={`shrink-0 ${bankViewMode === 'list' ? (isSidebarOpen ? 'mr-0 xl:mr-1.5' : 'mr-0 lg:mr-1.5') : 'mr-1.5'}`} /> 
+                        <span className={bankViewMode === 'list' ? (isSidebarOpen ? 'hidden xl:inline truncate' : 'hidden lg:inline truncate') : 'truncate'}>Deposit</span>
+                      </button>
+                      <button 
+                        onClick={() => setTransactionModal({ student, type: 'deduct', amount: '', description: '', pin: '', mode: 'pin', error: '' })}
+                        className={`flex-1 md:flex-none flex items-center justify-center py-2.5 px-3 rounded-xl border text-xs font-bold transition-colors ${isDarkMode ? 'border-slate-700 text-rose-400 hover:bg-slate-800' : 'border-slate-200 text-rose-600 hover:bg-rose-50'}`}
+                      >
+                        <ArrowDownCircle size={16} className={`shrink-0 ${bankViewMode === 'list' ? (isSidebarOpen ? 'mr-0 xl:mr-1.5' : 'mr-0 lg:mr-1.5') : 'mr-1.5'}`} /> 
+                        <span className={bankViewMode === 'list' ? (isSidebarOpen ? 'hidden xl:inline truncate' : 'hidden lg:inline truncate') : 'truncate'}>Deduct</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : activeTab === 'Behavior' ? (
+            <div className="max-w-7xl mx-auto animate-in fade-in duration-500">
+              <div className="mb-8 flex flex-col gap-4">
+                <div className="w-full">
+                  <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Behavior Tracking</h1>
+                  <p className={`mt-1 text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                    Award points for positive actions or log areas to work on.
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-start sm:items-center gap-3 sm:gap-4">
+                   {/* Global Sync Toggle */}
+                   <div className={`flex items-center px-4 py-2 rounded-xl border ${isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}>
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center mr-2.5 transition-colors ${syncBehaviorToBank ? theme.bg + ' text-white' : (isDarkMode ? 'bg-slate-800 text-slate-500' : 'bg-slate-100 text-slate-400')}`}>
+                        <Landmark size={12} />
+                      </div>
+                      <div className="mr-3">
+                        <p className={`text-sm font-bold leading-none ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>Sync to Bank</p>
+                      </div>
+                      <button 
+                        onClick={() => setSyncBehaviorToBank(!syncBehaviorToBank)} 
+                        className={`w-10 h-5.5 rounded-full transition-colors relative shadow-inner flex items-center px-0.5 ${syncBehaviorToBank ? theme.bg : (isDarkMode ? 'bg-slate-700' : 'bg-slate-300')}`}
+                        style={{ height: '22px' }}
+                      >
+                        <span className={`bg-white w-4 h-4 rounded-full shadow-sm transition-transform ${syncBehaviorToBank ? 'translate-x-5' : 'translate-x-0'}`}></span>
+                      </button>
+                   </div>
+                   
+                   <button
+                     onClick={() => setBehaviorModal({ selectedStudents: [], tab: 'positive', mode: 'multiple' })}
+                     className={`flex items-center justify-center px-4 py-2 rounded-xl text-white font-bold text-sm shadow-sm transition-all bg-indigo-500 hover:bg-indigo-600 w-full sm:w-auto`}
+                   >
+                     <Users size={16} className="mr-1.5 shrink-0" /> Award Multiple
+                   </button>
+                   
+                   <button
+                     onClick={() => setBehaviorModal({ selectedStudents: studentsData.map(s=>s.id), tab: 'positive', mode: 'whole' })}
+                     className={`flex items-center justify-center px-4 py-2 rounded-xl text-white font-bold text-sm shadow-sm transition-all bg-sky-500 hover:bg-sky-600 w-full sm:w-auto`}
+                   >
+                     <Award size={16} className="mr-1.5 shrink-0" /> Whole Class
+                   </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+                 {/* Student Tiles */}
+                 {studentsData.map(student => (
+                   <button
+                     key={`behavior-${student.id}`}
+                     onClick={() => setBehaviorModal({ selectedStudents: [student.id], tab: 'positive', mode: 'single' })}
+                     className={`relative flex flex-col items-center p-4 rounded-2xl border transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${isDarkMode ? 'bg-slate-800 border-slate-700 hover:border-slate-500' : 'bg-white border-slate-200 hover:border-slate-400'}`}
+                   >
+                      <div className={`w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-inner mb-3 ${isDarkMode ? 'bg-slate-900' : 'bg-slate-50'}`}>
+                        {student.avatar}
+                      </div>
+                      <h3 className={`font-bold text-sm text-center truncate w-full mb-2 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>
+                        {student.name.split(' ')[0]}
+                      </h3>
+                      <div className={`absolute top-2 right-2 flex items-center justify-center min-w-[24px] h-6 px-1.5 rounded-full text-xs font-black shadow-sm ${student.behaviorPoints === 0 ? (isDarkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-200 text-slate-600') : student.behaviorPoints > 0 ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>
+                        {student.behaviorPoints > 0 ? '+' : ''}{student.behaviorPoints}
+                      </div>
+                   </button>
+                 ))}
+              </div>
+            </div>
+          ) : activeTab === 'Jobs' ? (
+            <div className="max-w-7xl mx-auto animate-in fade-in duration-500">
+              <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Classroom Jobs</h1>
+                  <p className={`mt-1 text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                    Manage student roles, classroom duties, and weekly salaries.
+                  </p>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <button 
+                    onClick={() => setManageJobModal({ mode: 'create', job: { id: Date.now().toString(), title: '', salary: '', icon: '💼' }, error: '', showIconPicker: false })}
+                    className="flex items-center justify-center px-4 py-2 rounded-xl text-white font-bold text-sm shadow-sm transition-all bg-indigo-500 hover:bg-indigo-600"
+                  >
+                    <Plus size={16} className="mr-1.5 shrink-0" strokeWidth={3} /> Create Job
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                 {jobsList.map(job => {
+                    const assigned = studentsData.filter(s => s.job === job.title);
+                    return (
+                       <div key={job.id} className={`p-5 rounded-3xl border shadow-sm flex flex-col transition-all hover:-translate-y-1 hover:shadow-md ${isDarkMode ? 'bg-slate-900 border-slate-700 hover:border-slate-500' : 'bg-white border-slate-200 hover:border-slate-300'}`}>
+                          <div className="flex items-start justify-between mb-4">
+                             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-sm ${isDarkMode ? 'bg-slate-800' : 'bg-slate-50'}`}>
+                                {job.icon}
+                             </div>
+                             <button onClick={() => setManageJobModal({ mode: 'edit', job: {...job}, oldTitle: job.title, error: '', showIconPicker: false })} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`}>
+                                <Edit size={16} />
+                             </button>
+                          </div>
+                          <h3 className={`font-bold text-xl mb-1 truncate ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>{job.title}</h3>
+                          <p className={`text-sm font-bold mb-5 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>${job.salary} / week</p>
+
+                          <div className="mt-auto pt-4 border-t border-dashed border-slate-200 dark:border-slate-700">
+                             <div className="flex items-center justify-between mb-3">
+                                <span className={`text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Assigned ({assigned.length})</span>
+                                <button onClick={() => setAssignJobModal({ job, selectedStudents: assigned.map(s => s.id) })} className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${isDarkMode ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-600 hover:text-indigo-700'}`}>
+                                   Manage
+                                </button>
+                             </div>
+                             {assigned.length > 0 ? (
+                                <div className="flex -space-x-2 overflow-hidden">
+                                   {assigned.slice(0, 6).map(s => (
+                                      <div key={`job-s-${s.id}`} className={`inline-flex w-8 h-8 rounded-full ring-2 items-center justify-center text-sm shadow-sm ${isDarkMode ? 'ring-slate-900 bg-slate-800' : 'ring-white bg-slate-100'}`} title={s.name}>
+                                         {s.avatar}
+                                      </div>
+                                   ))}
+                                   {assigned.length > 6 && (
+                                      <div className={`inline-flex w-8 h-8 rounded-full ring-2 items-center justify-center text-[10px] font-bold ${isDarkMode ? 'ring-slate-900 bg-slate-700 text-white' : 'ring-white bg-slate-200 text-slate-600'}`}>
+                                         +{assigned.length - 6}
+                                      </div>
+                                   )}
+                                </div>
+                             ) : (
+                                <p className={`text-xs italic ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>No students assigned</p>
+                             )}
+                          </div>
+                       </div>
+                    );
+                 })}
+              </div>
+            </div>
+          ) : activeTab === 'Transactions' ? (() => {
+            const allTransactions = studentsData.flatMap(student => 
+              (student.transactions || []).map(tx => ({
+                ...tx,
+                studentName: student.name,
+                studentAvatar: student.avatar,
+                studentId: student.id
+              }))
+            ).sort((a, b) => b.id - a.id);
+
+            return (
+              <div className="max-w-7xl mx-auto animate-in fade-in duration-500">
+                <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Transaction Log</h1>
+                    <p className={`mt-1 text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                      View and manage all classroom economy transactions across all students.
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <button className={`px-4 py-2 rounded-xl font-bold text-sm border transition-colors ${isDarkMode ? 'border-slate-700 text-slate-300 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
+                      Export CSV
+                    </button>
+                  </div>
+                </div>
+
+                {/* PENDING APPROVALS CARD */}
+                {pendingApprovals.length > 0 && (
+                  <div className={`mb-8 rounded-3xl shadow-sm border flex flex-col overflow-hidden ${isDarkMode ? 'bg-indigo-900/10 border-indigo-500/30' : 'bg-indigo-50/50 border-indigo-100'}`}>
+                    <div className={`px-6 py-4 border-b flex items-center justify-between ${isDarkMode ? 'border-indigo-500/30' : 'border-indigo-100'}`}>
+                      <h2 className={`font-bold flex items-center ${isDarkMode ? 'text-indigo-400' : 'text-indigo-700'}`}>
+                        <Bell size={18} className="mr-2" /> Pending Approvals ({pendingApprovals.length})
+                      </h2>
+                    </div>
+                    <div className={`divide-y max-h-64 overflow-y-auto ${isDarkMode ? 'divide-indigo-500/20' : 'divide-indigo-100'}`}>
+                      {pendingApprovals.map(req => (
+                        <div key={req.id} className={`flex items-center justify-between p-4 md:px-6 transition-colors ${isDarkMode ? 'hover:bg-indigo-900/30' : 'hover:bg-white'}`}>
+                          <div className="flex items-center space-x-4 flex-1 min-w-0">
+                            <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 ${req.type === 'deposit' ? (isDarkMode ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-600') : (isDarkMode ? 'bg-rose-500/20 text-rose-400' : 'bg-rose-100 text-rose-600')}`}>
+                              {req.type === 'deposit' ? <ArrowUpCircle size={20} className="md:w-6 md:h-6" /> : <ArrowDownCircle size={20} className="md:w-6 md:h-6" />}
+                            </div>
+                            <div className="flex-1 min-w-0 flex flex-col md:flex-row md:items-center">
+                              <div className="md:w-1/3 pr-4 mb-1 md:mb-0 shrink-0 flex items-center">
+                                 <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs mr-2 shadow-sm ${isDarkMode ? 'bg-slate-800' : 'bg-white'}`}>{req.studentAvatar}</span>
+                                 <p className={`font-bold text-sm truncate ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>{req.studentName}</p>
+                              </div>
+                              <div className="md:w-1/3 pr-4 mb-1 md:mb-0 shrink-0">
+                                 <p className={`font-bold text-sm truncate ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>{req.description}</p>
+                              </div>
+                              <div className="md:w-1/3 shrink-0 flex items-center justify-between">
+                                 <p className={`text-[11px] font-bold tracking-wider uppercase ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>{req.date}</p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center justify-end space-x-4 ml-4">
+                            <div className={`font-black text-lg md:text-xl shrink-0 w-16 md:w-20 text-right ${req.type === 'deposit' ? 'text-emerald-500' : 'text-rose-500'}`}>
+                              {req.type === 'deposit' ? '+' : '-'}${req.amount}
+                            </div>
+                            <div className="flex items-center space-x-2 shrink-0">
+                              <button onClick={() => handleApproveTransaction(req)} className="w-8 h-8 rounded-full flex items-center justify-center bg-emerald-500 text-white shadow-sm hover:bg-emerald-600 transition-colors" title="Approve">
+                                <Check size={16} strokeWidth={3} />
+                              </button>
+                              <button onClick={() => handleDenyTransaction(req.id)} className={`w-8 h-8 rounded-full flex items-center justify-center border transition-colors ${isDarkMode ? 'border-slate-600 text-slate-400 hover:text-white hover:bg-rose-500 hover:border-rose-500' : 'border-slate-200 text-slate-400 hover:text-white hover:bg-rose-500 hover:border-rose-500'}`} title="Deny">
+                                <X size={16} strokeWidth={3} />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className={`rounded-3xl shadow-sm border overflow-hidden flex flex-col ${isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}>
+                  {/* Table Header (Desktop) */}
+                  <div className={`hidden md:flex items-center justify-between p-4 border-b text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'bg-slate-800/50 border-slate-700 text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-400'}`}>
+                    <div className="flex items-center flex-1">
+                      <div className="w-12 mr-4"></div> {/* Spacer for icon */}
+                      <div className="w-1/3 pr-4">Student</div>
+                      <div className="w-1/3 pr-4">Description</div>
+                      <div className="w-1/3">Date</div>
+                    </div>
+                    <div className="flex items-center justify-end">
+                      <div className="w-24 text-right">Amount</div>
+                      <div className="w-10 ml-2"></div> {/* Spacer for 3-dots */}
+                    </div>
+                  </div>
+
+                  {allTransactions.length > 0 ? (
+                    <div className={`divide-y overflow-y-auto max-h-[60vh] ${isDarkMode ? 'divide-slate-800' : 'divide-slate-100'}`}>
+                      {allTransactions.map(tx => (
+                        <div key={`tx-log-${tx.id}-${tx.studentId}`} className={`relative flex items-center justify-between p-4 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50`}>
+                          <div className="flex items-center space-x-4 flex-1 min-w-0">
+                            <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 ${tx.type === 'deposit' ? (isDarkMode ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-600') : (isDarkMode ? 'bg-rose-500/20 text-rose-400' : 'bg-rose-100 text-rose-600')}`}>
+                              {tx.type === 'deposit' ? <ArrowUpCircle size={20} className="md:w-6 md:h-6" /> : <ArrowDownCircle size={20} className="md:w-6 md:h-6" />}
+                            </div>
+                            <div className="flex-1 min-w-0 flex flex-col md:flex-row md:items-center">
+                              <div className="md:w-1/3 pr-4 mb-1 md:mb-0 shrink-0 flex items-center">
+                                 <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs mr-2 shadow-sm ${isDarkMode ? 'bg-slate-800' : 'bg-slate-100'}`}>{tx.studentAvatar}</span>
+                                 <p className={`font-bold text-sm truncate ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>{tx.studentName}</p>
+                              </div>
+                              <div className="md:w-1/3 pr-4 mb-1 md:mb-0 shrink-0">
+                                 <p className={`font-bold text-sm truncate ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>{tx.description}</p>
+                              </div>
+                              <div className="md:w-1/3 shrink-0">
+                                 <p className={`text-[11px] font-bold tracking-wider uppercase ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>{tx.date}</p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center">
+                            <div className={`font-black text-lg md:text-xl shrink-0 ml-4 w-24 text-right ${tx.type === 'deposit' ? 'text-emerald-500' : 'text-rose-500'}`}>
+                              {tx.type === 'deposit' ? '+' : '-'}${tx.amount}
+                            </div>
+                            <div className="relative ml-2 shrink-0 flex items-center justify-center w-10">
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); setOpenTxMenuId(openTxMenuId === `${tx.studentId}-${tx.id}` ? null : `${tx.studentId}-${tx.id}`); }}
+                                className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`}
+                              >
+                                <MoreVertical size={18} />
+                              </button>
+                              
+                              {openTxMenuId === `${tx.studentId}-${tx.id}` && (
+                                <>
+                                  <div className="fixed inset-0 z-40" onClick={(e) => { e.stopPropagation(); setOpenTxMenuId(null); }}></div>
+                                  <div className={`absolute right-6 top-full mt-1 z-50 w-32 rounded-xl shadow-lg border overflow-hidden ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+                                    <button 
+                                      onClick={(e) => { e.stopPropagation(); executeUndoTransaction(tx.studentId, tx.id); }}
+                                      className={`w-full flex items-center px-4 py-3 text-sm font-bold transition-colors ${isDarkMode ? 'text-rose-400 hover:bg-slate-700' : 'text-rose-500 hover:bg-slate-50'}`}
+                                    >
+                                      <RefreshCw size={14} className="mr-2" /> Undo
+                                    </button>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className={`py-16 flex flex-col items-center justify-center text-center ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                      <Layers size={56} className="mb-4 opacity-20" />
+                      <p className="font-semibold text-lg">No transactions yet</p>
+                      <p className="text-sm mt-1 max-w-sm">Activity will appear here when you deposit or deduct funds.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })() : (
+            <div className={`flex flex-col items-center justify-center h-full ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+               <Layers size={48} className="mb-4 opacity-20" />
+               <p className="font-semibold text-lg">{activeTab}</p>
+               <p className="text-sm">This section is currently under construction.</p>
+            </div>
+          )}
+        </main>
+      </div>
+
+      {/* STUDENT QR CODE MODAL */}
+      {selectedQrStudent && (
+        <div 
+          className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setSelectedQrStudent(null)}
+        >
+          <div 
+            className={`relative w-full max-w-sm p-8 rounded-3xl shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto flex flex-col items-center text-center ${isDarkMode ? 'bg-slate-900 border border-slate-700' : 'bg-white border border-slate-200'}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button 
+              onClick={() => setSelectedQrStudent(null)} 
+              className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`}
+            >
+              <X size={20} />
+            </button>
+
+            <div className={`w-20 h-20 rounded-full flex items-center justify-center text-4xl shadow-inner mb-4 ${isDarkMode ? 'bg-slate-800' : 'bg-slate-50'}`}>
+              {selectedQrStudent.avatar}
+            </div>
+            
+            <h3 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{selectedQrStudent.name}</h3>
+            <p className={`text-sm mb-8 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Scan to log in to ClassBank</p>
+
+            <div className="p-4 rounded-2xl bg-white shadow-sm border border-slate-200 mb-8 inline-block">
+               {/* Pure white background kept for scanning contrast even in Dark Mode */}
+               <QrCode size={200} className="text-slate-900" strokeWidth={1.25} />
+            </div>
+
+            <div className="flex gap-3 w-full">
+              <button className={`flex-1 flex items-center justify-center py-3 px-4 rounded-xl border text-sm font-bold transition-colors ${isDarkMode ? 'border-slate-700 text-slate-300 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
+                <Download size={16} className="mr-2" /> Save
+              </button>
+              <button className={`flex-1 flex items-center justify-center py-3 px-4 rounded-xl border border-transparent text-sm font-bold transition-colors text-white shadow-sm ${theme.bg} hover:opacity-90`}>
+                <Printer size={16} className="mr-2" /> Print
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TRANSACTION AUTH MODAL */}
+      {transactionModal && (
+        <div 
+          className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setTransactionModal(null)}
+        >
+          <div 
+            className={`relative w-full max-w-md p-6 md:p-8 rounded-3xl shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto ${isDarkMode ? 'bg-slate-900 border border-slate-700' : 'bg-white border border-slate-200'}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <button 
+              onClick={() => setTransactionModal(null)} 
+              className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`}
+            >
+              <X size={20} />
+            </button>
+
+            <div className="flex items-center space-x-4 mb-6">
+              <div className={`w-14 h-14 rounded-full flex items-center justify-center text-3xl shadow-inner shrink-0 ${isDarkMode ? 'bg-slate-800' : 'bg-slate-50'}`}>
+                {transactionModal.student.avatar}
+              </div>
+              <div className="min-w-0">
+                <h3 className={`font-bold text-lg truncate ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                  {transactionModal.type === 'deposit' ? 'Deposit Funds' : 'Deduct Funds'}
+                </h3>
+                <p className={`text-sm truncate ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                  {transactionModal.student.name} • Bal: ${transactionModal.student.balance}
+                </p>
+              </div>
+            </div>
+
+            {/* Amount Field */}
+            <div className="mb-4">
+              <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Transaction Amount</label>
+              <div className={`flex items-center px-4 py-3 rounded-xl border transition-colors ${isDarkMode ? 'bg-slate-800 border-slate-700 focus-within:border-slate-500' : 'bg-slate-50 border-slate-200 focus-within:border-slate-400'}`}>
+                <DollarSign size={20} className={transactionModal.type === 'deposit' ? 'text-emerald-500' : 'text-rose-500'} />
+                <input 
+                  type="number"
+                  value={transactionModal.amount}
+                  onChange={e => setTransactionModal({...transactionModal, amount: e.target.value, error: ''})}
+                  placeholder="0.00"
+                  className={`bg-transparent border-none outline-none font-bold text-2xl ml-2 w-full ${isDarkMode ? 'text-white' : 'text-slate-900'}`}
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            {/* Description Field */}
+            <div className="mb-6">
+              <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Description (Optional)</label>
+              <div className={`flex items-center px-4 py-3 rounded-xl border transition-colors ${isDarkMode ? 'bg-slate-800 border-slate-700 focus-within:border-slate-500' : 'bg-slate-50 border-slate-200 focus-within:border-slate-400'}`}>
+                <FileText size={18} className="text-slate-400 shrink-0" />
+                <input 
+                  type="text"
+                  value={transactionModal.description}
+                  onChange={e => setTransactionModal({...transactionModal, description: e.target.value})}
+                  placeholder={transactionModal.type === 'deposit' ? "e.g., Homework Pass, Bonus..." : "e.g., Class Store, Pencil..."}
+                  className={`bg-transparent border-none outline-none text-sm ml-3 w-full font-medium ${isDarkMode ? 'text-white placeholder:text-slate-600' : 'text-slate-900 placeholder:text-slate-400'}`}
+                />
+              </div>
+            </div>
+
+            {/* Authentication Toggle & Fields */}
+            <div className="mb-8">
+              <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Student Authentication Required</label>
+              
+              <div className={`flex p-1 rounded-xl mb-3 border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-100 border-slate-200'}`}>
+                 <button 
+                   onClick={() => setTransactionModal({...transactionModal, mode: 'pin', error: ''})}
+                   className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${transactionModal.mode === 'pin' ? (isDarkMode ? 'bg-slate-700 text-white shadow-sm' : 'bg-white text-slate-900 shadow-sm') : 'text-slate-400 hover:text-slate-600'}`}
+                 >
+                   Use PIN
+                 </button>
+                 <button 
+                   onClick={() => setTransactionModal({...transactionModal, mode: 'qr', error: ''})}
+                   className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${transactionModal.mode === 'qr' ? (isDarkMode ? 'bg-slate-700 text-white shadow-sm' : 'bg-white text-slate-900 shadow-sm') : 'text-slate-400 hover:text-slate-600'}`}
+                 >
+                   Scan QR
+                 </button>
+              </div>
+
+              {transactionModal.mode === 'pin' ? (
+                <div className={`flex items-center px-4 py-3.5 rounded-xl border transition-colors ${isDarkMode ? 'bg-slate-800 border-slate-700 focus-within:border-slate-500' : 'bg-slate-50 border-slate-200 focus-within:border-slate-400'}`}>
+                  <Lock size={18} className="text-slate-400 shrink-0" />
+                  <input 
+                    type="password"
+                    maxLength="4"
+                    value={transactionModal.pin}
+                    onChange={e => setTransactionModal({...transactionModal, pin: e.target.value.replace(/\D/g, ''), error: ''})}
+                    onKeyDown={(e) => e.key === 'Enter' && executeTransaction()}
+                    placeholder="Enter 4-digit PIN"
+                    className={`bg-transparent border-none outline-none font-mono text-xl tracking-widest ml-3 w-full placeholder:text-sm placeholder:tracking-normal placeholder:font-sans ${isDarkMode ? 'text-white' : 'text-slate-900'}`}
+                  />
+                </div>
+              ) : (
+                <div 
+                  onClick={() => setTransactionModal({...transactionModal, pin: transactionModal.student.pin, error: 'QR Scanned Successfully! Click Confirm to finalize.'})}
+                  className={`h-32 rounded-xl flex flex-col items-center justify-center border-2 border-dashed cursor-pointer transition-colors ${isDarkMode ? 'border-slate-600 bg-slate-800/50 hover:bg-slate-800 text-slate-400' : 'border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-500'}`}
+                  title="Click to simulate successful QR scan"
+                >
+                  <Camera size={32} className={`mb-2 ${transactionModal.error.includes('Successfully') ? 'text-emerald-500' : 'animate-pulse'}`} />
+                  <span className="text-sm font-bold">{transactionModal.error.includes('Successfully') ? 'Scan Complete' : 'Scanning...'}</span>
+                  <span className="text-[10px] mt-1 opacity-60">(Click here to simulate scan)</span>
+                </div>
+              )}
+              
+              {/* Error & Success Feedback */}
+              {transactionModal.error && (
+                <div className={`mt-3 flex items-center text-xs font-bold ${transactionModal.error.includes('Successfully') ? 'text-emerald-500' : 'text-rose-500'}`}>
+                  <AlertCircle size={14} className="mr-1.5 shrink-0" /> <span>{transactionModal.error}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Submit Button */}
+            <button 
+              onClick={executeTransaction}
+              className={`w-full flex items-center justify-center py-4 px-4 rounded-xl text-white font-bold transition-all shadow-sm ${transactionModal.type === 'deposit' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-rose-500 hover:bg-rose-600'}`}
+            >
+              Confirm {transactionModal.type === 'deposit' ? 'Deposit' : 'Deduction'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* CLASS DEPOSIT MODAL */}
+      {classDeposit && (
+        <div 
+          className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setClassDeposit(null)}
+        >
+          <div 
+            className={`relative w-full max-w-md p-6 md:p-8 rounded-3xl shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto ${isDarkMode ? 'bg-slate-900 border border-slate-700' : 'bg-white border border-slate-200'}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <button 
+              onClick={() => setClassDeposit(null)} 
+              className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`}
+            >
+              <X size={20} />
+            </button>
+
+            <div className="flex items-center space-x-4 mb-6">
+              <div className={`w-14 h-14 rounded-full flex items-center justify-center text-3xl shadow-inner shrink-0 text-white ${theme.bg}`}>
+                <Users size={28} />
+              </div>
+              <div className="min-w-0">
+                <h3 className={`font-bold text-lg truncate ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                  Class Deposit
+                </h3>
+                <p className={`text-sm truncate ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                  Add funds to all {studentsData.length} students
+                </p>
+              </div>
+            </div>
+
+            {/* Amount Field */}
+            <div className="mb-4">
+              <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Deposit Amount (Per Student)</label>
+              <div className={`flex items-center px-4 py-3 rounded-xl border transition-colors ${isDarkMode ? 'bg-slate-800 border-slate-700 focus-within:border-slate-500' : 'bg-slate-50 border-slate-200 focus-within:border-slate-400'}`}>
+                <DollarSign size={20} className="text-emerald-500" />
+                <input 
+                  type="number"
+                  value={classDeposit.amount}
+                  onChange={e => setClassDeposit({...classDeposit, amount: e.target.value, error: ''})}
+                  placeholder="0.00"
+                  className={`bg-transparent border-none outline-none font-bold text-2xl ml-2 w-full ${isDarkMode ? 'text-white' : 'text-slate-900'}`}
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            {/* Description Field */}
+            <div className="mb-6">
+              <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Description (Optional)</label>
+              <div className={`flex items-center px-4 py-3 rounded-xl border transition-colors ${isDarkMode ? 'bg-slate-800 border-slate-700 focus-within:border-slate-500' : 'bg-slate-50 border-slate-200 focus-within:border-slate-400'}`}>
+                <FileText size={18} className="text-slate-400 shrink-0" />
+                <input 
+                  type="text"
+                  value={classDeposit.description}
+                  onChange={e => setClassDeposit({...classDeposit, description: e.target.value})}
+                  placeholder="e.g., Friday Payday, Class Reward..."
+                  className={`bg-transparent border-none outline-none text-sm ml-3 w-full font-medium ${isDarkMode ? 'text-white placeholder:text-slate-600' : 'text-slate-900 placeholder:text-slate-400'}`}
+                />
+              </div>
+            </div>
+
+            {/* Teacher PIN Field */}
+            <div className="mb-8">
+              <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Teacher Authorization Required</label>
+              <div className={`flex items-center px-4 py-3.5 rounded-xl border transition-colors ${isDarkMode ? 'bg-slate-800 border-slate-700 focus-within:border-slate-500' : 'bg-slate-50 border-slate-200 focus-within:border-slate-400'}`}>
+                <Lock size={18} className="text-slate-400 shrink-0" />
+                <input 
+                  type="password"
+                  maxLength="4"
+                  value={classDeposit.teacherPin}
+                  onChange={e => setClassDeposit({...classDeposit, teacherPin: e.target.value.replace(/\D/g, ''), error: ''})}
+                  onKeyDown={(e) => e.key === 'Enter' && executeClassDeposit()}
+                  placeholder="Teacher PIN (Use 1234)"
+                  className={`bg-transparent border-none outline-none font-mono text-xl tracking-widest ml-3 w-full placeholder:text-sm placeholder:tracking-normal placeholder:font-sans ${isDarkMode ? 'text-white' : 'text-slate-900'}`}
+                />
+              </div>
+              {classDeposit.error && (
+                <div className="mt-3 flex items-center text-xs font-bold text-rose-500">
+                  <AlertCircle size={14} className="mr-1.5 shrink-0" /> <span>{classDeposit.error}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Submit Button */}
+            <button 
+              onClick={executeClassDeposit}
+              className="w-full flex items-center justify-center py-4 px-4 rounded-xl text-white font-bold transition-all shadow-sm bg-emerald-500 hover:bg-emerald-600"
+            >
+              Confirm Class Deposit
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* PAYDAY MODAL */}
+      {paydayModal && (
+        <div 
+          className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setPaydayModal(null)}
+        >
+          <div 
+            className={`relative w-full max-w-md p-6 md:p-8 rounded-3xl shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto ${isDarkMode ? 'bg-slate-900 border border-slate-700' : 'bg-white border border-slate-200'}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <button 
+              onClick={() => setPaydayModal(null)} 
+              className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`}
+            >
+              <X size={20} />
+            </button>
+
+            <div className="flex items-center space-x-4 mb-6">
+              <div className={`w-14 h-14 rounded-full flex items-center justify-center text-3xl shadow-inner shrink-0 text-white bg-amber-500`}>
+                <Coins size={28} />
+              </div>
+              <div className="min-w-0">
+                <h3 className={`font-bold text-lg truncate ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                  Run Payday
+                </h3>
+                <p className={`text-sm truncate ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                  Distributing salaries to {paydayModal.selectedStudents.length} students
+                </p>
+              </div>
+            </div>
+
+            <div className={`p-4 rounded-2xl border mb-6 ${isDarkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-amber-50 border-amber-100'}`}>
+              <p className={`text-sm font-medium leading-relaxed ${isDarkMode ? 'text-slate-300' : 'text-amber-800'}`}>
+                This will deposit each selected student's weekly salary into their bank account based on their current class job.
+              </p>
+            </div>
+
+            {/* Student Selection List */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-2 px-1">
+                <label className={`text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Select Students</label>
+                <button 
+                  onClick={() => {
+                    if (paydayModal.selectedStudents.length === studentsData.length) {
+                      setPaydayModal({...paydayModal, selectedStudents: []});
+                    } else {
+                      setPaydayModal({...paydayModal, selectedStudents: studentsData.map(s => s.id)});
+                    }
+                  }}
+                  className={`text-xs font-bold transition-colors ${isDarkMode ? 'text-amber-500 hover:text-amber-400' : 'text-amber-600 hover:text-amber-700'}`}
+                >
+                  {paydayModal.selectedStudents.length === studentsData.length ? 'Deselect All' : 'Select All'}
+                </button>
+              </div>
+              <div className={`max-h-56 overflow-y-auto rounded-xl border ${isDarkMode ? 'border-slate-700 bg-slate-800/30' : 'border-slate-200 bg-slate-50/50'}`}>
+                {studentsData.map(student => (
+                  <label key={student.id} className={`flex items-center p-3 border-b last:border-0 cursor-pointer transition-colors ${isDarkMode ? 'border-slate-700 hover:bg-slate-800/50' : 'border-slate-200 hover:bg-slate-100/50'}`}>
+                    <div className="flex items-center justify-center mr-3 pl-1">
+                      <input 
+                        type="checkbox" 
+                        checked={paydayModal.selectedStudents.includes(student.id)}
+                        onChange={(e) => {
+                          const isSelected = e.target.checked;
+                          setPaydayModal(prev => ({
+                            ...prev,
+                            selectedStudents: isSelected 
+                              ? [...prev.selectedStudents, student.id]
+                              : prev.selectedStudents.filter(id => id !== student.id)
+                          }));
+                        }}
+                        className="w-4 h-4 rounded border-slate-300 text-amber-500 focus:ring-amber-500 bg-white dark:bg-slate-900 cursor-pointer"
+                      />
+                    </div>
+                    <div className={`flex items-center justify-center w-8 h-8 rounded-full text-lg mr-3 shadow-sm ${isDarkMode ? 'bg-slate-900' : 'bg-white'}`}>
+                      {student.avatar}
+                    </div>
+                    <div className="flex-1 min-w-0 pr-2">
+                      <p className={`text-sm font-bold truncate ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>{student.name}</p>
+                      <p className={`text-[10px] uppercase tracking-wider truncate ${isDarkMode ? 'text-slate-500' : 'text-slate-500'}`}>{student.job}</p>
+                    </div>
+                    <div className={`text-sm font-bold pr-1 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                      +${student.salary}
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Teacher PIN Field */}
+            <div className="mb-8">
+              <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Teacher Authorization Required</label>
+              <div className={`flex items-center px-4 py-3.5 rounded-xl border transition-colors ${isDarkMode ? 'bg-slate-800 border-slate-700 focus-within:border-slate-500' : 'bg-slate-50 border-slate-200 focus-within:border-slate-400'}`}>
+                <Lock size={18} className="text-slate-400 shrink-0" />
+                <input 
+                  type="password"
+                  maxLength="4"
+                  value={paydayModal.teacherPin}
+                  onChange={e => setPaydayModal({...paydayModal, teacherPin: e.target.value.replace(/\D/g, ''), error: ''})}
+                  onKeyDown={(e) => e.key === 'Enter' && executePayday()}
+                  placeholder="Teacher PIN (Use 1234)"
+                  className={`bg-transparent border-none outline-none font-mono text-xl tracking-widest ml-3 w-full placeholder:text-sm placeholder:tracking-normal placeholder:font-sans ${isDarkMode ? 'text-white' : 'text-slate-900'}`}
+                />
+              </div>
+              {paydayModal.error && (
+                <div className="mt-3 flex items-center text-xs font-bold text-rose-500">
+                  <AlertCircle size={14} className="mr-1.5 shrink-0" /> <span>{paydayModal.error}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Submit Button */}
+            <button 
+              onClick={executePayday}
+              className="w-full flex items-center justify-center py-4 px-4 rounded-xl text-white font-bold transition-all shadow-sm bg-amber-500 hover:bg-amber-600"
+            >
+              Confirm Payday
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* BEHAVIOR MODAL */}
+      {behaviorModal && (
+        <div 
+          className="fixed inset-0 z-[140] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setBehaviorModal(null)}
+        >
+          <div 
+            className={`relative w-full max-w-lg p-6 md:p-8 rounded-3xl shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto ${isDarkMode ? 'bg-slate-900 border border-slate-700' : 'bg-white border border-slate-200'}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <button 
+              onClick={() => setBehaviorModal(null)} 
+              className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`}
+            >
+              <X size={20} />
+            </button>
+
+            <div className="text-center mb-6">
+              <h3 className={`font-bold text-2xl ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                {behaviorModal.mode === 'whole' ? 'Whole Class' : behaviorModal.mode === 'multiple' ? 'Award Multiple' : 'Award Behavior'}
+              </h3>
+            </div>
+
+            {/* Student Selection List for Award Multiple Mode */}
+            {behaviorModal.mode === 'multiple' && (
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-2 px-1">
+                  <label className={`text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Select Students</label>
+                  <button 
+                    onClick={() => {
+                      if (behaviorModal.selectedStudents.length === studentsData.length) {
+                        setBehaviorModal({...behaviorModal, selectedStudents: []});
+                      } else {
+                        setBehaviorModal({...behaviorModal, selectedStudents: studentsData.map(s => s.id)});
+                      }
+                    }}
+                    className={`text-xs font-bold transition-colors ${isDarkMode ? 'text-sky-500 hover:text-sky-400' : 'text-sky-600 hover:text-sky-700'}`}
+                  >
+                    {behaviorModal.selectedStudents.length === studentsData.length ? 'Deselect All' : 'Select All'}
+                  </button>
+                </div>
+                <div className={`max-h-40 overflow-y-auto rounded-xl border ${isDarkMode ? 'border-slate-700 bg-slate-800/30' : 'border-slate-200 bg-slate-50/50'}`}>
+                  {studentsData.map(student => (
+                    <label key={`beh-sel-${student.id}`} className={`flex items-center p-3 border-b last:border-0 cursor-pointer transition-colors ${isDarkMode ? 'border-slate-700 hover:bg-slate-800/50' : 'border-slate-200 hover:bg-slate-100/50'}`}>
+                      <div className="flex items-center justify-center mr-3 pl-1">
+                        <input 
+                          type="checkbox" 
+                          checked={behaviorModal.selectedStudents.includes(student.id)}
+                          onChange={(e) => {
+                            const isSelected = e.target.checked;
+                            setBehaviorModal(prev => ({
+                              ...prev,
+                              selectedStudents: isSelected 
+                                ? [...prev.selectedStudents, student.id]
+                                : prev.selectedStudents.filter(id => id !== student.id)
+                            }));
+                          }}
+                          className="w-4 h-4 rounded border-slate-300 text-sky-500 focus:ring-sky-500 bg-white dark:bg-slate-900 cursor-pointer"
+                        />
+                      </div>
+                      <div className={`flex items-center justify-center w-8 h-8 rounded-full text-lg mr-3 shadow-sm ${isDarkMode ? 'bg-slate-900' : 'bg-white'}`}>
+                        {student.avatar}
+                      </div>
+                      <div className="flex-1 min-w-0 pr-2">
+                        <p className={`text-sm font-bold truncate ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>{student.name}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Selected Students Preview */}
+            {behaviorModal.mode !== 'multiple' && (
+              <div className="flex flex-wrap justify-center gap-2 mb-6 max-h-24 overflow-y-auto">
+                {studentsData.filter(s => behaviorModal.selectedStudents.includes(s.id)).map(student => (
+                  <button 
+                    key={`sel-${student.id}`} 
+                    onClick={() => setBehaviorModal(prev => ({...prev, selectedStudents: prev.selectedStudents.filter(id => id !== student.id)}))} 
+                    className="relative group transition-transform hover:scale-95"
+                  >
+                     <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-sm transition-opacity group-hover:opacity-40 ${isDarkMode ? 'bg-slate-800' : 'bg-slate-100'}`}>
+                        {student.avatar}
+                     </div>
+                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                        <X size={20} className="text-rose-500" strokeWidth={3} />
+                     </div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Tab Toggle */}
+            <div className="flex justify-center space-x-2 mb-6">
+               <button 
+                  onClick={() => setBehaviorModal({...behaviorModal, tab: 'positive'})} 
+                  className={`px-6 py-2.5 rounded-full font-bold text-sm transition-all ${behaviorModal.tab === 'positive' ? 'bg-emerald-500 text-white shadow-sm' : (isDarkMode ? 'bg-slate-800 text-slate-400 hover:bg-slate-700' : 'bg-slate-100 text-slate-500 hover:bg-slate-200')}`}
+               >
+                  Positive
+               </button>
+               <button 
+                  onClick={() => setBehaviorModal({...behaviorModal, tab: 'needsWork'})} 
+                  className={`px-6 py-2.5 rounded-full font-bold text-sm transition-all ${behaviorModal.tab === 'needsWork' ? 'bg-rose-500 text-white shadow-sm' : (isDarkMode ? 'bg-slate-800 text-slate-400 hover:bg-slate-700' : 'bg-slate-100 text-slate-500 hover:bg-slate-200')}`}
+               >
+                  Working On
+               </button>
+            </div>
+
+            {/* Behavior Buttons Grid */}
+            <div className="grid grid-cols-3 gap-3 mb-2">
+               {BEHAVIORS[behaviorModal.tab].map(beh => (
+                  <button 
+                     key={beh.id} 
+                     onClick={() => executeBehavior(beh)} 
+                     className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all hover:scale-105 active:scale-95 ${behaviorModal.tab === 'positive' ? 'border-emerald-100 bg-emerald-50 hover:bg-emerald-100 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20' : 'border-rose-100 bg-rose-50 hover:bg-rose-100 dark:border-rose-500/30 dark:bg-rose-500/10 dark:hover:bg-rose-500/20'}`}
+                  >
+                     <span className="text-3xl mb-2">{beh.icon}</span>
+                     <span className={`text-[11px] font-bold text-center leading-tight mb-1 ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>{beh.name}</span>
+                     <span className={`text-[10px] font-black ${behaviorModal.tab === 'positive' ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        {behaviorModal.tab === 'positive' ? '+' : ''}{beh.points}
+                     </span>
+                  </button>
+               ))}
+               
+               {/* Add Behavior Card */}
+               <button 
+                  className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-dashed transition-all hover:scale-105 active:scale-95 ${isDarkMode ? 'border-slate-700 bg-slate-900 hover:bg-slate-800' : 'border-slate-300 bg-white hover:bg-slate-50'}`}
+               >
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center mb-2 ${isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'}`}>
+                     <Plus size={20} />
+                  </div>
+                  <span className={`text-[11px] font-bold text-center leading-tight ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                    Add Behavior
+                  </span>
+               </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* DELETE STUDENT CONFIRMATION MODAL */}
+      {studentToDelete && (
+        <div 
+          className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setStudentToDelete(null)}
+        >
+          <div 
+            className={`relative w-full max-w-sm p-6 md:p-8 rounded-3xl shadow-2xl animate-in zoom-in-95 duration-200 ${isDarkMode ? 'bg-slate-900 border border-slate-700' : 'bg-white border border-slate-200'}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-col items-center text-center">
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center text-rose-500 mb-4 ${isDarkMode ? 'bg-rose-500/20' : 'bg-rose-100'}`}>
+                <Trash2 size={32} />
+              </div>
+              <h3 className={`font-bold text-xl mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                Remove Student?
+              </h3>
+              <p className={`text-sm mb-8 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                Are you sure you want to permanently remove <strong>{studentToDelete.name}</strong> from the roster? This action cannot be undone.
+              </p>
+              
+              <div className="flex gap-3 w-full">
+                <button 
+                  onClick={() => setStudentToDelete(null)}
+                  className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-colors ${isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={executeDeleteStudent}
+                  className="flex-1 py-3 px-4 rounded-xl text-white font-bold text-sm bg-rose-500 hover:bg-rose-600 transition-colors shadow-sm"
+                >
+                  Yes, Remove
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MANAGE JOB MODAL */}
+      {manageJobModal && (
+        <div 
+          className="fixed inset-0 z-[140] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setManageJobModal(null)}
+        >
+          <div 
+            className={`relative w-full max-w-md p-6 md:p-8 rounded-3xl shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto ${isDarkMode ? 'bg-slate-900 border border-slate-700' : 'bg-white border border-slate-200'}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <button 
+              onClick={() => setManageJobModal(null)} 
+              className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`}
+            >
+              <X size={20} />
+            </button>
+
+            <div className="flex items-center space-x-4 mb-6">
+              <div className={`w-14 h-14 rounded-full flex items-center justify-center text-3xl shadow-inner shrink-0 text-white bg-indigo-500`}>
+                <Briefcase size={28} />
+              </div>
+              <div className="min-w-0">
+                <h3 className={`font-bold text-lg truncate ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                  {manageJobModal.mode === 'create' ? 'Create New Job' : 'Edit Job'}
+                </h3>
+                <p className={`text-sm truncate ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                  Configure role details and pay
+                </p>
+              </div>
+            </div>
+
+            {/* Title Field */}
+            <div className="mb-4">
+              <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Job Title</label>
+              <div className={`flex items-center px-4 py-3 rounded-xl border transition-colors ${isDarkMode ? 'bg-slate-800 border-slate-700 focus-within:border-slate-500' : 'bg-slate-50 border-slate-200 focus-within:border-slate-400'}`}>
+                <input 
+                  type="text"
+                  value={manageJobModal.job.title}
+                  onChange={e => setManageJobModal({...manageJobModal, job: {...manageJobModal.job, title: e.target.value}, error: ''})}
+                  placeholder="e.g., Door Holder"
+                  className={`bg-transparent border-none outline-none w-full font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            <div className="flex space-x-4 mb-6">
+              {/* Icon Field */}
+              <div className="flex-shrink-0 w-24 relative">
+                <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Icon</label>
+                <button 
+                  onClick={() => setManageJobModal({...manageJobModal, showIconPicker: !manageJobModal.showIconPicker})}
+                  className={`w-full flex items-center justify-center px-4 py-3 rounded-xl border transition-colors ${isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'}`}
+                >
+                  <span className="text-xl">{manageJobModal.job.icon}</span>
+                  <ChevronDown size={14} className={`ml-2 opacity-50 transition-transform ${manageJobModal.showIconPicker ? 'rotate-180' : ''}`} />
+                </button>
+
+                {manageJobModal.showIconPicker && (
+                  <div className={`absolute z-50 top-full mt-2 left-0 w-56 p-2 rounded-xl shadow-xl border grid grid-cols-5 gap-1 ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+                    {['💼', '🚶', '📄', '💻', '📚', '🏦', '✉️', '🧽', '🧹', '🪴', '🗑️', '📝', '🚪', '💡', '🗣️', '🍎', '🎨', '🔋', '📫', '🧸', '🤝', '🎯', '👥', '🙋', '🧗', '💪', '🛠️', '🩺', '🔬', '🔧', '📦', '✏️', '🖍️', '📏', '📢'].map(emoji => (
+                      <button
+                        key={emoji}
+                        onClick={() => setManageJobModal({...manageJobModal, job: {...manageJobModal.job, icon: emoji}, showIconPicker: false})}
+                        className={`flex items-center justify-center p-1.5 text-xl rounded-lg transition-colors ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100'}`}
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Salary Field */}
+              <div className="flex-1">
+                <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Weekly Salary</label>
+                <div className={`flex items-center px-4 py-3 rounded-xl border transition-colors ${isDarkMode ? 'bg-slate-800 border-slate-700 focus-within:border-slate-500' : 'bg-slate-50 border-slate-200 focus-within:border-slate-400'}`}>
+                  <DollarSign size={18} className="text-emerald-500 shrink-0" />
+                  <input 
+                    type="number"
+                    value={manageJobModal.job.salary}
+                    onChange={e => setManageJobModal({...manageJobModal, job: {...manageJobModal.job, salary: e.target.value}, error: ''})}
+                    placeholder="0"
+                    className={`bg-transparent border-none outline-none font-bold text-lg ml-2 w-full ${isDarkMode ? 'text-white' : 'text-slate-900'}`}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {manageJobModal.error && (
+              <div className="mb-6 flex items-center text-xs font-bold text-rose-500">
+                <AlertCircle size={14} className="mr-1.5 shrink-0" /> <span>{manageJobModal.error}</span>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              {manageJobModal.mode === 'edit' && (
+                 <button 
+                   onClick={executeDeleteJob}
+                   className={`flex items-center justify-center p-4 rounded-xl border transition-colors ${isDarkMode ? 'border-slate-700 text-rose-500/80 hover:bg-slate-800' : 'border-slate-200 text-rose-500 hover:bg-rose-50'}`}
+                   title="Delete Job"
+                 >
+                   <Trash2 size={20} />
+                 </button>
+              )}
+              <button 
+                onClick={executeManageJob}
+                className="flex-1 flex items-center justify-center py-4 px-4 rounded-xl text-white font-bold transition-all shadow-sm bg-indigo-500 hover:bg-indigo-600"
+              >
+                Save Job
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ASSIGN JOB MODAL */}
+      {assignJobModal && (
+        <div 
+          className="fixed inset-0 z-[140] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setAssignJobModal(null)}
+        >
+          <div 
+            className={`relative w-full max-w-md p-6 md:p-8 rounded-3xl shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto ${isDarkMode ? 'bg-slate-900 border border-slate-700' : 'bg-white border border-slate-200'}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <button 
+              onClick={() => setAssignJobModal(null)} 
+              className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`}
+            >
+              <X size={20} />
+            </button>
+
+            <div className="text-center mb-6">
+              <div className={`inline-flex w-16 h-16 rounded-full items-center justify-center text-3xl shadow-inner mb-4 ${isDarkMode ? 'bg-slate-800' : 'bg-slate-100'}`}>
+                {assignJobModal.job.icon}
+              </div>
+              <h3 className={`font-bold text-2xl ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                Assign {assignJobModal.job.title}
+              </h3>
+            </div>
+
+            {/* Student Selection List */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-2 px-1">
+                <label className={`text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Assign to Students</label>
+              </div>
+              <div className={`max-h-60 overflow-y-auto rounded-xl border ${isDarkMode ? 'border-slate-700 bg-slate-800/30' : 'border-slate-200 bg-slate-50/50'}`}>
+                {studentsData.map(student => (
+                  <label key={`assign-${student.id}`} className={`flex items-center p-3 border-b last:border-0 cursor-pointer transition-colors ${isDarkMode ? 'border-slate-700 hover:bg-slate-800/50' : 'border-slate-200 hover:bg-slate-100/50'}`}>
+                    <div className="flex items-center justify-center mr-3 pl-1">
+                      <input 
+                        type="checkbox" 
+                        checked={assignJobModal.selectedStudents.includes(student.id)}
+                        onChange={(e) => {
+                          const isSelected = e.target.checked;
+                          setAssignJobModal(prev => ({
+                            ...prev,
+                            selectedStudents: isSelected 
+                              ? [...prev.selectedStudents, student.id]
+                              : prev.selectedStudents.filter(id => id !== student.id)
+                          }));
+                        }}
+                        className="w-4 h-4 rounded border-slate-300 text-indigo-500 focus:ring-indigo-500 bg-white dark:bg-slate-900 cursor-pointer"
+                      />
+                    </div>
+                    <div className={`flex items-center justify-center w-8 h-8 rounded-full text-lg mr-3 shadow-sm ${isDarkMode ? 'bg-slate-900' : 'bg-white'}`}>
+                      {student.avatar}
+                    </div>
+                    <div className="flex-1 min-w-0 pr-2">
+                      <p className={`text-sm font-bold truncate ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>{student.name}</p>
+                    </div>
+                    {/* Show current job if they have a different one */}
+                    {!assignJobModal.selectedStudents.includes(student.id) && student.job !== 'Unassigned' && (
+                       <div className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ${isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-200 text-slate-500'}`}>
+                          {student.job}
+                       </div>
+                    )}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <button 
+              onClick={executeAssignJob}
+              className="w-full flex items-center justify-center py-4 px-4 rounded-xl text-white font-bold transition-all shadow-sm bg-indigo-500 hover:bg-indigo-600"
+            >
+              Update Assignments
+            </button>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+};
+
+export default App;

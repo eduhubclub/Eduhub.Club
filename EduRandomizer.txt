@@ -1,0 +1,666 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { 
+  Menu, 
+  ChevronLeft, 
+  ChevronDown,
+  Home, 
+  BarChart2, 
+  Users, 
+  Settings, 
+  HelpCircle, 
+  Layers,
+  ArrowLeftRight,
+  Bell,
+  Search,
+  MoreVertical,
+  Plus,
+  Edit,
+  Trash2,
+  ExternalLink,
+  Library,
+  ChevronRight,
+  Inbox,
+  Send,
+  Archive,
+  Grid,
+  User,
+  X,
+  Sun,
+  Moon,
+  Shuffle,
+  CircleDashed,
+  Play,
+  SquareStack,
+  GripHorizontal
+} from 'lucide-react';
+
+/**
+ * EduHub Primary Logo Components
+ */
+const LogoHorizontal = ({ className = "h-8 w-auto" }) => (
+  <svg viewBox="0 0 100 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <circle cx="12" cy="12" r="9.5" className="text-rose-500" />
+    <path d="M37 3 L46 19 H28 L37 3 Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" className="text-orange-500" />
+    <rect x="53" y="2.5" width="19" height="19" rx="3" className="text-emerald-500" />
+    <path d="M88 4 C 96 4, 98 12, 94 18 C 88 24, 78 18, 80 10 C 82 4, 94 8, 92 14 C 90 20, 82 18, 84 12 C 86 6, 92 10, 88 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky-500" />
+  </svg>
+);
+
+const LogoIcon2x2 = ({ className = "w-16 h-16" }) => (
+  <svg viewBox="0 0 44 44" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <circle cx="10" cy="10" r="8" className="text-rose-500" />
+    <path d="M34 2 L42 18 H26 L34 2 Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" className="text-orange-500" />
+    <rect x="2" y="26" width="16" height="16" rx="3" className="text-emerald-500" />
+    <path d="M34 26 C 40 26, 42 32, 39 36 C 34 41, 27 37, 28 31 C 29 27, 38 30, 37 34 C 36 38, 30 37, 31 32 C 32 28, 37 31, 34 35" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky-500" />
+  </svg>
+);
+
+const STUDENT_DATABASE = [
+  { id: 1, name: "Aiden Thompson", avatar: "🦁" },
+  { id: 2, name: "Bella Rodriguez", avatar: "🦋" },
+  { id: 3, name: "Caleb Wright", avatar: "🦊" },
+  { id: 4, name: "Dakota Smith", avatar: "🎨" },
+  { id: 5, name: "Elena Gilbert", avatar: "⭐" },
+  { id: 6, name: "Finn O'Shea", avatar: "🐳" },
+  { id: 7, name: "Grace Miller", avatar: "🌻" },
+  { id: 8, name: "Hunter Reed", avatar: "🏹" },
+  { id: 9, name: "Isla Brown", avatar: "🦄" },
+  { id: 10, name: "Julian Vance", avatar: "🚀" },
+  { id: 11, name: "Kai Nguyen", avatar: "🌊" },
+  { id: 12, name: "Lily Chen", avatar: "🌸" },
+  { id: 13, name: "Mason Davis", avatar: "🧱" },
+  { id: 14, name: "Nora Quinn", avatar: "🌙" },
+  { id: 15, name: "Owen Taylor", avatar: "🦉" },
+  { id: 16, name: "Piper Hall", avatar: "🍭" },
+  { id: 17, name: "Quinn Adams", avatar: "🐧" },
+  { id: 18, name: "Riley Cooper", avatar: "🐶" },
+  { id: 19, name: "Sofia Lopez", avatar: "☀️" },
+  { id: 20, name: "Toby Wilson", avatar: "🐯" },
+  { id: 21, name: "Ursula King", avatar: "🐚" },
+  { id: 22, name: "Victor Hugo", avatar: "🎩" },
+  { id: 23, name: "Willow Brooks", avatar: "🌿" }
+];
+
+const App = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [sidebarSide, setSidebarSide] = useState('left');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [activeTab, setActiveTab] = useState('Randomizer');
+  const [expandedItem, setExpandedItem] = useState(null); 
+  const [popoutItem, setPopoutItem] = useState(null); 
+  const [panelItem, setPanelItem] = useState(null); 
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [useOverlaySearch, setUseOverlaySearch] = useState(false);
+  
+  // Randomizer States
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [activeStudents, setActiveStudents] = useState(STUDENT_DATABASE);
+
+  // Wheel States
+  const [wheelRotation, setWheelRotation] = useState(0);
+  const [isSpinningWheel, setIsSpinningWheel] = useState(false);
+  const [wheelWinner, setWheelWinner] = useState(null);
+
+  // Card States
+  const [shuffledDeck, setShuffledDeck] = useState([]);
+  const [flippedCards, setFlippedCards] = useState(new Set());
+
+  // Interactive Pull A Name States
+  const [pullDragY, setPullDragY] = useState(0);
+  const [isPullDragging, setIsPullDragging] = useState(false);
+  const [pullStartY, setPullStartY] = useState(0);
+  const [hasPulledName, setHasPulledName] = useState(false);
+  const [stagedStudent, setStagedStudent] = useState(null);
+  
+  // Active Student List Popout
+  const [showActiveList, setShowActiveList] = useState(false);
+  
+  const currentAppName = "Randomizer"; 
+  
+  // GLOBAL THEME (Rose Red)
+  const theme = { 
+    primary: "rose-500", 
+    bg: "bg-rose-500", 
+    text: "text-rose-500", 
+    border: "border-rose-500", 
+    hoverBg: "hover:bg-rose-50",
+    ring: "ring-rose-500" 
+  };
+
+  const popoutRef = useRef(null);
+  const searchRef = useRef(null);
+  const activeListRef = useRef(null);
+  const isLeft = sidebarSide === 'left';
+
+  useEffect(() => {
+    const handleResize = () => {
+      setUseOverlaySearch(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (popoutRef.current && !popoutRef.current.contains(event.target)) {
+        setPopoutItem(null);
+      }
+      if (searchRef.current && !searchRef.current.contains(event.target) && !searchQuery) {
+        setIsSearchExpanded(false);
+      }
+      if (activeListRef.current && !activeListRef.current.contains(event.target)) {
+        setShowActiveList(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    setShuffledDeck([...activeStudents].sort(() => Math.random() - 0.5));
+    setFlippedCards(new Set());
+  }, [activeStudents]);
+
+  // Stage a random student for "Pull A Name" whenever activeStudents changes or the tab is opened
+  useEffect(() => {
+    if (activeTab === 'Pull A Name' && activeStudents.length > 0 && !stagedStudent && !hasPulledName) {
+      setStagedStudent(activeStudents[Math.floor(Math.random() * activeStudents.length)]);
+    }
+  }, [activeTab, activeStudents, stagedStudent, hasPulledName]);
+
+  const navigationItems = [
+    { id: 'randomizer', name: 'Randomizer', icon: Shuffle, type: 'link' },
+    { id: 'wheel', name: 'Wheel of Names', icon: CircleDashed, type: 'link' },
+    { id: 'cards', name: 'Pick a Card', icon: SquareStack, type: 'link' },
+    { id: 'pull', name: 'Pull A Name', icon: Inbox, type: 'link' }
+  ];
+
+  const sidebarWidth = isSidebarOpen ? 'w-64' : 'w-20';
+  const navHeight = 'h-16';
+
+  const pickRandomStudent = () => {
+    if (isAnimating || STUDENT_DATABASE.length === 0) return;
+    setIsAnimating(true);
+    
+    let shuffles = 0;
+    const maxShuffles = 12;
+    const interval = setInterval(() => {
+      const randomIndex = Math.floor(Math.random() * STUDENT_DATABASE.length);
+      setSelectedStudent(STUDENT_DATABASE[randomIndex]);
+      shuffles++;
+      
+      if (shuffles >= maxShuffles) {
+        clearInterval(interval);
+        setIsAnimating(false);
+      }
+    }, 75);
+  };
+
+  const spinWheel = () => {
+    if (isSpinningWheel || activeStudents.length === 0) return;
+    setIsSpinningWheel(true);
+    setWheelWinner(null);
+
+    const spinSpins = 5 + Math.random() * 5; 
+    const extraDegrees = Math.random() * 360;
+    const totalRotation = wheelRotation + (spinSpins * 360) + extraDegrees;
+
+    setWheelRotation(totalRotation);
+
+    const normalizedRotation = totalRotation % 360;
+    const step = 360 / activeStudents.length;
+    const pointerAngle = (360 - normalizedRotation + 90) % 360;
+    const winningIndex = Math.floor(pointerAngle / step);
+
+    setTimeout(() => {
+      setIsSpinningWheel(false);
+      setWheelWinner(activeStudents[winningIndex]);
+    }, 4000);
+  };
+
+  const handleShuffleDeck = () => {
+    setShuffledDeck([...activeStudents].sort(() => Math.random() - 0.5));
+    setFlippedCards(new Set());
+  };
+
+  // Drag interaction logic for Pull A Name
+  const onPullDragStart = (e) => {
+    if (hasPulledName) return;
+    setIsPullDragging(true);
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    setPullStartY(clientY - pullDragY);
+  };
+
+  const onPullDragMove = (e) => {
+    if (!isPullDragging || hasPulledName) return;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    let newY = clientY - pullStartY;
+    
+    // Only allow dragging upward
+    if (newY > 0) newY = 0; 
+    
+    setPullDragY(newY);
+
+    // Threshold to reveal the name
+    if (newY < -250) {
+      setHasPulledName(true);
+      setIsPullDragging(false);
+      setPullDragY(-600); // Fly completely off screen
+    }
+  };
+
+  const onPullDragEnd = () => {
+    if (!isPullDragging || hasPulledName) return;
+    setIsPullDragging(false);
+    
+    // If they didn't pull far enough, snap back to closed
+    if (pullDragY > -250) {
+      setPullDragY(0); 
+    }
+  };
+
+  const resetPull = () => {
+    setHasPulledName(false);
+    setPullDragY(0);
+    setStagedStudent(null); 
+  };
+
+  const handlePullRemove = () => {
+    setActiveStudents(prev => prev.filter(s => s.id !== stagedStudent.id));
+    resetPull();
+  };
+
+  const shuffleStagedStudent = () => {
+    if (hasPulledName || activeStudents.length === 0) return;
+    setStagedStudent(activeStudents[Math.floor(Math.random() * activeStudents.length)]);
+  };
+
+  const handleItemClick = (item) => {
+    if (item.type === 'link') {
+      setActiveTab(item.name);
+      setExpandedItem(null);
+      setPanelItem(null);
+    }
+  };
+
+  const renderActiveStudentsPopout = () => {
+    if (activeStudents.length === STUDENT_DATABASE.length) return null;
+
+    return (
+      <div className="absolute top-0 right-0 z-40 flex flex-col items-end" ref={activeListRef}>
+        <button 
+          onClick={() => setShowActiveList(!showActiveList)} 
+          className={`px-4 py-2 flex items-center space-x-1.5 rounded-full font-bold text-xs transition-all shadow-sm ${isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'}`}
+        >
+          <span>{activeStudents.length} / {STUDENT_DATABASE.length} Active</span>
+          <ChevronDown size={14} className={`transition-transform duration-200 ${showActiveList ? 'rotate-180' : ''}`} />
+        </button>
+
+        {showActiveList && (
+          <div className={`mt-2 w-64 max-h-[50vh] overflow-y-auto rounded-xl shadow-2xl border flex flex-col text-left animate-in fade-in slide-in-from-top-2 duration-200 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-200' : 'bg-white border-slate-200 text-slate-800'}`}>
+            <div className={`p-3 border-b flex justify-between items-center sticky top-0 z-10 ${isDarkMode ? 'bg-slate-800/95 border-slate-700 backdrop-blur-sm' : 'bg-white/95 border-slate-100 backdrop-blur-sm'}`}>
+              <span className="font-bold text-sm">Active Students</span>
+              <button 
+                onClick={() => { setActiveStudents(STUDENT_DATABASE); setShowActiveList(false); }} 
+                className={`text-xs font-bold ${theme.text} hover:underline`}
+              >
+                Reset All
+              </button>
+            </div>
+            <div className="p-2 flex flex-col space-y-1">
+              {activeStudents.map(s => (
+                <div key={s.id} className={`flex items-center space-x-3 p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-50'}`}>
+                  <span className="text-lg leading-none">{s.avatar}</span>
+                  <span className="text-sm font-semibold truncate">{s.name}</span>
+                </div>
+              ))}
+              {activeStudents.length === 0 && (
+                <div className="p-4 text-center text-sm opacity-50 font-medium">All students removed.</div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className={`flex min-h-screen font-sans transition-all duration-300 ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'} ${isLeft ? 'flex-row' : 'flex-row-reverse'}`}>
+      
+      {/* 1. PRIMARY SIDEBAR */}
+      <aside className={`relative z-50 transition-all duration-300 ease-in-out flex flex-col shadow-sm ${sidebarWidth} ${isLeft ? 'border-r' : 'border-l'} ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+        
+        {/* PLATFORM TITLE */}
+        <div className={`flex items-center justify-center shrink-0 border-b ${navHeight} w-full ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+          <div className="flex items-center justify-center px-4">
+            {isSidebarOpen ? <LogoHorizontal className="h-6 w-auto" /> : <LogoIcon2x2 className="w-8 h-8" />}
+          </div>
+        </div>
+
+        <nav className="flex-1 px-2 space-y-1 pt-6 relative overflow-x-visible">
+          {navigationItems.map((item) => {
+            const isTabActive = activeTab === item.name;
+            return (
+              <div key={item.id} className="relative">
+                <button
+                  onClick={() => handleItemClick(item)}
+                  className={`flex items-center transition-all group relative rounded-xl h-12
+                    ${isSidebarOpen ? 'w-full px-3' : 'w-16 mx-auto justify-center'}
+                    ${isTabActive ? `${theme.bg} text-white shadow-lg` : `${isDarkMode ? 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}`}
+                >
+                  <div className={`flex items-center justify-center shrink-0`}>
+                    <item.icon size={20} strokeWidth={isTabActive ? 2.5 : 2} />
+                  </div>
+                  {isSidebarOpen && <span className="ml-4 font-semibold text-sm flex-1 text-left truncate">{item.name}</span>}
+                  {!isSidebarOpen && (
+                    <div className={`absolute ${isLeft ? 'left-full ml-4' : 'right-full mr-4'} px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-[60] whitespace-nowrap shadow-xl`}>
+                      {item.name}
+                    </div>
+                  )}
+                </button>
+              </div>
+            );
+          })}
+        </nav>
+
+        <div className={`p-2 border-t ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+           <div className={`flex transition-all duration-300 ${isSidebarOpen ? 'flex-row items-center space-x-2' : 'flex-col items-center space-y-2'}`}>
+              <button 
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className={`flex items-center justify-center rounded-xl transition-all h-12 ${isSidebarOpen ? 'flex-1 px-3' : 'w-16'} ${isDarkMode ? 'text-amber-400 bg-slate-800 hover:bg-slate-700' : 'text-slate-400 bg-slate-50 hover:bg-slate-100 hover:text-slate-900'}`}
+              >
+                {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+                {isSidebarOpen && <span className="ml-2 text-[9px] font-black uppercase tracking-tighter">Dark</span>}
+              </button>
+              <button 
+                onClick={() => setSidebarSide(isLeft ? 'right' : 'left')}
+                className={`flex items-center justify-center rounded-xl transition-all h-12 ${isSidebarOpen ? 'flex-1 px-3' : 'w-16'} ${isDarkMode ? 'text-slate-500 hover:bg-slate-800 hover:text-slate-200' : 'text-slate-400 hover:bg-slate-100'}`}
+              >
+                <ArrowLeftRight size={16} />
+                {isSidebarOpen && <span className="ml-2 text-[9px] font-black uppercase tracking-tighter">Flip</span>}
+              </button>
+              <button
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className={`flex items-center justify-center transition-all rounded-xl h-12 ${isSidebarOpen ? 'flex-1 px-3' : 'mx-auto w-16'} ${isDarkMode ? 'text-slate-400 bg-slate-800/40 hover:bg-slate-700/60' : 'text-slate-400 bg-slate-50 hover:bg-slate-100'}`}
+              >
+                {isSidebarOpen ? <ChevronLeft size={18} className={!isLeft ? 'rotate-180' : ''} /> : <Menu size={20} />}
+              </button>
+           </div>
+        </div>
+      </aside>
+
+      {/* MAIN CONTENT AREA */}
+      <div className="flex-1 flex flex-col min-w-0 relative z-10">
+        
+        {/* APP HEADER - Edu.Randomizer */}
+        <header className={`border-b flex items-center px-6 z-20 shrink-0 ${navHeight} sticky top-0 transition-colors duration-300 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+          <div className={`transition-all duration-500 overflow-hidden flex items-center shrink-0 ${isSearchExpanded && !useOverlaySearch ? 'w-0 opacity-0 mr-0' : 'flex-1 opacity-100 mr-4'}`}>
+            <div className="flex items-center text-lg font-bold whitespace-nowrap tracking-tight">
+              <span className={isDarkMode ? 'text-white' : 'text-slate-900'}>Edu.</span>
+              <span className={theme.text}>Randomizer</span>
+            </div>
+          </div>
+          
+          <div className={`flex items-center justify-end flex-1 h-full relative`}>
+             <div className="flex items-center space-x-2 shrink-0">
+                <button className={`p-2 text-slate-400 hover:${theme.text} rounded-full transition-colors`}>
+                  <Grid size={18} />
+                </button>
+                <button className={`p-2 text-slate-400 hover:${theme.text} rounded-full transition-colors relative`}>
+                  <Bell size={18} />
+                  <span className={`absolute top-2.5 right-2.5 w-1.5 h-1.5 ${theme.bg} rounded-full border border-white`}></span>
+                </button>
+                <div className={`h-6 w-[1px] mx-1 shrink-0 ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`}></div>
+                <button className={`w-9 h-9 rounded-full flex items-center justify-center transition-all shadow-sm ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-400'}`}>
+                  <User size={20} strokeWidth={2} />
+                </button>
+             </div>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-hidden relative flex items-center justify-center p-6 sm:p-10">
+          
+          {/* TAB 1: RANDOMIZER */}
+          {activeTab === 'Randomizer' && (
+            selectedStudent ? (
+              <div className={`flex flex-col items-center justify-center p-12 rounded-3xl transition-all duration-300 ${isDarkMode ? 'bg-slate-900 border-slate-800 shadow-[0_0_40px_rgba(0,0,0,0.3)]' : 'bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-slate-100'} ${isAnimating ? 'scale-95 opacity-50' : 'scale-100 opacity-100'}`}>
+                <div className="text-[120px] leading-none mb-6 drop-shadow-xl">{selectedStudent.avatar}</div>
+                <h2 className={`text-4xl sm:text-5xl font-black text-center ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{selectedStudent.name}</h2>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center text-center opacity-60">
+                <Shuffle size={40} className={isDarkMode ? 'text-slate-600' : 'text-slate-400'} />
+                <h3 className={`text-2xl font-bold mt-6 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Ready to pick a student</h3>
+              </div>
+            )
+          )}
+
+          {/* TAB 2: WHEEL OF NAMES */}
+          {activeTab === 'Wheel of Names' && (
+            <div className="w-full h-full flex flex-col items-center justify-center relative">
+              {renderActiveStudentsPopout()}
+
+              {activeStudents.length > 0 ? (
+               <div className="relative w-[340px] h-[340px] sm:w-[480px] sm:h-[480px]">
+                  <div className="absolute right-[-15px] top-1/2 transform -translate-y-1/2 w-0 h-0 border-t-[20px] border-t-transparent border-b-[20px] border-b-transparent border-r-slate-800 dark:border-r-white z-20" style={{ borderRightWidth: '40px' }}></div>
+                  <div className="w-full h-full rounded-full overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border-[6px] border-white dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
+                    <svg
+                      viewBox="0 0 400 400"
+                      className="w-full h-full"
+                      style={{
+                        transform: `rotate(${wheelRotation}deg)`,
+                        transition: isSpinningWheel ? 'transform 4s cubic-bezier(0.15, 0.0, 0.0, 1.0)' : 'none'
+                      }}
+                    >
+                      {activeStudents.map((student, i) => {
+                        const step = 360 / activeStudents.length;
+                        const startAngle = i * step;
+                        const endAngle = (i + 1) * step;
+                        const startRad = (startAngle - 90) * (Math.PI / 180);
+                        const endRad = (endAngle - 90) * (Math.PI / 180);
+                        const x1 = 200 + 200 * Math.cos(startRad);
+                        const y1 = 200 + 200 * Math.sin(startRad);
+                        const x2 = 200 + 200 * Math.cos(endRad);
+                        const y2 = 200 + 200 * Math.sin(endRad);
+                        
+                        const pathD = `M 200 200 L ${x1} ${y1} A 200 200 0 ${step > 180 ? 1 : 0} 1 ${x2} ${y2} Z`;
+                        
+                        const colors = ['#f43f5e', '#0ea5e9', '#10b981', '#f97316', '#f59e0b', '#a855f7'];
+                        return (
+                          <g key={student.id}>
+                            <path d={pathD} fill={colors[i % colors.length]} fillOpacity="0.5" stroke={isDarkMode ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.1)"} strokeWidth="1" />
+                            <g transform={`translate(200, 200) rotate(${(startAngle + endAngle) / 2 - 90})`}>
+                              <text x="185" y="0" fill={isDarkMode ? "#fff" : "#0f172a"} fontSize={activeStudents.length > 15 ? "10" : "14"} fontWeight="bold" dominantBaseline="central" textAnchor="end">
+                                {student.name} {student.avatar}
+                              </text>
+                            </g>
+                          </g>
+                        );
+                      })}
+                    </svg>
+                  </div>
+                  <button onClick={spinWheel} disabled={isSpinningWheel} className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-white dark:bg-slate-900 rounded-full shadow-lg border-[6px] border-slate-100 dark:border-slate-800 flex items-center justify-center z-10 font-black text-xl">SPIN</button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center text-center opacity-60">
+                  <div className={`w-24 h-24 mb-6 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`}>
+                      <CircleDashed size={40} className={isDarkMode ? 'text-slate-600' : 'text-slate-400'} />
+                  </div>
+                  <h3 className={`text-2xl font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>All students removed</h3>
+                </div>
+              )}
+
+              {wheelWinner && !isSpinningWheel && (
+                <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/70 dark:bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-300">
+                  <div className={`flex flex-col items-center p-12 rounded-3xl ${isDarkMode ? 'bg-slate-900 shadow-2xl' : 'bg-white shadow-xl'}`}>
+                    <div className="text-[120px] mb-6 drop-shadow-2xl">{wheelWinner.avatar}</div>
+                    <h2 className="text-4xl font-black">{wheelWinner.name}</h2>
+                    <div className="mt-10 flex items-center space-x-4">
+                      <button 
+                        onClick={() => {
+                          setActiveStudents(prev => prev.filter(s => s.id !== wheelWinner.id));
+                          setWheelWinner(null);
+                        }}
+                        className={`px-8 py-3 rounded-full font-bold transition-all hover:scale-105 shadow-md border-2 ${isDarkMode ? 'border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white' : 'border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                      >
+                        Remove
+                      </button>
+                      <button 
+                        onClick={() => setWheelWinner(null)} 
+                        className={`px-8 py-3 rounded-full font-bold text-white transition-all hover:scale-105 shadow-lg ${theme.bg}`}
+                      >
+                        Keep & Close
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 3: PICK A CARD */}
+          {activeTab === 'Pick a Card' && (
+            <div className="w-full h-full flex flex-col items-center relative overflow-y-auto">
+              {renderActiveStudentsPopout()}
+
+              {activeStudents.length > 0 ? (
+                <div className="w-full max-w-7xl grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 pb-24 mt-12">
+                  {shuffledDeck.map((student) => {
+                    const isFlipped = flippedCards.has(student.id);
+                    return (
+                      <div
+                        key={student.id}
+                        onClick={() => {
+                          if (isFlipped) return;
+                          const newFlipped = new Set(flippedCards);
+                          newFlipped.add(student.id);
+                          setFlippedCards(newFlipped);
+                        }}
+                        className={`aspect-[3/4.2] cursor-pointer transition-all duration-500 [transform-style:preserve-3d] relative rounded-2xl ${isFlipped ? '[transform:rotateY(180deg)]' : 'hover:-translate-y-2 hover:shadow-xl shadow-md'}`}
+                      >
+                        <div className={`absolute inset-0 [backface-visibility:hidden] rounded-2xl border-[6px] flex items-center justify-center shadow-inner ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-300'}`}>
+                        <LogoIcon2x2 className={`w-12 h-12 opacity-100 ${theme.text}`} />
+                      </div>
+                      <div className={`absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-2xl border-[6px] flex flex-col items-center justify-center p-6 ${theme.border} ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-900'}`}>
+                        <div className="text-6xl mb-4 drop-shadow-sm">{student.avatar}</div>
+                        <div className="text-sm font-black text-center leading-tight uppercase tracking-wide">{student.name}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-center opacity-60">
+                  <div className={`w-24 h-24 mb-6 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`}>
+                      <SquareStack size={40} className={isDarkMode ? 'text-slate-600' : 'text-slate-400'} />
+                  </div>
+                  <h3 className={`text-2xl font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>All students removed</h3>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 4: INTERACTIVE PULL A NAME */}
+          {activeTab === 'Pull A Name' && (
+            <div 
+              className="w-full h-full flex flex-col items-center justify-center relative touch-none"
+              onMouseMove={onPullDragMove}
+              onMouseUp={onPullDragEnd}
+              onMouseLeave={onPullDragEnd}
+              onTouchMove={onPullDragMove}
+              onTouchEnd={onPullDragEnd}
+            >
+              {renderActiveStudentsPopout()}
+
+              {activeStudents.length > 0 ? (
+                <div className="relative w-80 h-[420px] flex flex-col items-center justify-end">
+                   
+                   {/* Revealed Name (Underneath layer) */}
+                   <div className={`absolute inset-0 flex flex-col items-center justify-center p-8 border-4 border-dashed rounded-[2.5rem] z-0 ${isDarkMode ? 'border-slate-700 bg-slate-900/50' : 'border-slate-300 bg-slate-50/50'}`}>
+                      {stagedStudent && (
+                        <>
+                          <div className={`text-[80px] leading-none mb-6 drop-shadow-xl transition-all duration-700 delay-300 ${hasPulledName ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`}>
+                            {stagedStudent.avatar}
+                          </div>
+                          <h2 className={`text-3xl font-black text-center transition-all duration-700 delay-400 ${hasPulledName ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'} ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                            {stagedStudent.name}
+                          </h2>
+                          
+                          {/* Action Buttons */}
+                          <div className={`mt-8 flex flex-col w-full space-y-3 transition-all duration-500 delay-700 ${hasPulledName ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+                             <button 
+                               onClick={handlePullRemove} 
+                               className={`w-full py-3 rounded-full font-bold transition-all shadow-sm border-2 ${isDarkMode ? 'border-slate-700 text-slate-300 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-100'}`}
+                             >
+                               Remove
+                             </button>
+                             <button 
+                               onClick={resetPull} 
+                               className={`w-full py-3 rounded-full font-bold text-white transition-all shadow-md ${theme.bg}`}
+                             >
+                               Keep & Next
+                             </button>
+                          </div>
+                        </>
+                      )}
+                   </div>
+
+                   {/* Interactive Cover Card (Top Layer) */}
+                   <div 
+                     onMouseDown={onPullDragStart}
+                     onTouchStart={onPullDragStart}
+                     className={`absolute inset-0 w-full h-full rounded-[2.5rem] border-[6px] shadow-2xl flex flex-col items-center justify-center z-10 cursor-grab active:cursor-grabbing ${!isPullDragging && !hasPulledName ? 'transition-transform duration-300' : hasPulledName ? 'transition-all duration-700 ease-in-out' : 'duration-0'} ${theme.bg} ${theme.border}`}
+                     style={{ 
+                       transform: `translateY(${pullDragY}px) ${hasPulledName ? 'rotate(-5deg) scale(0.9)' : ''}`,
+                       opacity: hasPulledName ? 0 : 1,
+                       pointerEvents: hasPulledName ? 'none' : 'auto'
+                     }}
+                   >
+                      <div className="absolute top-6 w-16 h-1.5 bg-white/40 rounded-full"></div>
+                      <LogoIcon2x2 className="w-20 h-20 text-white mb-6 drop-shadow-md" />
+                      <div className="text-white font-black text-2xl tracking-widest uppercase drop-shadow-sm">Pull A Name</div>
+                      
+                      <div className="absolute bottom-10 flex flex-col items-center opacity-80">
+                         <GripHorizontal className="text-white mb-2" size={24} />
+                         <span className="text-white text-xs font-bold uppercase tracking-wider">Drag Up</span>
+                      </div>
+                   </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center text-center opacity-60">
+                  <div className={`w-24 h-24 mb-6 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`}>
+                      <Inbox size={40} className={isDarkMode ? 'text-slate-600' : 'text-slate-400'} />
+                  </div>
+                  <h3 className={`text-2xl font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>All students removed</h3>
+                </div>
+              )}
+            </div>
+          )}
+        </main>
+
+        {/* Global Floating Action Button */}
+        {activeTab !== 'Pull A Name' && (
+          <button 
+            onClick={
+              activeTab === 'Randomizer' ? pickRandomStudent : 
+              activeTab === 'Wheel of Names' ? spinWheel :
+              handleShuffleDeck
+            }
+            disabled={(activeTab !== 'Randomizer' && activeStudents.length === 0)}
+            className={`absolute bottom-8 right-8 w-16 h-16 rounded-full flex items-center justify-center text-white shadow-xl transition-all duration-300 z-50 ${theme.bg} ${isAnimating || isSpinningWheel ? 'animate-pulse' : 'hover:scale-110 hover:shadow-2xl'} disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed`}
+            aria-label="Action"
+          >
+            {activeTab === 'Randomizer' ? <Plus size={32} /> : 
+             activeTab === 'Wheel of Names' ? <Play size={28} /> : 
+             <Shuffle size={28} />}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default App;

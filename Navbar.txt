@@ -1,0 +1,844 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { 
+  Menu, 
+  ChevronLeft, 
+  ChevronDown,
+  Home, 
+  BarChart2, 
+  Users, 
+  Settings, 
+  HelpCircle, 
+  Layers,
+  ArrowLeftRight,
+  Bell,
+  Search,
+  MoreVertical,
+  Plus,
+  Edit,
+  Trash2,
+  ExternalLink,
+  Library,
+  ChevronRight,
+  Inbox,
+  Send,
+  Archive,
+  Grid,
+  User,
+  X,
+  Sun,
+  Moon,
+  Folder,
+  FileText,
+  Monitor,
+  BookOpen,
+  Star,
+  Heart,
+  LogOut
+} from 'lucide-react';
+
+/**
+ * EduHub Primary Logo Components
+ */
+const LogoHorizontal = ({ className = "h-8 w-auto" }) => (
+  <svg viewBox="0 0 100 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <circle cx="12" cy="12" r="9.5" className="text-rose-500" />
+    <path d="M37 3 L46 19 H28 L37 3 Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" className="text-orange-500" />
+    <rect x="53" y="2.5" width="19" height="19" rx="3" className="text-emerald-500" />
+    <path d="M88 4 C 96 4, 98 12, 94 18 C 88 24, 78 18, 80 10 C 82 4, 94 8, 92 14 C 90 20, 82 18, 84 12 C 86 6, 92 10, 88 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky-500" />
+  </svg>
+);
+
+const LogoIcon2x2 = ({ className = "w-16 h-16" }) => (
+  <svg viewBox="0 0 44 44" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <circle cx="10" cy="10" r="8" className="text-rose-500" />
+    <path d="M34 2 L42 18 H26 L34 2 Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" className="text-orange-500" />
+    <rect x="2" y="26" width="16" height="16" rx="3" className="text-emerald-500" />
+    <path d="M34 26 C 40 26, 42 32, 39 36 C 34 41, 27 37, 28 31 C 29 27, 38 30, 37 34 C 36 38, 30 37, 31 32 C 32 28, 37 31, 34 35" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky-500" />
+  </svg>
+);
+
+const App = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [sidebarSide, setSidebarSide] = useState('left');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [activeTab, setActiveTab] = useState('Dashboard');
+  const [expandedItem, setExpandedItem] = useState(null); 
+  const [popoutItem, setPopoutItem] = useState(null); 
+  const [panelItem, setPanelItem] = useState(null); 
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [panelSearchQuery, setPanelSearchQuery] = useState("");
+  
+  // Header Menus States
+  const [isAppsMenuOpen, setIsAppsMenuOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  
+  // Add Resource Modal States
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [newItemName, setNewItemName] = useState("");
+  const [newItemDesc, setNewItemDesc] = useState("");
+  const [newItemIcon, setNewItemIcon] = useState("Folder");
+
+  // Positioning and tooltip states
+  const [popoutRect, setPopoutRect] = useState(null);
+  const [tooltipInfo, setTooltipInfo] = useState({ visible: false, text: '', top: 0, left: 0, right: 0 });
+
+  const currentAppName = "Hub"; 
+  
+  const appThemes = {
+    "Hub": { primary: "sky-500", bg: "bg-sky-500", activeBg: "bg-sky-500/10", text: "text-sky-500", border: "border-sky-500", hoverBg: "hover:bg-sky-50", ring: "ring-sky-500" },
+    "District": { primary: "rose-500", bg: "bg-rose-500", activeBg: "bg-rose-500/10", text: "text-rose-500", border: "border-rose-500", hoverBg: "hover:bg-rose-50", ring: "ring-rose-500" },
+    "Admin": { primary: "emerald-500", bg: "bg-emerald-500", activeBg: "bg-emerald-500/10", text: "text-emerald-500", border: "border-emerald-500", hoverBg: "hover:bg-emerald-50", ring: "ring-emerald-500" },
+    "Analytics": { primary: "orange-500", bg: "bg-orange-500", activeBg: "bg-orange-500/10", text: "text-orange-500", border: "border-orange-500", hoverBg: "hover:bg-orange-50", ring: "ring-orange-500" }
+  };
+
+  const theme = appThemes[currentAppName] || appThemes["Hub"];
+  
+  // Refs
+  const popoutRef = useRef(null);
+  const searchRef = useRef(null);
+  const appsMenuRef = useRef(null);
+  const appsButtonRef = useRef(null);
+  const notificationsMenuRef = useRef(null);
+  const notificationsButtonRef = useRef(null);
+  const accountMenuRef = useRef(null);
+  const accountButtonRef = useRef(null);
+  const tooltipTimeoutRef = useRef(null);
+  const sidebarRef = useRef(null);
+  const panelRef = useRef(null);
+  const isLeft = sidebarSide === 'left';
+
+  const availableIcons = [
+    { name: 'Folder', icon: Folder },
+    { name: 'File', icon: FileText },
+    { name: 'Monitor', icon: Monitor },
+    { name: 'Book', icon: BookOpen },
+    { name: 'Star', icon: Star },
+    { name: 'Heart', icon: Heart }
+  ];
+
+  // Convert navigation items to a state so we can dynamically add resources
+  const [navItems, setNavItems] = useState([
+    { id: 'dash', name: 'Dashboard', icon: Home, type: 'link' },
+    { 
+      id: 'analytics', 
+      name: 'Analytics', 
+      icon: BarChart2, 
+      type: 'accordion', 
+      subItems: ['Performance', 'Engagement', 'Retention'] 
+    },
+    { 
+      id: 'resources', 
+      name: 'Resources', 
+      icon: Library, 
+      type: 'panel',
+      panelContent: [
+        { label: 'Inbox', icon: Inbox, desc: 'Access files' },
+        { label: 'Sent', icon: Send, desc: 'Access files' },
+        { label: 'Archived', icon: Archive, desc: 'Access files' },
+        { label: 'Cloud Storage', icon: Layers, desc: 'Access files' },
+        { label: 'Trash', icon: Trash2, desc: 'Access files' }
+      ]
+    },
+    { 
+      id: 'district', 
+      name: 'District', 
+      icon: Users, 
+      type: 'popout',
+      actions: [
+        { name: 'Add Member', icon: Plus },
+        { name: 'Edit Group', icon: Edit },
+        { name: 'Export Data', icon: ExternalLink },
+        { name: 'Delete', icon: Trash2, color: 'text-rose-500' }
+      ]
+    },
+    { id: 'rooms', name: 'Classrooms', icon: Layers, type: 'link' },
+    { id: 'settings', name: 'Settings', icon: Settings, type: 'link' },
+    { id: 'help', name: 'Help Center', icon: HelpCircle, type: 'link' },
+  ]);
+
+  const handleAddResource = () => {
+    if (!newItemName.trim() || !panelItem) return;
+
+    const selectedIconObj = availableIcons.find(i => i.name === newItemIcon);
+    const IconComponent = selectedIconObj ? selectedIconObj.icon : Folder;
+
+    const newResource = {
+      label: newItemName,
+      desc: newItemDesc.trim() || 'Access files',
+      icon: IconComponent
+    };
+
+    setNavItems(prev => prev.map(item => {
+      if (item.id === panelItem && item.panelContent) {
+        return { ...item, panelContent: [...item.panelContent, newResource] };
+      }
+      return item;
+    }));
+
+    // Reset and close
+    setIsAddModalOpen(false);
+    setNewItemName('');
+    setNewItemDesc('');
+    setNewItemIcon('Folder');
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Panel Popout
+      if (popoutRef.current && !popoutRef.current.contains(event.target)) {
+        if (!event.target.closest('[data-popout-trigger]')) {
+           setPopoutItem(null);
+        }
+      }
+      // Header Menus
+      if (appsMenuRef.current && !appsMenuRef.current.contains(event.target)) {
+        if (appsButtonRef.current && !appsButtonRef.current.contains(event.target)) {
+           setIsAppsMenuOpen(false);
+        }
+      }
+      if (notificationsMenuRef.current && !notificationsMenuRef.current.contains(event.target)) {
+        if (notificationsButtonRef.current && !notificationsButtonRef.current.contains(event.target)) {
+           setIsNotificationsOpen(false);
+        }
+      }
+      if (accountMenuRef.current && !accountMenuRef.current.contains(event.target)) {
+        if (accountButtonRef.current && !accountButtonRef.current.contains(event.target)) {
+           setIsAccountMenuOpen(false);
+        }
+      }
+      // Search - Close when clicked outside
+      if (searchRef.current && !searchRef.current.contains(event.target) && !searchQuery) {
+        setIsSearchExpanded(false);
+      }
+      // Prevent closing the sidebar panel if the user is interacting with the Add Modal
+      if (!isAddModalOpen && panelRef.current && !panelRef.current.contains(event.target) && 
+          sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+        setPanelItem(null);
+        setPanelSearchQuery("");
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      if (tooltipTimeoutRef.current) {
+        clearTimeout(tooltipTimeoutRef.current);
+      }
+    };
+  }, [searchQuery, isAddModalOpen]);
+
+  const sidebarWidth = isSidebarOpen ? 'w-64' : 'w-20';
+  const navHeight = 'h-14'; 
+  
+  const showTooltip = (e, text) => {
+    if (isSidebarOpen) return;
+    
+    if (tooltipTimeoutRef.current) {
+      clearTimeout(tooltipTimeoutRef.current);
+    }
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const top = rect.top + rect.height / 2;
+    const left = isLeft ? rect.right + 16 : undefined;
+    const right = !isLeft ? window.innerWidth - rect.left + 16 : undefined;
+
+    tooltipTimeoutRef.current = setTimeout(() => {
+      setTooltipInfo({
+        visible: true,
+        text,
+        top,
+        left,
+        right
+      });
+    }, 400); 
+  };
+
+  const hideTooltip = () => {
+    if (tooltipTimeoutRef.current) {
+      clearTimeout(tooltipTimeoutRef.current);
+      tooltipTimeoutRef.current = null;
+    }
+    setTooltipInfo(prev => ({ ...prev, visible: false }));
+  };
+
+  const handleItemClick = (item, e) => {
+    hideTooltip();
+    if (item.type === 'link') {
+      setActiveTab(item.name);
+      setExpandedItem(null);
+      setPanelItem(null);
+      setPopoutItem(null);
+    } else if (item.type === 'accordion') {
+      if (!isSidebarOpen) setIsSidebarOpen(true);
+      const isOpening = expandedItem !== item.id;
+      setExpandedItem(isOpening ? item.id : null);
+      setPanelItem(null);
+      setPopoutItem(null);
+    } else if (item.type === 'popout') {
+      if (popoutItem === item.id) {
+         setPopoutItem(null);
+      } else {
+         const rect = e.currentTarget.getBoundingClientRect();
+         setPopoutItem(item.id);
+         setPopoutRect({
+            top: rect.top + rect.height / 2,
+            left: isLeft ? rect.right + 16 : undefined,
+            right: !isLeft ? window.innerWidth - rect.left + 16 : undefined,
+         });
+      }
+    } else if (item.type === 'panel') {
+      const isOpening = panelItem !== item.id;
+      setPanelItem(isOpening ? item.id : null);
+      setExpandedItem(null);
+      setPanelSearchQuery("");
+      setPopoutItem(null);
+    }
+  };
+
+  return (
+    <div className={`flex h-screen overflow-hidden font-sans transition-all duration-300 ${isDarkMode ? 'bg-slate-950 text-slate-100 [color-scheme:dark]' : 'bg-slate-50 text-slate-900 [color-scheme:light]'} ${isLeft ? 'flex-row' : 'flex-row-reverse'}`}>
+      
+      {/* 1. PRIMARY SIDEBAR */}
+      <aside ref={sidebarRef} className={`relative z-50 transition-[width,background-color,border-color] duration-300 ease-in-out flex flex-col h-full shrink-0 ${sidebarWidth} ${isLeft ? 'border-r-[1.5px]' : 'border-l-[1.5px]'} ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+        <div className={`flex items-center justify-center shrink-0 border-b-[1.5px] ${navHeight} w-full ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+          <div className="flex items-center justify-center px-4">
+            {isSidebarOpen ? <LogoHorizontal className="h-5 w-auto" /> : <LogoIcon2x2 className="w-7 h-7" />}
+          </div>
+        </div>
+
+        <div className="pt-2 shrink-0"></div>
+
+        {/* Scrollable nav section */}
+        <nav 
+          onScroll={() => { hideTooltip(); setPopoutItem(null); }}
+          className="flex-1 px-2 space-y-1 pt-2 pb-10 overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        >
+          {navItems.map((item) => {
+            const isExpanded = expandedItem === item.id;
+            const isTabActive = activeTab === item.name || (item.type === 'accordion' && item.subItems.includes(activeTab));
+            const isPanelOpen = panelItem === item.id;
+            const isVisuallyActive = isTabActive || isPanelOpen || (item.type === 'accordion' && isExpanded);
+
+            return (
+              <div key={item.id}>
+                <button
+                  data-popout-trigger={item.id}
+                  onClick={(e) => handleItemClick(item, e)}
+                  onMouseEnter={(e) => showTooltip(e, item.name)}
+                  onMouseLeave={hideTooltip}
+                  className={`flex items-center transition-all group rounded-xl h-12
+                    ${isSidebarOpen ? 'w-full px-3' : 'w-16 mx-auto justify-center'}
+                    ${isVisuallyActive ? `${theme.bg} text-white` : `${isDarkMode ? 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}`}
+                >
+                  <div className={`flex items-center justify-center shrink-0`}>
+                    <item.icon size={20} strokeWidth={isVisuallyActive ? 2.5 : 2} />
+                  </div>
+                  {isSidebarOpen && (
+                    <>
+                      <span className="ml-4 font-semibold text-sm flex-1 text-left truncate">{item.name}</span>
+                      {item.type === 'accordion' && (
+                        <ChevronDown size={14} className={`transition-transform duration-200 shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
+                      )}
+                      {item.type === 'panel' && (
+                        <ChevronRight size={14} className={`transition-all duration-200 shrink-0 ${isLeft ? '' : 'rotate-180'} ${isPanelOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-40'}`} />
+                      )}
+                      {item.type === 'popout' && <MoreVertical size={14} className="opacity-40 shrink-0" />}
+                    </>
+                  )}
+                </button>
+                {item.type === 'accordion' && isExpanded && isSidebarOpen && (
+                  <div className={`mt-1 space-y-1 ${isDarkMode ? 'border-slate-800' : 'border-slate-100'} ${isLeft ? 'ml-10 border-l-[0.5px]' : 'mr-10 border-r-[0.5px]'}`}>
+                    {item.subItems.map(sub => (
+                      <button 
+                        key={sub}
+                        onClick={() => setActiveTab(sub)}
+                        className={`block w-full text-left py-2 px-4 text-xs font-medium transition-colors
+                          ${isLeft ? 'rounded-r-lg' : 'rounded-l-lg text-right'}
+                          ${activeTab === sub ? `${theme.text} ${theme.activeBg} font-bold` : `${isDarkMode ? 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/50' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50/50'}`}`}
+                      >
+                        {sub}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </nav>
+
+        {/* BOTTOM QUICK SETTINGS SECTION */}
+        <div className={`p-2 border-t-[0.5px] shrink-0 ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}>
+           <div className={`flex transition-all duration-300 ${isSidebarOpen ? 'flex-row items-center space-x-2' : 'flex-col items-center space-y-2'}`}>
+              
+              {/* DARK MODE */}
+              <button 
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                onMouseEnter={(e) => showTooltip(e, isDarkMode ? 'Light Mode' : 'Dark Mode')}
+                onMouseLeave={hideTooltip}
+                className={`flex items-center justify-center rounded-xl transition-all h-12 group ${isSidebarOpen ? 'flex-1 px-3' : 'w-16'} ${isDarkMode ? 'text-amber-400 bg-transparent hover:bg-slate-800' : 'text-slate-400 bg-transparent hover:bg-slate-100 hover:text-slate-900'}`}
+              >
+                <div className="shrink-0 flex items-center justify-center">
+                  {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+                </div>
+                {isSidebarOpen && <span className="ml-2 text-[9px] font-black uppercase tracking-tighter whitespace-nowrap">{isDarkMode ? 'Light' : 'Dark'}</span>}
+              </button>
+
+              {/* FLIP */}
+              <button 
+                onClick={(e) => { hideTooltip(); setSidebarSide(isLeft ? 'right' : 'left'); setPanelItem(null); }}
+                onMouseEnter={(e) => showTooltip(e, 'Flip Sidebar')}
+                onMouseLeave={hideTooltip}
+                className={`flex items-center justify-center rounded-xl transition-all h-12 group ${isSidebarOpen ? 'flex-1 px-3' : 'w-16'} ${isDarkMode ? 'text-slate-500 hover:bg-slate-800 hover:text-slate-200' : 'text-slate-400 bg-transparent hover:bg-slate-100 hover:text-slate-900'}`}
+              >
+                <div className="shrink-0 flex items-center justify-center">
+                  <ArrowLeftRight size={16} />
+                </div>
+                {isSidebarOpen && <span className="ml-2 text-[9px] font-black uppercase tracking-tighter whitespace-nowrap">Flip</span>}
+              </button>
+
+              {/* COLLAPSE */}
+              <button
+                onClick={(e) => { hideTooltip(); setIsSidebarOpen(!isSidebarOpen); }}
+                onMouseEnter={(e) => showTooltip(e, isSidebarOpen ? 'Collapse Menu' : 'Expand Menu')}
+                onMouseLeave={hideTooltip}
+                className={`flex items-center justify-center transition-all rounded-xl h-12 group ${isSidebarOpen ? 'flex-1 px-3' : 'mx-auto w-16'}  ${isDarkMode ? 'text-slate-400 bg-transparent hover:bg-slate-800 hover:text-slate-200' : 'text-slate-400 bg-transparent hover:bg-slate-100 hover:text-slate-900'}`}
+              >
+                <div className="shrink-0 flex items-center justify-center">
+                  {isSidebarOpen ? <ChevronLeft size={18} className={!isLeft ? 'rotate-180' : ''} /> : <Menu size={20} />}
+                </div>
+                {isSidebarOpen && <span className="ml-2 text-[9px] font-black uppercase tracking-tighter whitespace-nowrap">Menu</span>}
+              </button>
+           </div>
+        </div>
+      </aside>
+
+      {/* 2. SECONDARY SIDEBAR PANEL */}
+      <div 
+        ref={panelRef}
+        className={`z-40 h-full transition-[width,background-color,border-color] duration-300 ease-in-out overflow-hidden flex flex-col shrink-0
+          ${panelItem ? 'w-72' : 'w-0'}
+          ${isDarkMode ? 'bg-slate-900' : 'bg-white'}
+          ${isLeft ? `border-r-[1.5px] -ml-[1.5px] ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}` : `border-l-[1.5px] -mr-[1.5px] ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}`}
+      >
+        <div className={`w-72 flex flex-col h-full transition-opacity duration-300 ${panelItem ? 'opacity-100' : 'opacity-0'}`}>
+          <div className={`flex items-center justify-between px-4 shrink-0 border-b-[0.5px] ${isDarkMode ? 'border-slate-800' : 'border-slate-200'} ${navHeight}`}>
+            <h2 className="text-base font-black text-slate-400 uppercase tracking-[0.2em]">Resources</h2>
+            <button onClick={() => { setPanelItem(null); setPanelSearchQuery(""); }} className={`p-1 rounded-md transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50'}`}>
+              <X size={16} />
+            </button>
+          </div>
+
+          <div className={`flex items-center gap-2 p-4 shrink-0 border-b-[0.5px] ${isDarkMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-200 bg-slate-50/50'}`}>
+            <div className="relative flex-1">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input 
+                type="text" 
+                value={panelSearchQuery}
+                onChange={(e) => setPanelSearchQuery(e.target.value)}
+                placeholder="Search..." 
+                className={`w-full h-9 pl-9 pr-3 rounded-lg text-xs font-medium outline-none transition-colors border ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-200 placeholder-slate-500 focus:border-slate-600' : 'bg-white border-slate-200 text-slate-700 placeholder-slate-400 focus:border-slate-300'}`}
+              />
+            </div>
+            <button 
+              onClick={() => setIsAddModalOpen(true)}
+              className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors border ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300'}`}
+            >
+              <Plus size={16} />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            {navItems.find(i => i.id === panelItem)?.panelContent
+              ?.filter(sub => sub.label.toLowerCase().includes(panelSearchQuery.toLowerCase()) || sub.desc?.toLowerCase().includes(panelSearchQuery.toLowerCase()))
+              .map((sub, index, arr) => {
+              const isActive = activeTab === `Resource: ${sub.label}`;
+              return (
+                <button 
+                  key={sub.label}
+                  onClick={() => setActiveTab(`Resource: ${sub.label}`)}
+                  className={`w-full flex items-center p-5 text-left group transition-colors relative
+                    ${isDarkMode ? 'bg-slate-900' : 'bg-white'}
+                    ${index !== arr.length - 1 ? `border-b-[0.5px] ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}` : ''}`}
+                >
+                  <div className={`w-10 h-10 flex items-center justify-center transition-colors duration-300 ${isActive ? theme.text : 'text-slate-400'} group-hover:${theme.text}`}>
+                    <sub.icon size={18} />
+                  </div>
+                  <div className="ml-4 flex-1">
+                    <span className={`block text-sm font-bold transition-colors ${isActive ? theme.text : (isDarkMode ? 'text-slate-200' : 'text-slate-700')} group-hover:${theme.text}`}>{sub.label}</span>
+                    <span className={`block text-[10px] font-medium uppercase tracking-tight transition-colors ${isActive ? theme.text : 'text-slate-500'} group-hover:${theme.text}`}>{sub.desc || 'Access files'}</span>
+                  </div>
+                  <ChevronRight size={14} className={`transition-all transform ${isLeft ? '' : 'rotate-180'} ${isActive ? `opacity-100 ${theme.text} ${isLeft ? 'translate-x-1' : '-translate-x-1'}` : `text-slate-300 opacity-0 group-hover:opacity-100 group-hover:${theme.text} ${isLeft ? 'group-hover:translate-x-1' : 'group-hover:-translate-x-1'}`}`} />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* MAIN CONTENT AREA */}
+      <div className="flex-1 flex flex-col h-full min-w-0 relative z-10 overflow-hidden">
+        <header className={`border-b-[1.5px] flex items-center px-4 z-20 shrink-0 ${navHeight} transition-[background-color,border-color] duration-300 ease-in-out ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+          <div className="flex items-center flex-1 overflow-hidden mr-4">
+            <div className="flex items-center text-2xl font-bold whitespace-nowrap tracking-tight">
+              <span className={isDarkMode ? 'text-white' : 'text-slate-900'}>Edu.</span>
+              <span className={theme.text}>{currentAppName}</span>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-end h-full gap-2 relative">
+             
+             {/* Expandable Search Pill */}
+             <div ref={searchRef} className="relative flex items-center h-10 shrink-0">
+               {/* Fixed invisible spacer so the right-side icons never move when search expands */}
+               <div className="w-10 h-10 shrink-0"></div>
+               
+               {/* Absolute positioned pill that grows to the left */}
+               <div 
+                 className={`absolute right-0 flex items-center h-10 transition-all duration-300 ease-in-out overflow-hidden rounded-full z-50
+                 ${isSearchExpanded 
+                   ? `w-[200px] sm:w-[280px] md:w-[320px] shadow-sm border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}` 
+                   : `w-10 border border-transparent bg-transparent hover:${isDarkMode ? 'bg-slate-800' : 'bg-slate-100'}`
+                 }`}
+               >
+                 <button 
+                   onClick={() => !isSearchExpanded && setIsSearchExpanded(true)}
+                   className={`w-10 h-10 shrink-0 flex items-center justify-center rounded-full transition-colors ${isSearchExpanded ? theme.text : 'text-slate-400'}`}
+                 >
+                   <Search size={18} />
+                 </button>
+                 <input 
+                   type="text" 
+                   autoFocus={isSearchExpanded}
+                   placeholder="Search resources..." 
+                   value={searchQuery} 
+                   onChange={(e) => setSearchQuery(e.target.value)} 
+                   className={`h-full bg-transparent outline-none text-sm font-medium transition-opacity duration-300 ${isSearchExpanded ? 'flex-1 opacity-100' : 'w-0 opacity-0'} ${isDarkMode ? 'text-white placeholder-slate-500' : 'text-slate-900 placeholder-slate-400'}`}
+                 />
+                 <button 
+                   onClick={(e) => { e.stopPropagation(); searchQuery ? setSearchQuery("") : setIsSearchExpanded(false); }} 
+                   className={`w-10 h-10 shrink-0 flex items-center justify-center transition-opacity duration-300 ${isSearchExpanded ? 'opacity-100' : 'opacity-0 pointer-events-none'} text-slate-400 hover:text-slate-600 dark:hover:text-slate-200`}
+                 >
+                   <X size={16} strokeWidth={2.5} />
+                 </button>
+               </div>
+             </div>
+
+             <div className="flex items-center space-x-1 sm:space-x-2 shrink-0">
+                
+                {/* APPS MENU POPOUT */}
+                <div className="relative">
+                  <button 
+                    ref={appsButtonRef}
+                    onClick={() => { 
+                      setIsAppsMenuOpen(!isAppsMenuOpen); 
+                      setIsNotificationsOpen(false); 
+                      setIsAccountMenuOpen(false);
+                      setPopoutItem(null); 
+                      hideTooltip(); 
+                    }}
+                    className={`p-2 text-slate-400 hover:${theme.text} rounded-full transition-colors`}
+                  >
+                    <Grid size={18} />
+                  </button>
+                  
+                  {isAppsMenuOpen && (
+                    <div ref={appsMenuRef} className={`absolute top-full right-0 mt-3 w-[260px] rounded-2xl shadow-xl z-[150] overflow-hidden ${isDarkMode ? 'bg-slate-900' : 'bg-white'}`}>
+                       {/* Header */}
+                       <div className={`px-4 py-3 flex items-center justify-between border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}>
+                         <span className={`font-bold text-xs uppercase tracking-wider ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Apps</span>
+                         <button className={`text-xs font-bold px-2.5 py-1 rounded-md transition-all ${isDarkMode ? 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}>
+                           Edit
+                         </button>
+                       </div>
+
+                       <div className="grid grid-cols-3 gap-1 overflow-y-auto max-h-[220px] p-2.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-track]:bg-transparent">
+                         {[
+                           { name: 'Hub', icon: Layers, color: 'bg-sky-500' },
+                           { name: 'District', icon: Users, color: 'bg-rose-500' },
+                           { name: 'Admin', icon: Settings, color: 'bg-emerald-500' },
+                           { name: 'Analytics', icon: BarChart2, color: 'bg-orange-500' },
+                           { name: 'Mail', icon: Inbox, color: 'bg-indigo-500' },
+                           { name: 'Calendar', icon: BookOpen, color: 'bg-violet-500' },
+                           { name: 'Files', icon: Folder, color: 'bg-blue-500' },
+                           { name: 'Tasks', icon: FileText, color: 'bg-cyan-500' },
+                           { name: 'Grades', icon: Star, color: 'bg-amber-500' },
+                           { name: 'Support', icon: HelpCircle, color: 'bg-pink-500' }
+                         ].map(app => (
+                           <button key={app.name} className="flex flex-col items-center justify-start gap-1.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group" onClick={() => setIsAppsMenuOpen(false)}>
+                             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-sm transition-transform group-hover:scale-105 group-active:scale-95 ${app.color}`}>
+                               <app.icon size={22} strokeWidth={2} />
+                             </div>
+                             <span className={`text-[10px] font-bold text-center leading-none ${isDarkMode ? 'text-slate-400 group-hover:text-slate-200' : 'text-slate-500 group-hover:text-slate-900'}`}>{app.name}</span>
+                           </button>
+                         ))}
+                       </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* NOTIFICATIONS MENU POPOUT */}
+                <div className="relative">
+                  <button 
+                    ref={notificationsButtonRef}
+                    onClick={() => { 
+                      setIsNotificationsOpen(!isNotificationsOpen); 
+                      setIsAppsMenuOpen(false); 
+                      setIsAccountMenuOpen(false);
+                      setPopoutItem(null); 
+                      hideTooltip(); 
+                    }}
+                    className={`p-2 text-slate-400 hover:${theme.text} rounded-full transition-colors relative`}
+                  >
+                    <Bell size={18} />
+                    <span className={`absolute top-2.5 right-2.5 w-1.5 h-1.5 ${theme.bg} rounded-full border border-white`}></span>
+                  </button>
+                  
+                  {isNotificationsOpen && (
+                    <div ref={notificationsMenuRef} className={`absolute top-full right-0 mt-3 w-[320px] rounded-2xl shadow-xl z-[150] overflow-hidden ${isDarkMode ? 'bg-slate-900' : 'bg-white'}`}>
+                       {/* Header */}
+                       <div className={`px-4 py-3 flex items-center justify-between border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}>
+                         <span className={`font-bold text-xs uppercase tracking-wider ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Notifications</span>
+                         <button className={`text-xs font-bold px-2.5 py-1 rounded-md transition-all ${isDarkMode ? 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}>
+                           Mark Read
+                         </button>
+                       </div>
+
+                       <div className="overflow-y-auto max-h-[300px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-track]:bg-transparent">
+                         {[
+                           { id: 1, title: 'New Resource Added', desc: 'Sarah uploaded "Q3 Syllabus"', time: '2m ago', unread: true, icon: FileText, color: 'text-sky-500', bg: 'bg-sky-500/10' },
+                           { id: 2, title: 'System Update', desc: 'EduHub will be down for maintenance at 2 AM.', time: '1h ago', unread: true, icon: Monitor, color: 'text-rose-500', bg: 'bg-rose-500/10' },
+                           { id: 3, title: 'Welcome to EduHub', desc: 'Get started by setting up your first classroom.', time: '2d ago', unread: false, icon: Star, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+                           { id: 4, title: 'Weekly Report Ready', desc: 'Your analytics report for last week is available.', time: '3d ago', unread: false, icon: BarChart2, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+                         ].map(notif => (
+                           <button key={notif.id} className={`w-full flex items-start gap-3 p-4 text-left transition-colors border-b last:border-b-0 ${isDarkMode ? 'border-slate-800 hover:bg-slate-800/50' : 'border-slate-100 hover:bg-slate-50'} ${notif.unread ? (isDarkMode ? 'bg-slate-800/30' : 'bg-slate-50/50') : ''}`} onClick={() => setIsNotificationsOpen(false)}>
+                             <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${notif.bg} ${notif.color}`}>
+                               <notif.icon size={18} strokeWidth={2.5} />
+                             </div>
+                             <div className="flex-1 pr-2">
+                               <div className="flex items-center justify-between mb-0.5">
+                                 <span className={`text-sm font-bold ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>{notif.title}</span>
+                                 {notif.unread && <span className={`w-2 h-2 rounded-full ${theme.bg}`}></span>}
+                               </div>
+                               <p className={`text-xs leading-snug mb-1.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>{notif.desc}</p>
+                               <span className={`text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>{notif.time}</span>
+                             </div>
+                           </button>
+                         ))}
+                       </div>
+                       
+                       {/* Footer */}
+                       <div className={`p-2 border-t text-center ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+                         <button className={`text-xs font-bold py-2 px-4 rounded-lg w-full transition-colors ${theme.text} ${isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-slate-50'}`}>
+                           View All Notifications
+                         </button>
+                       </div>
+                    </div>
+                  )}
+                </div>
+                
+                <div className={`h-6 w-[1px] mx-1 shrink-0 ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`}></div>
+
+                {/* ACCOUNT MENU POPOUT */}
+                <div className="relative">
+                  <button 
+                    ref={accountButtonRef}
+                    onClick={() => { 
+                      setIsAccountMenuOpen(!isAccountMenuOpen); 
+                      setIsAppsMenuOpen(false); 
+                      setIsNotificationsOpen(false);
+                      setPopoutItem(null); 
+                      hideTooltip(); 
+                    }}
+                    className={`w-9 h-9 rounded-full flex items-center justify-center transition-all shadow-sm ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-white'}`}
+                  >
+                    <User size={20} strokeWidth={2} />
+                  </button>
+                  
+                  {isAccountMenuOpen && (
+                    <div ref={accountMenuRef} className={`absolute top-full right-0 mt-3 w-[260px] rounded-2xl shadow-xl z-[150] overflow-hidden ${isDarkMode ? 'bg-slate-900' : 'bg-white'}`}>
+                       {/* Header */}
+                       <div className={`px-4 py-3 flex items-center justify-between border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}>
+                         <span className={`font-bold text-xs uppercase tracking-wider ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Account</span>
+                         <button className={`text-xs font-bold px-2.5 py-1 rounded-md transition-all ${isDarkMode ? 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}>
+                           Manage
+                         </button>
+                       </div>
+
+                       {/* User Info Block */}
+                       <div className={`p-4 border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+                         <div className="flex items-center space-x-3">
+                           <div className="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center overflow-hidden shrink-0">
+                             <User size={20} className="text-sky-600" />
+                           </div>
+                           <div className="flex-1 overflow-hidden">
+                             <p className={`font-bold text-sm truncate ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Admin User</p>
+                             <p className={`text-xs truncate ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>admin@eduhub.com</p>
+                           </div>
+                         </div>
+                       </div>
+
+                       <div className="py-2">
+                         {[
+                           { name: 'Your Profile', icon: User },
+                           { name: 'Preferences', icon: Settings },
+                           { name: 'Help & Support', icon: HelpCircle },
+                         ].map(item => (
+                           <button key={item.name} className={`w-full flex items-center px-4 py-2.5 text-sm font-medium transition-colors ${isDarkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-700 hover:bg-slate-50'}`} onClick={() => setIsAccountMenuOpen(false)}>
+                             <item.icon size={16} className={`mr-3 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`} />
+                             {item.name}
+                           </button>
+                         ))}
+                       </div>
+                       
+                       {/* Footer */}
+                       <div className={`p-2 border-t ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+                         <button className={`w-full flex items-center justify-center px-2 py-2 text-sm font-bold rounded-lg transition-colors text-rose-500 ${isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-rose-50'}`} onClick={() => setIsAccountMenuOpen(false)}>
+                           <LogOut size={16} className="mr-2" />
+                           Sign Out
+                         </button>
+                       </div>
+                    </div>
+                  )}
+                </div>
+
+             </div>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-y-auto p-10 bg-transparent">
+          {/* Main content will go here */}
+        </main>
+      </div>
+
+      {/* GLOBAL TOOLTIP & POPOUTS */}
+      {tooltipInfo.visible && (
+        <div 
+          className={`fixed z-[100] px-2 py-1 text-xs font-bold rounded-md pointer-events-none whitespace-nowrap shadow-lg ${theme.bg} text-white`}
+          style={{ 
+            top: tooltipInfo.top, 
+            transform: 'translateY(-50%)',
+            left: tooltipInfo.left,
+            right: tooltipInfo.right
+          }}
+        >
+          {tooltipInfo.text}
+          <div className={`absolute top-1/2 -translate-y-1/2 w-2 h-2 ${theme.bg} rotate-45 ${isLeft ? '-left-1' : '-right-1'}`} />
+        </div>
+      )}
+
+      {popoutItem && popoutRect && (() => {
+        const item = navItems.find(i => i.id === popoutItem);
+        if (!item || !item.actions) return null;
+
+        return (
+          <div 
+            ref={popoutRef}
+            className={`fixed z-[100] w-48 rounded-xl shadow-xl border overflow-hidden ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}
+            style={{ 
+              top: popoutRect.top, 
+              transform: 'translateY(-50%)',
+              left: popoutRect.left,
+              right: popoutRect.right
+            }}
+          >
+             {/* Header */}
+             <div className={`px-4 py-3 flex items-center justify-between border-b ${theme.bg} ${theme.border} text-white`}>
+               <span className="font-bold text-xs uppercase tracking-wider">{item.name} Options</span>
+             </div>
+             
+             <div className="py-2">
+               {item.actions.map((action, idx) => (
+                  <button
+                     key={idx}
+                     onClick={() => { console.log(`${action.name} clicked`); setPopoutItem(null); }}
+                     className={`w-full flex items-center px-4 py-2 text-sm font-medium transition-colors ${action.color || (isDarkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-700 hover:bg-slate-50')}`}
+                  >
+                     <action.icon size={16} className={`mr-3 ${action.color || (isDarkMode ? 'text-slate-500' : 'text-slate-400')}`} />
+                     {action.name}
+                  </button>
+               ))}
+             </div>
+          </div>
+        );
+      })()}
+
+      {/* ADD RESOURCE MODAL */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 bg-slate-900/50 backdrop-blur-sm transition-opacity">
+          <div className={`w-full max-w-md flex flex-col max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden ${isDarkMode ? 'bg-slate-900 border border-slate-800' : 'bg-white'}`}>
+            <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}>
+              <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Add New Resource</h3>
+              <button onClick={() => setIsAddModalOpen(false)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'text-slate-400 hover:bg-slate-800 hover:text-white' : 'text-slate-400 hover:bg-slate-100 hover:text-slate-900'}`}>
+                <X size={20} />
+              </button>
+            </div>
+            
+            <form onSubmit={(e) => { e.preventDefault(); handleAddResource(); }} className="p-6 space-y-5 overflow-y-auto">
+              <div>
+                <label className={`block text-xs font-bold mb-2 uppercase tracking-wider ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Resource Name</label>
+                <input 
+                  type="text" 
+                  autoFocus
+                  value={newItemName}
+                  onChange={(e) => setNewItemName(e.target.value)}
+                  placeholder="e.g., Q3 Syllabus" 
+                  className={`w-full px-4 py-2.5 rounded-xl border outline-none transition-colors ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white focus:border-slate-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-slate-400 focus:bg-white'}`}
+                />
+              </div>
+
+              <div>
+                <label className={`block text-xs font-bold mb-2 uppercase tracking-wider ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Description (Optional)</label>
+                <input 
+                  type="text" 
+                  value={newItemDesc}
+                  onChange={(e) => setNewItemDesc(e.target.value)}
+                  placeholder="Brief description..." 
+                  className={`w-full px-4 py-2.5 rounded-xl border outline-none transition-colors ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white focus:border-slate-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-slate-400 focus:bg-white'}`}
+                />
+              </div>
+
+              <div>
+                <label className={`block text-xs font-bold mb-3 uppercase tracking-wider ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Icon</label>
+                <div className="flex flex-wrap gap-3">
+                  {availableIcons.map(iconObj => {
+                    const isSelected = newItemIcon === iconObj.name;
+                    return (
+                      <button
+                        type="button"
+                        key={iconObj.name}
+                        onClick={() => setNewItemIcon(iconObj.name)}
+                        className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${isSelected ? `${theme.bg} text-white shadow-md scale-105` : `${isDarkMode ? 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200' : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700'}`}`}
+                      >
+                        <iconObj.icon size={20} strokeWidth={isSelected ? 2.5 : 2} />
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </form>
+
+            <div className={`px-6 py-4 border-t flex justify-end gap-3 shrink-0 ${isDarkMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-slate-50/50'}`}>
+              <button 
+                onClick={() => setIsAddModalOpen(false)}
+                className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-colors ${isDarkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-200'}`}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleAddResource}
+                disabled={!newItemName.trim()}
+                className={`px-5 py-2.5 rounded-xl font-bold text-sm text-white transition-all ${!newItemName.trim() ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90 active:scale-95 shadow-sm'} ${theme.bg}`}
+              >
+                Add Resource
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+};
+
+export default App;

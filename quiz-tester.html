@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Quiz Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .screen {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            width: 50%;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .host-view { border-top: 5px solid #46178f; } /* Kahoot purple */
+        .player-view { border-top: 5px solid #25a425; } 
+        
+        h3 { margin-top: 0; color: #333; border-bottom: 1px solid #ccc; padding-bottom: 10px;}
+        
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+            display: none; /* Hidden until host starts */
+        }
+        
+        .answer-btn {
+            padding: 30px 10px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+        }
+        
+        /* The classic 4 colors */
+        .red { background-color: #e21b3c; }
+        .blue { background-color: #1368ce; }
+        .yellow { background-color: #d89e00; }
+        .green { background-color: #26890c; }
+        
+        button:active { transform: scale(0.98); }
+        
+        #start-btn {
+            background: #333; color: white; padding: 10px 20px; border: none; cursor: pointer; border-radius: 4px; font-size: 16px;
+        }
+        
+        .status-box {
+            margin-top: 20px;
+            padding: 10px;
+            background: #eee;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <h2 style="text-align: center;">Simulated Client-Server Connection</h2>
+    
+    <div class="container">
+        <div class="screen host-view">
+            <h3>Host Screen (Server)</h3>
+            <h2 id="question-text">Waiting to start the game...</h2>
+            <button id="start-btn">Start Question</button>
+            
+            <div class="status-box" id="host-log">
+                Server Log: Waiting for Host...
+            </div>
+        </div>
+
+        <div class="screen player-view">
+            <h3>Player Screen (Client)</h3>
+            <h4 id="player-instruction">Waiting for host to start...</h4>
+            
+            <div class="btn-grid" id="player-buttons">
+                <button class="answer-btn red" onclick="sendAnswer('Red Triangle')">▲</button>
+                <button class="answer-btn blue" onclick="sendAnswer('Blue Diamond')">◆</button>
+                <button class="answer-btn yellow" onclick="sendAnswer('Yellow Circle')">●</button>
+                <button class="answer-btn green" onclick="sendAnswer('Green Square')">■</button>
+            </div>
+            
+            <div class="status-box" id="player-log">
+                Client Log: Connected. Standing by.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- SIMULATED SERVER BACKEND ---
+        const correctAnswer = 'Blue Diamond';
+        let isQuestionActive = false;
+
+        // Host clicks "Start Question"
+        document.getElementById('start-btn').addEventListener('click', () => {
+            // Update Host UI
+            document.getElementById('question-text').innerText = "What shape is a standard Stop Sign?";
+            document.getElementById('start-btn').style.display = 'none';
+            document.getElementById('host-log').innerText = "Server Log: Question broadcasted. Waiting for answers...";
+            isQuestionActive = true;
+
+            // Simulate the "WebSocket Push" to the Player's device (with a slight network delay)
+            setTimeout(() => {
+                document.getElementById('player-instruction').innerText = "Quick! Tap the correct answer!";
+                document.getElementById('player-buttons').style.display = 'grid';
+                document.getElementById('player-log').innerText = "Client Log: Received question data from server.";
+            }, 600); // 600ms network lag
+        });
+
+        // Player taps a button
+        function sendAnswer(selectedAnswer) {
+            if (!isQuestionActive) return;
+
+            // Update Player UI instantly (client-side prediction)
+            document.getElementById('player-instruction').innerText = "Answer submitted! Waiting for server...";
+            document.getElementById('player-buttons').style.display = 'none';
+            document.getElementById('player-log').innerText = `Client Log: Sent "${selectedAnswer}" to server.`;
+
+            // Simulate the "WebSocket Push" back to the Server (with network delay)
+            setTimeout(() => {
+                isQuestionActive = false; // Stop accepting answers
+                
+                // Server calculates the result
+                if(selectedAnswer === correctAnswer) {
+                    // Tell Host
+                    document.getElementById('host-log').innerText = `Server Log: Player answered CORRECTLY! (${selectedAnswer})`;
+                    // Push result to Player
+                    document.getElementById('player-instruction').innerText = "Correct! +1000 Points";
+                    document.getElementById('player-instruction').style.color = "green";
+                } else {
+                    // Tell Host
+                    document.getElementById('host-log').innerText = `Server Log: Player answered INCORRECTLY. (${selectedAnswer})`;
+                    // Push result to Player
+                    document.getElementById('player-instruction').innerText = "Incorrect!";
+                    document.getElementById('player-instruction').style.color = "red";
+                }
+            }, 800); // 800ms network lag to process and return score
+        }
+    </script>
+</body>
+</html>

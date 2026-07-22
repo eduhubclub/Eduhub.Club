@@ -1,0 +1,2001 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { 
+  Menu, 
+  ChevronLeft, 
+  ChevronDown,
+  Calendar,
+  Home, 
+  BarChart2, 
+  Users, 
+  Settings, 
+  HelpCircle, 
+  Layers,
+  ArrowLeftRight,
+  Bell,
+  Search,
+  MoreVertical,
+  Plus,
+  Edit,
+  Trash2,
+  ExternalLink,
+  Library,
+  ChevronRight,
+  Inbox,
+  Send,
+  Archive,
+  Grid,
+  User,
+  X,
+  Sun,
+  Moon,
+  Bookmark,
+  Filter,
+  Check,
+  RefreshCw,
+  Star,
+  Book,
+  Video,
+  CheckSquare,
+  Coffee,
+  Briefcase,
+  Clock,
+  AlignLeft,
+  Repeat,
+  Timer,
+  Mail
+} from 'lucide-react';
+
+/**
+ * EduHub Primary Logo Components
+ */
+const LogoHorizontal = ({ className = "h-8 w-auto" }) => (
+  <svg viewBox="0 0 100 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <circle cx="12" cy="12" r="9.5" className="text-rose-500" />
+    <path d="M37 3 L46 19 H28 L37 3 Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" className="text-orange-500" />
+    <rect x="53" y="2.5" width="19" height="19" rx="3" className="text-emerald-500" />
+    <path d="M88 4 C 96 4, 98 12, 94 18 C 88 24, 78 18, 80 10 C 82 4, 94 8, 92 14 C 90 20, 82 18, 84 12 C 86 6, 92 10, 88 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky-500" />
+  </svg>
+);
+
+const LogoIcon2x2 = ({ className = "w-16 h-16" }) => (
+  <svg viewBox="0 0 44 44" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <circle cx="10" cy="10" r="8" className="text-rose-500" />
+    <path d="M34 2 L42 18 H26 L34 2 Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" className="text-orange-500" />
+    <rect x="2" y="26" width="16" height="16" rx="3" className="text-emerald-500" />
+    <path d="M34 26 C 40 26, 42 32, 39 36 C 34 41, 27 37, 28 31 C 29 27, 38 30, 37 34 C 36 38, 30 37, 31 32 C 32 28, 37 31, 34 35" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky-500" />
+  </svg>
+);
+
+/**
+ * Holiday Helper
+ */
+const getHoliday = (date) => {
+  if (!date) return null;
+  const month = date.getMonth();
+  const day = date.getDate();
+  const dayOfWeek = date.getDay();
+
+  if (month === 0 && day === 1) return "New Year's Day";
+  if (month === 1 && day === 14) return "Valentine's Day";
+  if (month === 2 && day === 17) return "St. Patrick's Day";
+  if (month === 5 && day === 19) return "Juneteenth";
+  if (month === 6 && day === 4) return "Independence Day";
+  if (month === 9 && day === 31) return "Halloween";
+  if (month === 10 && day === 11) return "Veterans Day";
+  if (month === 11 && day === 25) return "Christmas";
+  if (month === 11 && day === 31) return "New Year's Eve";
+
+  const isNthDayOfWeek = (n, targetDayOfWeek) => {
+    return dayOfWeek === targetDayOfWeek && Math.ceil(day / 7) === n;
+  };
+  const isLastMonday = () => {
+    if (dayOfWeek !== 1) return false;
+    const daysInMonth = new Date(date.getFullYear(), month + 1, 0).getDate();
+    return day + 7 > daysInMonth;
+  };
+
+  if (month === 0 && isNthDayOfWeek(3, 1)) return "MLK Jr. Day";
+  if (month === 1 && isNthDayOfWeek(3, 1)) return "Presidents' Day";
+  if (month === 4 && isLastMonday()) return "Memorial Day";
+  if (month === 8 && isNthDayOfWeek(1, 1)) return "Labor Day";
+  if (month === 10 && isNthDayOfWeek(4, 4)) return "Thanksgiving";
+
+  return null;
+};
+
+/**
+ * Time Helper for Duration Calculation
+ */
+const parseTime = (timeStr, ampmStr) => {
+  if (!timeStr) return 0;
+  let [h, m] = timeStr.split(':').map(Number);
+  if (isNaN(h)) h = 0;
+  if (isNaN(m)) m = 0;
+  if (ampmStr === 'PM' && h !== 12) h += 12;
+  if (ampmStr === 'AM' && h === 12) h = 0;
+  return h + (m / 60);
+};
+
+const getFormattedDate = (dateObj) => {
+  if (!dateObj) return "";
+  return `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+};
+
+/**
+ * Recurrence Engine Helpers
+ */
+const parseLocalDate = (dateStr) => {
+  if (!dateStr) return new Date();
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(y, m - 1, d);
+};
+
+const getEventsForDate = (dateStr, allEvents) => {
+  const targetDate = parseLocalDate(dateStr);
+  const targetTime = targetDate.getTime();
+  
+  return allEvents.filter(e => {
+    if (e.excludedDates && e.excludedDates.includes(dateStr)) return false;
+
+    const eventStart = parseLocalDate(e.date);
+    const eventEnd = e.endDate ? parseLocalDate(e.endDate) : eventStart;
+    const durationDays = Math.round((eventEnd.getTime() - eventStart.getTime()) / 86400000);
+    
+    if (!e.isRecurring) {
+      return targetTime >= eventStart.getTime() && targetTime <= eventEnd.getTime();
+    }
+    
+    if (targetTime < eventStart.getTime()) return false;
+    
+    const diffDays = Math.round((targetTime - eventStart.getTime()) / 86400000);
+    
+    if (e.frequency === 'Weekly') {
+      const rem = diffDays % 7;
+      return rem >= 0 && rem <= durationDays;
+    } else if (e.frequency === 'Bi-Weekly') {
+      const rem = diffDays % 14;
+      return rem >= 0 && rem <= durationDays;
+    } else if (e.frequency === 'Monthly') {
+      let occStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), eventStart.getDate());
+      if (occStart.getTime() > targetTime) {
+         occStart = new Date(targetDate.getFullYear(), targetDate.getMonth() - 1, eventStart.getDate());
+      }
+      const occEnd = new Date(occStart.getTime() + (durationDays * 86400000));
+      return targetTime >= occStart.getTime() && targetTime <= occEnd.getTime();
+    }
+    
+    return targetTime >= eventStart.getTime() && targetTime <= eventEnd.getTime();
+  }).map(e => {
+    const eventStart = parseLocalDate(e.date);
+    const eventEnd = e.endDate ? parseLocalDate(e.endDate) : eventStart;
+    const durationDays = Math.round((eventEnd.getTime() - eventStart.getTime()) / 86400000);
+    
+    let dayOfOccurrence = 0;
+    if (!e.isRecurring) {
+        dayOfOccurrence = Math.round((targetTime - eventStart.getTime()) / 86400000);
+    } else {
+        const diffDays = Math.round((targetTime - eventStart.getTime()) / 86400000);
+        if (e.frequency === 'Weekly') dayOfOccurrence = diffDays % 7;
+        else if (e.frequency === 'Bi-Weekly') dayOfOccurrence = diffDays % 14;
+        else if (e.frequency === 'Monthly') {
+            let occStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), eventStart.getDate());
+            if (occStart.getTime() > targetTime) {
+                occStart = new Date(targetDate.getFullYear(), targetDate.getMonth() - 1, eventStart.getDate());
+            }
+            dayOfOccurrence = Math.round((targetTime - occStart.getTime()) / 86400000);
+        }
+    }
+    
+    return { ...e, occurrenceDate: dateStr, dayOfOccurrence, durationDays };
+  }); 
+};
+
+const App = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [sidebarSide, setSidebarSide] = useState('left');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [activeTab, setActiveTab] = useState('Dashboard');
+  const [expandedItem, setExpandedItem] = useState(null); 
+  const [popoutItem, setPopoutItem] = useState(null); 
+  const [panelItem, setPanelItem] = useState(null); 
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [useOverlaySearch, setUseOverlaySearch] = useState(false);
+  const [calendarDate, setCalendarDate] = useState(new Date());
+  const [calendarView, setCalendarView] = useState('Month');
+  const [previousView, setPreviousView] = useState('Month');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEventModal, setShowEventModal] = useState(false);
+  const [showDeletePrompt, setShowDeletePrompt] = useState(false); 
+  const [showBreaksModal, setShowBreaksModal] = useState(false); 
+  const [breaksTab, setBreaksTab] = useState('Manual'); 
+  const [newBreak, setNewBreak] = useState({ name: '', startDate: '', endDate: '' }); 
+  const [pasteText, setPasteText] = useState(""); 
+  
+  // NEW STATES FOR VISUAL CALENDAR SELECTION
+  const [visualCalDate, setVisualCalDate] = useState(new Date());
+  const [visualSelection, setVisualSelection] = useState({ start: null, end: null });
+  const [visualBreakName, setVisualBreakName] = useState("");
+
+  const [dayContextMenu, setDayContextMenu] = useState(null);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [customCalendars, setCustomCalendars] = useState([
+    { id: 1, name: 'Specialist Rotation', type: 'Rotation', color: 'bg-emerald-500' }
+  ]);
+  const [academicYear, setAcademicYear] = useState({
+    startDate: `${new Date().getFullYear()}-09-01`,
+    endDate: `${new Date().getFullYear() + 1}-06-15`,
+    workingDays: [1, 2, 3, 4, 5],
+    breaks: [] // NEW STATE
+  });
+  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+  const [activeFilters, setActiveFilters] = useState([]);
+  
+  // Seed Initial Interactive Events!
+  const today = new Date();
+  const initialDateStr = getFormattedDate(today);
+  
+  const nextDay = new Date(today);
+  nextDay.setDate(today.getDate() + 2);
+  const nextDayStr = getFormattedDate(nextDay);
+  
+  const [events, setEvents] = useState([
+    { id: 101, name: 'Block A Rotation', date: initialDateStr, endDate: nextDayStr, startTime: '09:00', startAmpm: 'AM', endTime: '10:00', endAmpm: 'AM', calendarId: '1', icon: 'CheckSquare', notes: 'Specialist rotation for Block A (Notice how it seamlessly spans 3 days across the grid!)', isRecurring: false, frequency: 'Weekly', excludedDates: [] },
+    { id: 102, name: 'Curriculum Review', date: initialDateStr, endDate: initialDateStr, startTime: '01:00', startAmpm: 'PM', endTime: '03:00', endAmpm: 'PM', calendarId: '1', icon: 'Book', notes: 'Planning block for next month', isRecurring: false, frequency: 'Weekly', excludedDates: [] },
+    { id: 103, name: 'Staff Meeting', date: initialDateStr, endDate: initialDateStr, startTime: '01:30', startAmpm: 'PM', endTime: '02:30', endAmpm: 'PM', calendarId: '', icon: 'Users', notes: 'Monthly all-hands sync. Note how this dynamically overlaps the Curriculum Review!', isRecurring: false, frequency: 'Weekly', excludedDates: [] },
+    { id: 104, name: 'Weekly Standup', date: initialDateStr, endDate: initialDateStr, startTime: '10:15', startAmpm: 'AM', endTime: '11:00', endAmpm: 'AM', calendarId: '1', icon: 'Clock', notes: 'Weekly team sync up', isRecurring: true, frequency: 'Weekly', excludedDates: [] },
+  ]);
+
+  const [newEvent, setNewEvent] = useState({ name: '', date: '', endDate: '', startTime: '12:00', startAmpm: 'PM', endTime: '01:00', endAmpm: 'PM', calendarId: '', icon: 'Calendar', notes: '', isRecurring: false, frequency: 'Weekly', excludedDates: [] });
+  
+  const iconOptions = { Calendar, Book, Video, Users, CheckSquare, Coffee, Briefcase, Clock };
+
+  const currentAppName = "Calendar"; 
+  const appThemes = {
+    "Calendar": { primary: "indigo-500", bg: "bg-indigo-500", text: "text-indigo-500", border: "border-indigo-500", hoverBg: "hover:bg-indigo-50", ring: "ring-indigo-500" },
+    "Hub": { primary: "sky-500", bg: "bg-sky-500", text: "text-sky-500", border: "border-sky-500", hoverBg: "hover:bg-sky-50", ring: "ring-sky-500" },
+  };
+  const theme = appThemes[currentAppName] || appThemes["Hub"];
+  
+  const fallbackThemeColors = ['bg-rose-500', 'bg-orange-500', 'bg-amber-500', 'bg-emerald-500', 'bg-sky-500', 'bg-indigo-500', 'bg-violet-500', 'bg-pink-500'];
+
+  const iconThemes = {
+    Calendar: [
+      { bg: isDarkMode ? 'bg-rose-800' : 'bg-rose-200', border: 'border-rose-500', primaryBg: 'bg-rose-500', text: isDarkMode ? 'text-rose-200' : 'text-rose-900', iconBg: isDarkMode ? 'bg-rose-500/20' : 'bg-rose-900/10' },
+      { bg: isDarkMode ? 'bg-rose-900' : 'bg-rose-100', border: 'border-rose-500', primaryBg: 'bg-rose-500', text: isDarkMode ? 'text-rose-200' : 'text-rose-900', iconBg: isDarkMode ? 'bg-rose-500/20' : 'bg-rose-900/10' },
+      { bg: isDarkMode ? 'bg-rose-950' : 'bg-rose-50', border: 'border-rose-500', primaryBg: 'bg-rose-500', text: isDarkMode ? 'text-rose-200' : 'text-rose-900', iconBg: isDarkMode ? 'bg-rose-500/20' : 'bg-rose-900/10' }
+    ],
+    Book: [
+      { bg: isDarkMode ? 'bg-orange-800' : 'bg-orange-200', border: 'border-orange-500', primaryBg: 'bg-orange-500', text: isDarkMode ? 'text-orange-200' : 'text-orange-900', iconBg: isDarkMode ? 'bg-orange-500/20' : 'bg-orange-900/10' },
+      { bg: isDarkMode ? 'bg-orange-900' : 'bg-orange-100', border: 'border-orange-500', primaryBg: 'bg-orange-500', text: isDarkMode ? 'text-orange-200' : 'text-orange-900', iconBg: isDarkMode ? 'bg-orange-500/20' : 'bg-orange-900/10' },
+      { bg: isDarkMode ? 'bg-orange-950' : 'bg-orange-50', border: 'border-orange-500', primaryBg: 'bg-orange-500', text: isDarkMode ? 'text-orange-200' : 'text-orange-900', iconBg: isDarkMode ? 'bg-orange-500/20' : 'bg-orange-900/10' }
+    ],
+    Video: [
+      { bg: isDarkMode ? 'bg-amber-800' : 'bg-amber-200', border: 'border-amber-500', primaryBg: 'bg-amber-500', text: isDarkMode ? 'text-amber-200' : 'text-amber-900', iconBg: isDarkMode ? 'bg-amber-500/20' : 'bg-amber-900/10' },
+      { bg: isDarkMode ? 'bg-amber-900' : 'bg-amber-100', border: 'border-amber-500', primaryBg: 'bg-amber-500', text: isDarkMode ? 'text-amber-200' : 'text-amber-900', iconBg: isDarkMode ? 'bg-amber-500/20' : 'bg-amber-900/10' },
+      { bg: isDarkMode ? 'bg-amber-950' : 'bg-amber-50', border: 'border-amber-500', primaryBg: 'bg-amber-500', text: isDarkMode ? 'text-amber-200' : 'text-amber-900', iconBg: isDarkMode ? 'bg-amber-500/20' : 'bg-amber-900/10' }
+    ],
+    Users: [
+      { bg: isDarkMode ? 'bg-emerald-800' : 'bg-emerald-200', border: 'border-emerald-500', primaryBg: 'bg-emerald-500', text: isDarkMode ? 'text-emerald-200' : 'text-emerald-900', iconBg: isDarkMode ? 'bg-emerald-500/20' : 'bg-emerald-900/10' },
+      { bg: isDarkMode ? 'bg-emerald-900' : 'bg-emerald-100', border: 'border-emerald-500', primaryBg: 'bg-emerald-500', text: isDarkMode ? 'text-emerald-200' : 'text-emerald-900', iconBg: isDarkMode ? 'bg-emerald-500/20' : 'bg-emerald-900/10' },
+      { bg: isDarkMode ? 'bg-emerald-950' : 'bg-emerald-50', border: 'border-emerald-500', primaryBg: 'bg-emerald-500', text: isDarkMode ? 'text-emerald-200' : 'text-emerald-900', iconBg: isDarkMode ? 'bg-emerald-500/20' : 'bg-emerald-900/10' }
+    ],
+    CheckSquare: [
+      { bg: isDarkMode ? 'bg-sky-800' : 'bg-sky-200', border: 'border-sky-500', primaryBg: 'bg-sky-500', text: isDarkMode ? 'text-sky-200' : 'text-sky-900', iconBg: isDarkMode ? 'bg-sky-500/20' : 'bg-sky-900/10' },
+      { bg: isDarkMode ? 'bg-sky-900' : 'bg-sky-100', border: 'border-sky-500', primaryBg: 'bg-sky-500', text: isDarkMode ? 'text-sky-200' : 'text-sky-900', iconBg: isDarkMode ? 'bg-sky-500/20' : 'bg-sky-900/10' },
+      { bg: isDarkMode ? 'bg-sky-950' : 'bg-sky-50', border: 'border-sky-500', primaryBg: 'bg-sky-500', text: isDarkMode ? 'text-sky-200' : 'text-sky-900', iconBg: isDarkMode ? 'bg-sky-500/20' : 'bg-sky-900/10' }
+    ],
+    Coffee: [
+      { bg: isDarkMode ? 'bg-indigo-800' : 'bg-indigo-200', border: 'border-indigo-500', primaryBg: 'bg-indigo-500', text: isDarkMode ? 'text-indigo-200' : 'text-indigo-900', iconBg: isDarkMode ? 'bg-indigo-500/20' : 'bg-indigo-900/10' },
+      { bg: isDarkMode ? 'bg-indigo-900' : 'bg-indigo-100', border: 'border-indigo-500', primaryBg: 'bg-indigo-500', text: isDarkMode ? 'text-indigo-200' : 'text-indigo-900', iconBg: isDarkMode ? 'bg-indigo-500/20' : 'bg-indigo-900/10' },
+      { bg: isDarkMode ? 'bg-indigo-950' : 'bg-indigo-50', border: 'border-indigo-500', primaryBg: 'bg-indigo-500', text: isDarkMode ? 'text-indigo-200' : 'text-indigo-900', iconBg: isDarkMode ? 'bg-indigo-500/20' : 'bg-indigo-900/10' }
+    ],
+    Briefcase: [
+      { bg: isDarkMode ? 'bg-violet-800' : 'bg-violet-200', border: 'border-violet-500', primaryBg: 'bg-violet-500', text: isDarkMode ? 'text-violet-200' : 'text-violet-900', iconBg: isDarkMode ? 'bg-violet-500/20' : 'bg-violet-900/10' },
+      { bg: isDarkMode ? 'bg-violet-900' : 'bg-violet-100', border: 'border-violet-500', primaryBg: 'bg-violet-500', text: isDarkMode ? 'text-violet-200' : 'text-violet-900', iconBg: isDarkMode ? 'bg-violet-500/20' : 'bg-violet-900/10' },
+      { bg: isDarkMode ? 'bg-violet-950' : 'bg-violet-50', border: 'border-violet-500', primaryBg: 'bg-violet-500', text: isDarkMode ? 'text-violet-200' : 'text-violet-900', iconBg: isDarkMode ? 'bg-violet-500/20' : 'bg-violet-900/10' }
+    ],
+    Clock: [
+      { bg: isDarkMode ? 'bg-pink-800' : 'bg-pink-200', border: 'border-pink-500', primaryBg: 'bg-pink-500', text: isDarkMode ? 'text-pink-200' : 'text-pink-900', iconBg: isDarkMode ? 'bg-pink-500/20' : 'bg-pink-900/10' },
+      { bg: isDarkMode ? 'bg-pink-900' : 'bg-pink-100', border: 'border-pink-500', primaryBg: 'bg-pink-500', text: isDarkMode ? 'text-pink-200' : 'text-pink-900', iconBg: isDarkMode ? 'bg-pink-500/20' : 'bg-pink-900/10' },
+      { bg: isDarkMode ? 'bg-pink-950' : 'bg-pink-50', border: 'border-pink-500', primaryBg: 'bg-pink-500', text: isDarkMode ? 'text-pink-200' : 'text-pink-900', iconBg: isDarkMode ? 'bg-pink-500/20' : 'bg-pink-900/10' }
+    ]
+  };
+
+  const popoutRef = useRef(null);
+  const searchRef = useRef(null);
+  const filterDropdownRef = useRef(null);
+  const isLeft = sidebarSide === 'left';
+
+  useEffect(() => {
+    const handleResize = () => setUseOverlaySearch(window.innerWidth < 768);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (popoutRef.current && !popoutRef.current.contains(event.target)) setPopoutItem(null);
+      if (searchRef.current && !searchRef.current.contains(event.target) && !searchQuery) setIsSearchExpanded(false);
+      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target)) setIsFilterDropdownOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [searchQuery]);
+
+  const handleAddEvent = () => {
+    if (!newEvent.name || !newEvent.date) return;
+    
+    const finalEvent = { ...newEvent };
+    if (!finalEvent.endDate || finalEvent.endDate < finalEvent.date) {
+      finalEvent.endDate = finalEvent.date;
+    }
+
+    if (finalEvent.id) {
+      setEvents(events.map(e => e.id === finalEvent.id ? finalEvent : e));
+    } else {
+      setEvents([...events, { ...finalEvent, id: Date.now(), excludedDates: [] }]);
+    }
+    setShowEventModal(false);
+    setNewEvent({ name: '', date: '', endDate: '', startTime: '12:00', startAmpm: 'PM', endTime: '01:00', endAmpm: 'PM', calendarId: '', icon: 'Calendar', notes: '', isRecurring: false, frequency: 'Weekly', excludedDates: [] });
+  };
+
+  const handleEditEvent = (evt) => {
+    setNewEvent(evt);
+    setSelectedEvent(null);
+    setShowEventModal(true);
+  };
+
+  const handleAddBreak = () => {
+    if (!newBreak.name || !newBreak.startDate || !newBreak.endDate) return;
+    
+    // Ensure end date is not before start date
+    const finalBreak = { ...newBreak };
+    if (finalBreak.endDate < finalBreak.startDate) {
+      finalBreak.endDate = finalBreak.startDate;
+    }
+
+    setAcademicYear(prev => ({
+      ...prev,
+      breaks: [...prev.breaks, { ...finalBreak, id: Date.now() }].sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+    }));
+    setNewBreak({ name: '', startDate: '', endDate: '' });
+  };
+
+  const handleRemoveBreak = (id) => {
+    setAcademicYear(prev => ({
+      ...prev,
+      breaks: prev.breaks.filter(b => b.id !== id)
+    }));
+  };
+
+  const handleAddVisualBreak = () => {
+    if (!visualSelection.start || !visualSelection.end || !visualBreakName.trim()) return;
+    
+    setAcademicYear(prev => ({
+      ...prev,
+      breaks: [...prev.breaks, {
+        id: Date.now() + Math.random(),
+        name: visualBreakName.trim(),
+        startDate: getFormattedDate(visualSelection.start),
+        endDate: getFormattedDate(visualSelection.end)
+      }].sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+    }));
+    
+    setVisualSelection({ start: null, end: null });
+    setVisualBreakName("");
+  };
+
+  const handleVisualDayClick = (cellDate) => {
+    if (visualSelection.start && visualSelection.end) {
+      // Start a new selection
+      setVisualSelection({ start: cellDate, end: null });
+    } else if (visualSelection.start && !visualSelection.end) {
+      // Complete the selection, ensuring start is always before end
+      if (cellDate < visualSelection.start) {
+        setVisualSelection({ start: cellDate, end: visualSelection.start });
+      } else {
+        setVisualSelection({ start: visualSelection.start, end: cellDate });
+      }
+    } else {
+      // Initial click
+      setVisualSelection({ start: cellDate, end: null });
+    }
+  };
+
+  const handleParsePastedBreaks = () => {
+    const lines = pasteText.split('\n');
+    const newParsedBreaks = [];
+    // Regex matches common date formats: Dec 20, 2024 | 12/20/2024 | 2024-12-20
+    const dateRegex = /(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{1,2}(?:st|nd|rd|th)?,? \d{4}|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}/gi;
+
+    lines.forEach(line => {
+      if (!line.trim()) return;
+      const dates = line.match(dateRegex);
+      if (dates && dates.length > 0) {
+        try {
+          // Add T12:00:00 to YYYY-MM-DD to avoid timezone shifting
+          let str1 = dates[0].match(/^\d{4}-\d{2}-\d{2}$/) ? `${dates[0]}T12:00:00` : dates[0];
+          const d1 = new Date(str1);
+          
+          let d2 = d1;
+          if (dates.length > 1) {
+             let str2 = dates[1].match(/^\d{4}-\d{2}-\d{2}$/) ? `${dates[1]}T12:00:00` : dates[1];
+             d2 = new Date(str2);
+          }
+
+          // Clean up the label by removing the dates and common separators
+          let name = line;
+          dates.forEach(d => { name = name.replace(d, ''); });
+          name = name.replace(/\bto\b/gi, '').replace(/[-:]+/g, ' ').replace(/\s+/g, ' ').trim();
+
+          if (!name) name = 'Holiday / Break';
+
+          if (!isNaN(d1.getTime()) && !isNaN(d2.getTime())) {
+             // Ensure start date is before end date
+             let start = d1;
+             let end = d2;
+             if (d1 > d2) { start = d2; end = d1; }
+
+             newParsedBreaks.push({
+               id: Date.now() + Math.random(), // Random factor for rapid batching
+               name: name,
+               startDate: getFormattedDate(start),
+               endDate: getFormattedDate(end)
+             });
+          }
+        } catch(e) { console.error('Failed to parse line:', line, e) }
+      }
+    });
+
+    if (newParsedBreaks.length > 0) {
+      setAcademicYear(prev => ({
+        ...prev,
+        breaks: [...prev.breaks, ...newParsedBreaks].sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+      }));
+      setPasteText("");
+      setBreaksTab('Manual'); // Switch back to manual tab so they can see the newly added list!
+    }
+  };
+
+  const handleInitiateDelete = (evt) => {
+    if (evt.isRecurring) {
+      setShowDeletePrompt(true);
+    } else {
+      handleDeleteEvent(evt.id);
+    }
+  };
+
+  const handleDeleteSingle = () => {
+    setEvents(events.map(e => {
+      if (e.id === selectedEvent.id) {
+        return { ...e, excludedDates: [...(e.excludedDates || []), selectedEvent.occurrenceDate] };
+      }
+      return e;
+    }));
+    setShowDeletePrompt(false);
+    setSelectedEvent(null);
+  };
+
+  const handleDeleteSeries = () => {
+    setEvents(events.filter(e => e.id !== selectedEvent.id));
+    setShowDeletePrompt(false);
+    setSelectedEvent(null);
+  };
+
+  const handleDeleteEvent = (id) => {
+    setEvents(events.filter(e => e.id !== id));
+    setSelectedEvent(null);
+  };
+
+  const navigationItems = [
+    { 
+      id: 'classes', 
+      name: 'Classes', 
+      icon: Library, 
+      type: 'panel',
+      panelContent: [
+        { label: 'Mathematics 101', subtitle: 'View schedule', icon: Layers },
+        { label: 'Physics 202', subtitle: 'View schedule', icon: Layers },
+      ]
+    },
+    { id: 'calendar_main', name: 'Calendar', icon: Calendar, type: 'link' },
+    { id: 'calendar', name: 'Create Calendar', icon: Calendar, type: 'link' },
+    { id: 'saved_calendar', name: 'Saved Calendar', icon: Bookmark, type: 'link' },
+    { id: 'countdown', name: 'Countdown', icon: Timer, type: 'link' },
+    { id: 'settings', name: 'Settings', icon: Settings, type: 'link' }
+  ];
+
+  const sidebarWidth = isSidebarOpen ? 'w-64' : 'w-20';
+  const navHeight = 'h-16';
+
+  const handleItemClick = (item) => {
+    if (item.type === 'link') {
+      setActiveTab(item.name);
+      setExpandedItem(null);
+      setPanelItem(null);
+      if (item.id === 'calendar_main') {
+        setCalendarView('Month');
+      }
+    } else if (item.type === 'accordion') {
+      if (!isSidebarOpen) setIsSidebarOpen(true);
+      setExpandedItem(expandedItem === item.id ? null : item.id);
+      setPanelItem(null);
+    } else if (item.type === 'popout') {
+      setPopoutItem(popoutItem === item.id ? null : item.id);
+    } else if (item.type === 'panel') {
+      const isOpening = panelItem !== item.id;
+      setPanelItem(isOpening ? item.id : null);
+      setExpandedItem(null);
+      if (isOpening) setActiveTab(null);
+    }
+  };
+
+  const getDaysInMonth = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const days = new Date(year, month + 1, 0).getDate();
+    const firstDay = new Date(year, month, 1).getDay();
+    const blanks = Array(firstDay).fill(null);
+    const dayNumbers = Array.from({length: days}, (_, i) => i + 1);
+    return [...blanks, ...dayNumbers];
+  };
+
+  const getDaysInWeek = (date) => {
+    const curr = new Date(date);
+    const first = curr.getDate() - curr.getDay(); 
+    return Array.from({length: 7}, (_, i) => new Date(curr.getFullYear(), curr.getMonth(), first + i));
+  };
+
+  const nextPeriod = () => {
+    if (calendarView === 'Year') setCalendarDate(new Date(calendarDate.getFullYear() + 1, calendarDate.getMonth(), calendarDate.getDate()));
+    else if (calendarView === '3 Month') setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 3, calendarDate.getDate()));
+    else if (calendarView === 'Week') setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate() + 7));
+    else if (calendarView === 'Day') setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate() + 1));
+    else setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, calendarDate.getDate()));
+  };
+  
+  const prevPeriod = () => {
+    if (calendarView === 'Year') setCalendarDate(new Date(calendarDate.getFullYear() - 1, calendarDate.getMonth(), calendarDate.getDate()));
+    else if (calendarView === '3 Month') setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() - 3, calendarDate.getDate()));
+    else if (calendarView === 'Week') setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate() - 7));
+    else if (calendarView === 'Day') setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate() - 1));
+    else setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() - 1, calendarDate.getDate()));
+  };
+  
+  const goToToday = () => setCalendarDate(new Date());
+
+  const handleViewDay = (dateToSet) => {
+    setPreviousView(calendarView);
+    setCalendarDate(dateToSet);
+    setCalendarView('Day');
+    setDayContextMenu(null);
+  };
+
+  const handleDayClick = (dateToSet) => {
+    setPreviousView(calendarView);
+    setCalendarDate(dateToSet);
+    setCalendarView('Day');
+    const dateStr = getFormattedDate(dateToSet);
+    setNewEvent({ name: '', date: dateStr, endDate: dateStr, startTime: '12:00', startAmpm: 'PM', endTime: '01:00', endAmpm: 'PM', calendarId: '', icon: 'Calendar', notes: '', isRecurring: false, frequency: 'Weekly', excludedDates: [] });
+    setShowEventModal(true);
+  };
+  
+  const handleHourClick = (hour) => {
+    const startAmpm = hour >= 12 ? 'PM' : 'AM';
+    const startDisplayHour = hour % 12 || 12;
+    const startTimeStr = `${String(startDisplayHour).padStart(2, '0')}:00`;
+    
+    const nextHour = (hour + 1) % 24;
+    const endAmpm = nextHour >= 12 ? 'PM' : 'AM';
+    const endDisplayHour = nextHour % 12 || 12;
+    const endTimeStr = `${String(endDisplayHour).padStart(2, '0')}:00`;
+
+    const dateStr = getFormattedDate(calendarDate);
+    setNewEvent({ name: '', date: dateStr, endDate: dateStr, startTime: startTimeStr, startAmpm, endTime: endTimeStr, endAmpm, calendarId: '', icon: 'Calendar', notes: '', isRecurring: false, frequency: 'Weekly', excludedDates: [] });
+    setShowEventModal(true);
+  };
+  
+  const toggleFilter = (id) => setActiveFilters(prev => prev.includes(id) ? prev.filter(fId => fId !== id) : [...prev, id]);
+  
+  const getMonthsToRender = () => {
+    if (calendarView === 'Week' || calendarView === 'Month' || calendarView === 'Day') return [calendarDate];
+    if (calendarView === '3 Month') return [calendarDate, new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 1), new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 2, 1)];
+    return Array.from({length: 12}, (_, i) => new Date(calendarDate.getFullYear(), i, 1));
+  };
+
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  return (
+    <div className={`flex h-screen overflow-hidden font-sans transition-all duration-300 ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'} ${isLeft ? 'flex-row' : 'flex-row-reverse'}`}>
+      
+      {/* 1. PRIMARY SIDEBAR */}
+      <aside className={`relative z-50 transition-all duration-300 ease-in-out flex flex-col h-full shrink-0 shadow-sm ${sidebarWidth} ${isLeft ? 'border-r' : 'border-l'} ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+        <div className={`flex items-center justify-center shrink-0 border-b ${navHeight} w-full ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+          <div className="flex items-center justify-center px-4">
+            {isSidebarOpen ? <LogoHorizontal className="h-6 w-auto" /> : <LogoIcon2x2 className="w-8 h-8" />}
+          </div>
+        </div>
+
+        <div className="pt-2 shrink-0"></div>
+
+        <nav className="flex-1 px-2 space-y-1 pt-2 pb-10 overflow-visible">
+          {navigationItems.map((item) => {
+            const isTabActive = activeTab === item.name || (item.type === 'accordion' && item.subItems.includes(activeTab));
+            const isPanelOpen = panelItem === item.id;
+            const isVisuallyActive = isTabActive || isPanelOpen;
+            const isExpanded = expandedItem === item.id;
+            
+            return (
+              <div key={item.id} className="relative">
+                <button
+                  onClick={() => handleItemClick(item)}
+                  className={`flex items-center transition-all group relative rounded-xl h-12
+                    ${isSidebarOpen ? 'w-full px-3' : 'w-16 mx-auto justify-center'}
+                    ${isVisuallyActive ? `${theme.bg} text-white shadow-lg` : `${isDarkMode ? 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}`}
+                >
+                  <div className={`flex items-center justify-center shrink-0`}>
+                    <item.icon size={20} strokeWidth={isVisuallyActive ? 2.5 : 2} />
+                  </div>
+                  {isSidebarOpen && (
+                    <>
+                      <span className="ml-4 font-semibold text-sm flex-1 text-left truncate">{item.name}</span>
+                      {item.type === 'panel' && <ChevronRight size={14} className={`transition-all duration-200 shrink-0 ${isLeft ? '' : 'rotate-180'} ${isPanelOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-40'}`} />}
+                    </>
+                  )}
+                  {!isSidebarOpen && (
+                    <div className={`absolute ${isLeft ? 'left-full ml-4' : 'right-full mr-4'} px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-[60] whitespace-nowrap shadow-xl`}>
+                      {item.name}
+                    </div>
+                  )}
+                </button>
+              </div>
+            );
+          })}
+        </nav>
+
+        <div className={`p-2 border-t shrink-0 ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+           <div className={`flex transition-all duration-300 ${isSidebarOpen ? 'flex-row items-center space-x-2' : 'flex-col items-center space-y-2'}`}>
+              <button 
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className={`flex items-center justify-center rounded-xl transition-all h-12 ${isSidebarOpen ? 'flex-1 px-3' : 'w-16'} ${isDarkMode ? 'text-amber-400 bg-slate-800 hover:bg-slate-700' : 'text-slate-400 bg-slate-50 hover:bg-slate-100 hover:text-slate-900'}`}
+              >
+                <div className="shrink-0 flex items-center justify-center">{isDarkMode ? <Sun size={18} /> : <Moon size={18} />}</div>
+                {isSidebarOpen && <span className="ml-2 text-[9px] font-black uppercase tracking-tighter whitespace-nowrap">Dark</span>}
+              </button>
+              <button 
+                onClick={() => { setSidebarSide(isLeft ? 'right' : 'left'); setPanelItem(null); }}
+                className={`flex items-center justify-center rounded-xl transition-all h-12 ${isSidebarOpen ? 'flex-1 px-3' : 'w-16'} ${isDarkMode ? 'text-slate-500 hover:bg-slate-800 hover:text-slate-200' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`}
+              >
+                <div className="shrink-0 flex items-center justify-center"><ArrowLeftRight size={16} /></div>
+                {isSidebarOpen && <span className="ml-2 text-[9px] font-black uppercase tracking-tighter whitespace-nowrap">Flip</span>}
+              </button>
+              <button
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className={`flex items-center justify-center transition-all rounded-xl h-12 ${isSidebarOpen ? 'flex-1 px-3' : 'mx-auto w-16'} ${isDarkMode ? 'text-slate-400 bg-slate-800/40 hover:bg-slate-700/60 hover:text-slate-200' : 'text-slate-400 bg-slate-50 hover:bg-slate-100 hover:text-slate-900'}`}
+              >
+                <div className="shrink-0 flex items-center justify-center">{isSidebarOpen ? <ChevronLeft size={18} className={!isLeft ? 'rotate-180' : ''} /> : <Menu size={20} />}</div>
+                {isSidebarOpen && <span className="ml-2 text-[9px] font-black uppercase tracking-tighter whitespace-nowrap">Menu</span>}
+              </button>
+           </div>
+        </div>
+      </aside>
+
+      {/* 2. SECONDARY SIDEBAR PANEL */}
+      <div 
+        className={`z-40 h-full transition-all duration-300 ease-in-out overflow-hidden flex flex-col shrink-0
+          ${panelItem ? 'w-72' : 'w-0'}
+          ${isDarkMode ? 'bg-slate-900' : 'bg-white'}
+          ${isLeft ? `border-r ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}` : `border-l ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}`}
+      >
+        <div className={`w-72 flex flex-col h-full transition-opacity duration-300 ${panelItem ? 'opacity-100' : 'opacity-0'}`}>
+          <div className={`flex items-center justify-between p-6 shrink-0 border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-100'} ${navHeight}`}>
+            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{navigationItems.find(i => i.id === panelItem)?.name || 'Menu'}</h2>
+            <button onClick={() => setPanelItem(null)} className={`p-1 rounded-md transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50'}`}>
+              <X size={16} />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {navigationItems.find(i => i.id === panelItem)?.panelContent?.map((sub, index, arr) => (
+              <button 
+                key={sub.label}
+                onClick={() => setActiveTab(`${navigationItems.find(i => i.id === panelItem)?.name}: ${sub.label}`)}
+                className={`w-full flex items-center p-5 text-left group transition-all relative
+                  ${isDarkMode ? 'hover:bg-slate-800/50' : 'hover:bg-slate-50/50'}
+                  ${index !== arr.length - 1 ? `border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}` : ''}`}
+              >
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-400 group-hover:text-white group-hover:bg-slate-700' : 'bg-slate-50 border border-slate-100 text-slate-400 group-hover:bg-white group-hover:shadow-sm'} group-hover:${theme.text} group-hover:${theme.border}`}>
+                  <sub.icon size={18} />
+                </div>
+                <div className="ml-4 flex-1">
+                  <span className={`block text-sm font-bold group-hover:${theme.text} transition-colors ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>{sub.label}</span>
+                  <span className="block text-[10px] text-slate-500 font-medium uppercase tracking-tight">{sub.subtitle || 'Access files'}</span>
+                </div>
+                <ChevronRight size={14} className={`text-slate-300 opacity-0 group-hover:opacity-100 transition-all transform ${isLeft ? 'group-hover:translate-x-1' : 'rotate-180 group-hover:-translate-x-1'} group-hover:${theme.text}`} />
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* MAIN CONTENT AREA */}
+      <div className="flex-1 flex flex-col h-full min-w-0 relative z-10 overflow-hidden">
+        <header className={`border-b flex items-center px-6 z-20 shrink-0 ${navHeight} transition-colors duration-300 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+          <div className={`transition-all duration-500 overflow-hidden flex items-center shrink-0 ${isSearchExpanded && !useOverlaySearch ? 'w-0 opacity-0 mr-0' : 'flex-1 opacity-100 mr-4'}`}>
+            <div className="flex items-center text-lg font-bold whitespace-nowrap tracking-tight">
+              <span className={isDarkMode ? 'text-white' : 'text-slate-900'}>Edu.</span>
+              <span className={theme.text}>{currentAppName}</span>
+            </div>
+          </div>
+          
+          <div className={`flex items-center justify-end flex-1 h-full relative`}>
+             {!useOverlaySearch && (
+               <div ref={searchRef} className={`flex items-center relative transition-all duration-500 ease-in-out h-10 justify-end ${isSearchExpanded ? 'flex-1 max-w-xl mr-4' : 'w-10'}`}>
+                  <div className={`relative h-full transition-all duration-500 overflow-hidden flex items-center ${isSearchExpanded ? 'w-full' : 'w-0'}`}>
+                    <div className={`absolute left-0 flex items-center justify-center w-12 h-10 z-30 ${isSearchExpanded ? theme.text : 'text-slate-400'}`}><Search size={18} /></div>
+                    <input type="text" placeholder="Search resources..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className={`w-full h-full border rounded-full pl-12 pr-12 text-sm font-medium outline-none transition-all duration-300 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`}/>
+                    <div className="absolute right-0 flex items-center justify-center w-12 h-10 z-30">
+                        <button onClick={(e) => { e.stopPropagation(); searchQuery ? setSearchQuery("") : setIsSearchExpanded(false); }} className={`p-1.5 text-slate-400 hover:text-slate-900 transition-all transform ${isSearchExpanded ? 'opacity-100 scale-100' : 'opacity-0 scale-50 pointer-events-none'}`}><X size={16} strokeWidth={2.5} /></button>
+                    </div>
+                  </div>
+                  <button onClick={() => setIsSearchExpanded(true)} className={`absolute right-0 p-2 text-slate-400 hover:${theme.text} rounded-full transition-all duration-300 z-20 ${isSearchExpanded ? 'opacity-0' : 'opacity-100'}`}><Search size={18} /></button>
+               </div>
+             )}
+
+             <div className={`flex items-center space-x-2 shrink-0 transition-all duration-300 ${isSearchExpanded && useOverlaySearch ? 'opacity-0' : 'opacity-100'}`}>
+                <button className={`p-2 text-slate-400 hover:${theme.text} rounded-full transition-colors`}><Grid size={18} /></button>
+                <button className={`p-2 text-slate-400 hover:${theme.text} rounded-full transition-colors relative`}>
+                  <Bell size={18} />
+                  <span className={`absolute top-2.5 right-2.5 w-1.5 h-1.5 ${theme.bg} rounded-full border border-white`}></span>
+                </button>
+                <div className={`h-6 w-[1px] mx-1 shrink-0 ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`}></div>
+                <button className={`w-9 h-9 rounded-full flex items-center justify-center transition-all shadow-sm ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-white'}`}><User size={20} strokeWidth={2} /></button>
+             </div>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-y-auto p-10 bg-transparent relative">
+          <div className="max-w-5xl mx-auto space-y-8">
+            {activeTab === 'Calendar' ? (
+              <div className="space-y-6 relative">
+                {calendarView === 'Day' && (
+                  <button 
+                    onClick={() => setCalendarView(previousView)} 
+                    className={`flex items-center space-x-2 text-sm font-bold transition-colors w-fit mb-2 ${isDarkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}
+                  >
+                    <ChevronLeft size={16} />
+                    <span>Back to {previousView} View</span>
+                  </button>
+                )}
+                
+                {/* View / Setting Card */}
+                <div className={`flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 md:px-6 md:py-4 rounded-3xl shadow-sm border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button onClick={goToToday} className={`px-4 py-2 text-sm font-semibold rounded-xl border transition-colors ${isDarkMode ? 'border-slate-700 text-slate-300 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
+                      Today
+                    </button>
+
+                    <div className="relative" ref={filterDropdownRef}>
+                      <button 
+                        onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
+                        className={`flex items-center space-x-2 px-4 py-2 text-sm font-semibold rounded-xl border transition-colors ${activeFilters.length > 0 ? theme.bg + ' text-white border-transparent' : (isDarkMode ? 'border-slate-700 text-slate-300 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-50')}`}
+                      >
+                        <Filter size={16} />
+                        <span>Filters {activeFilters.length > 0 && `(${activeFilters.length})`}</span>
+                        <ChevronDown size={14} className={`transition-transform duration-200 ${isFilterDropdownOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                      
+                      {isFilterDropdownOpen && (
+                        <div className={`absolute top-full mt-2 left-0 w-64 rounded-xl border shadow-xl z-50 overflow-hidden ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+                          <div className={`px-3 py-2 border-b text-[10px] font-bold uppercase tracking-widest flex justify-between items-center ${isDarkMode ? 'border-slate-800 text-slate-500' : 'border-slate-100 text-slate-400'}`}>
+                            <span>Custom Calendars</span>
+                            {activeFilters.length > 0 && <button onClick={() => setActiveFilters([])} className="hover:underline">Clear</button>}
+                          </div>
+                          <div className="max-h-60 overflow-y-auto p-1">
+                            {customCalendars.map(cal => (
+                              <button
+                                key={cal.id}
+                                onClick={() => toggleFilter(cal.id)}
+                                className={`w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${isDarkMode ? 'hover:bg-slate-800 text-slate-300' : 'hover:bg-slate-50 text-slate-700'}`}
+                              >
+                                <div className={`w-3 h-3 rounded-full mr-3 ${cal.color}`}></div>
+                                <span className="flex-1 text-left truncate">{cal.name}</span>
+                                {activeFilters.includes(cal.id) && <Check size={16} className={theme.text} />}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-4">
+                    <div className={`flex p-1 rounded-xl border ${isDarkMode ? 'bg-slate-950 border-slate-800' : 'bg-slate-100 border-slate-200'}`}>
+                      {['Day', 'Week', 'Month', '3 Month', 'Year'].map(v => (
+                        <button
+                          key={v}
+                          onClick={() => setCalendarView(v)}
+                          className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${calendarView === v ? (isDarkMode ? 'bg-slate-800 text-white shadow-sm' : 'bg-white text-slate-900 shadow-sm') : (isDarkMode ? 'text-slate-500 hover:text-slate-300' : 'text-slate-500 hover:text-slate-700')}`}
+                        >
+                          {v}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="flex space-x-1">
+                      <button onClick={prevPeriod} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-slate-800 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-600 hover:text-slate-900'}`}>
+                        <ChevronLeft size={20} />
+                      </button>
+                      <button onClick={nextPeriod} className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-slate-800 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-600 hover:text-slate-900'}`}>
+                        <ChevronRight size={20} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Dynamic Calendar Grids */}
+                {calendarView === 'Day' ? (() => {
+                  const cellDateStr = getFormattedDate(calendarDate);
+                  const cellDateObj = parseLocalDate(cellDateStr);
+                  const cellTime = cellDateObj.getTime();
+                  
+                  // Compute Global Overlaps for Day View
+                  const dayAllEvents = getEventsForDate(cellDateStr, events)
+                    .filter(e => (activeFilters.length === 0 || !e.calendarId || activeFilters.includes(Number(e.calendarId))))
+                    .map(e => {
+                        const eStartObj = parseLocalDate(e.date);
+                        const eEndObj = parseLocalDate(e.endDate || e.date);
+                        const durationDays = Math.round((eEndObj.getTime() - eStartObj.getTime()) / 86400000);
+                        
+                        let isFirstDay = false;
+                        let isLastDay = false;
+
+                        if (!e.isRecurring) {
+                            isFirstDay = cellTime === eStartObj.getTime();
+                            isLastDay = cellTime === eEndObj.getTime();
+                        } else {
+                            const diffDays = Math.round((cellTime - eStartObj.getTime()) / 86400000);
+                            let dayInOcc = 0;
+                            if (e.frequency === 'Weekly') dayInOcc = diffDays % 7;
+                            else if (e.frequency === 'Bi-Weekly') dayInOcc = diffDays % 14;
+                            else if (e.frequency === 'Monthly') {
+                                let occStart = new Date(cellDateObj.getFullYear(), cellDateObj.getMonth(), eStartObj.getDate());
+                                if (occStart.getTime() > cellTime) {
+                                    occStart = new Date(cellDateObj.getFullYear(), cellDateObj.getMonth() - 1, eStartObj.getDate());
+                                }
+                                dayInOcc = Math.round((cellTime - occStart.getTime()) / 86400000);
+                            }
+                            isFirstDay = dayInOcc === 0;
+                            isLastDay = dayInOcc === durationDays;
+                        }
+
+                        return {
+                          ...e,
+                          startT: isFirstDay ? parseTime(e.startTime, e.startAmpm) : 0,
+                          endT: isLastDay ? parseTime(e.endTime, e.endAmpm) : 24
+                        };
+                    }).sort((a, b) => a.startT - b.startT);
+
+                  const eventCols = {};
+                  const columns = [];
+                  dayAllEvents.forEach(evt => {
+                      let placed = false;
+                      for (let i = 0; i < columns.length; i++) {
+                          const lastEvt = columns[i][columns[i].length - 1];
+                          if (lastEvt.endT <= evt.startT) {
+                              columns[i].push(evt);
+                              eventCols[evt.id] = i;
+                              placed = true;
+                              break;
+                          }
+                      }
+                      if (!placed) {
+                          eventCols[evt.id] = columns.length;
+                          columns.push([evt]);
+                      }
+                  });
+
+                  return (
+                    <div className={`rounded-3xl shadow-sm border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} p-6`}>
+                      <div className="flex items-center space-x-4 mb-6">
+                        <h2 className={`text-2xl md:text-3xl font-extrabold tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                          {`${daysOfWeek[calendarDate.getDay()]}, ${monthNames[calendarDate.getMonth()]} ${calendarDate.getDate()}`}
+                        </h2>
+                        {getHoliday(calendarDate) && (
+                          <span className="flex items-center space-x-1.5 px-3 py-1.5 text-xs uppercase tracking-wider font-bold bg-rose-500/10 text-rose-500 border border-rose-500/20 rounded-xl">
+                            <Star size={12} className="fill-rose-500" />
+                            <span>{getHoliday(calendarDate)}</span>
+                          </span>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-0 relative">
+                        {Array.from({length: 24}, (_, i) => i).map(hour => {
+                          const ampm = hour >= 12 ? 'PM' : 'AM';
+                          const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+                          const hourEvents = dayAllEvents.filter(e => Math.floor(e.startT) === hour);
+                          
+                          return (
+                            <div key={hour} className="flex items-start group">
+                              <div className={`w-20 py-4 text-right pr-4 text-xs font-bold border-r ${isDarkMode ? 'text-slate-500 border-slate-800' : 'text-slate-400 border-slate-100'}`}>
+                                {displayHour} {ampm}
+                              </div>
+                              <div 
+                                onClick={() => handleHourClick(hour)}
+                                className={`flex-1 h-24 relative border-b cursor-pointer transition-colors ${isDarkMode ? 'border-slate-800 hover:bg-slate-800/30' : 'border-slate-100 hover:bg-slate-50'} last:border-0`}
+                              >
+                                {hourEvents.map(evt => {
+                                  const IconCmp = iconOptions[evt.icon] || Calendar;
+                                  const cal = customCalendars.find(c => c.id === Number(evt.calendarId));
+                                  const colIdx = eventCols[evt.id] || 0;
+                                  
+                                  const themeArr = iconThemes[evt.icon] || iconThemes.Calendar;
+                                  const colorStyle = themeArr[colIdx % 3];
+                                  
+                                  let duration = evt.endT - evt.startT;
+                                  if (duration < 0.25) duration = 0.25; 
+                                  
+                                  const topOffset = (evt.startT - hour) * 6; 
+                                  const heightCalc = `calc(${duration * 6}rem - 8px)`;
+                                  
+                                  const leftOffset = 0.5 + (colIdx * 2.5); 
+                                  const widthCalc = `calc(100% - ${leftOffset + 1.5}rem)`; 
+
+                                  return (
+                                    <div 
+                                      key={evt.id} 
+                                      onClick={(e) => { e.stopPropagation(); setSelectedEvent({ ...evt, _colorStyle: colorStyle }); }} 
+                                      className={`absolute p-3 rounded-xl border-l-[12px] ${colorStyle.bg} ${colorStyle.border} ${colorStyle.text} shadow-sm flex items-start space-x-3 transition-all cursor-pointer hover:shadow-lg hover:scale-[1.01]`}
+                                      style={{ top: `${topOffset}rem`, height: heightCalc, left: `${leftOffset}rem`, width: widthCalc, zIndex: 20 + colIdx }}
+                                    >
+                                      <div className={`mt-0.5 ${colorStyle.iconBg} p-1.5 rounded-lg shrink-0`}>
+                                        <IconCmp size={14} />
+                                      </div>
+                                      <div className="overflow-hidden flex-1">
+                                        <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5 opacity-90 truncate">
+                                          {evt.startTime} {evt.startAmpm} - {evt.endTime} {evt.endAmpm} {cal ? `• ${cal.name}` : ''}
+                                        </p>
+                                        <p className="text-sm font-semibold truncate">{evt.name}</p>
+                                      </div>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })() : (
+                  <div className="space-y-4">
+                    {(calendarView === 'Year' || calendarView === '3 Month') && (
+                      <div className="flex items-center justify-between px-2">
+                        <h2 className={`text-2xl md:text-3xl font-extrabold tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                          {calendarView === 'Year' ? calendarDate.getFullYear() : `${monthNames[calendarDate.getMonth()]} ${calendarDate.getFullYear()} - ${monthNames[(calendarDate.getMonth() + 2) % 12]} ${new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 2, 1).getFullYear()}`}
+                        </h2>
+                      </div>
+                    )}
+                    <div className={`grid gap-6 ${calendarView === 'Year' ? 'grid-cols-1 md:grid-cols-3 lg:grid-cols-4' : calendarView === '3 Month' ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-1'}`}>
+                      {getMonthsToRender().map((date, mIdx) => (
+                        <div key={mIdx} className={`rounded-3xl shadow-sm border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} ${calendarView === 'Month' ? 'p-6' : 'p-5'}`}>
+                          {calendarView === 'Month' || calendarView === 'Week' ? (
+                             <div className="flex items-center justify-between mb-6">
+                               <h2 className={`text-2xl md:text-3xl font-extrabold tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                                  {calendarView === 'Week' ? `Week of ${monthNames[getDaysInWeek(date)[0].getMonth()]} ${getDaysInWeek(date)[0].getDate()}` : `${monthNames[date.getMonth()]} ${date.getFullYear()}`}
+                               </h2>
+                             </div>
+                          ) : (
+                             <div className="mb-4 text-center">
+                                <h3 className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
+                                  {monthNames[date.getMonth()]} {date.getFullYear()}
+                               </h3>
+                             </div>
+                          )}
+                          <div className={`grid grid-cols-7 gap-px border rounded-xl overflow-hidden ${isDarkMode ? 'bg-slate-800 border-slate-800' : 'bg-slate-200 border-slate-200'}`}>
+                            {calendarView !== 'Week' ? daysOfWeek.map(day => (
+                              <div key={day} className={`py-2 text-center text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'bg-slate-900 text-slate-500' : 'bg-white text-slate-400'}`}>
+                                {calendarView === 'Year' ? day[0] : day}
+                              </div>
+                            )) : getDaysInWeek(date).map((dayDate, idx) => (
+                              <div key={`header-${idx}`} className={`py-2 text-center text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'bg-slate-900 text-slate-500' : 'bg-white text-slate-400'}`}>
+                                {daysOfWeek[dayDate.getDay()]}
+                              </div>
+                            ))}
+                            {(calendarView === 'Week' ? getDaysInWeek(date) : getDaysInMonth(date)).map((cell, idx) => {
+                              const isWeekView = calendarView === 'Week';
+                              const dayNum = isWeekView ? cell.getDate() : cell;
+                              const fullDateObj = isWeekView ? cell : new Date(date.getFullYear(), date.getMonth(), cell);
+                              const cellTime = fullDateObj.getTime();
+                              const isToday = isWeekView 
+                                  ? cell.toDateString() === new Date().toDateString()
+                                  : dayNum === new Date().getDate() && date.getMonth() === new Date().getMonth() && date.getFullYear() === new Date().getFullYear();
+                            
+                            const holidayName = dayNum ? getHoliday(fullDateObj) : null;
+                            const cellDateStr = getFormattedDate(fullDateObj);
+                            
+                            const dayEvents = dayNum ? getEventsForDate(cellDateStr, events).filter(e => 
+                              (activeFilters.length === 0 || !e.calendarId || activeFilters.includes(Number(e.calendarId)))
+                            ) : [];
+                            
+                            // Align secondary colors and multi-day vertical logic
+                            const dayAllEventsForCell = dayEvents.map(e => {
+                                const isFirstDay = e.dayOfOccurrence === 0;
+                                const isLastDay = e.dayOfOccurrence === e.durationDays;
+                                return {
+                                  ...e,
+                                  startT: isFirstDay ? parseTime(e.startTime, e.startAmpm) : 0,
+                                  endT: isLastDay ? parseTime(e.endTime, e.endAmpm) : 24
+                                };
+                            }).sort((a, b) => {
+                                if (b.durationDays !== a.durationDays) return b.durationDays - a.durationDays;
+                                if (a.startT !== b.startT) return a.startT - b.startT;
+                                return a.id - b.id;
+                            });
+
+                            const cellEventCols = {};
+                            const cellColumns = [];
+                            dayAllEventsForCell.forEach(evt => {
+                                let placed = false;
+                                for (let i = 0; i < cellColumns.length; i++) {
+                                    if (cellColumns[i][cellColumns[i].length - 1].endT <= evt.startT) {
+                                        cellColumns[i].push(evt);
+                                        cellEventCols[evt.id] = i;
+                                        placed = true;
+                                        break;
+                                    }
+                                }
+                                if (!placed) {
+                                    cellEventCols[evt.id] = cellColumns.length;
+                                    cellColumns.push([evt]);
+                                }
+                            });
+                            
+                            const maxEventsMap = { 'Month': 2, 'Week': 4, '3 Month': 3, 'Year': 2 };
+                            const maxEvents = maxEventsMap[calendarView] || 2;
+                            const visibleEvents = dayAllEventsForCell.slice(0, maxEvents);
+                            const hiddenCount = dayAllEventsForCell.length - maxEvents;
+                            
+                            return (
+                              <div 
+                                key={idx} 
+                                onClick={(e) => {
+                                  if (dayNum) {
+                                    e.stopPropagation();
+                                    setDayContextMenu({
+                                      date: fullDateObj,
+                                      x: e.clientX,
+                                      y: e.clientY
+                                    });
+                                  }
+                                }}
+                                className={`${calendarView === 'Month' ? 'min-h-[120px] p-2' : calendarView === 'Week' ? 'min-h-[300px] p-3' : calendarView === '3 Month' ? 'min-h-[80px] p-1' : 'min-h-[40px] p-1'} relative transition-colors ${dayNum ? 'cursor-pointer' : ''} ${isDarkMode ? 'bg-slate-900 hover:bg-slate-800/80' : 'bg-white hover:bg-slate-50'} ${!dayNum ? 'opacity-50' : ''}`}
+                              >
+                                {dayNum && (
+                                  <div className={`flex items-start w-full ${calendarView === 'Year' || calendarView === '3 Month' ? 'justify-center' : 'justify-between'} mb-1`}>
+                                    <div className={`${calendarView === 'Year' || calendarView === '3 Month' ? 'w-6 h-6 text-[10px]' : 'w-8 h-8 text-sm'} flex items-center justify-center rounded-full font-semibold transition-all ${isToday ? `${theme.bg} text-white shadow-md z-10` : (isDarkMode ? 'text-slate-300' : 'text-slate-700')}`}>
+                                      {dayNum}
+                                    </div>
+                                    {(calendarView === 'Month' || calendarView === 'Week') && hiddenCount > 0 && (
+                                      <div 
+                                        className={`w-6 h-6 flex items-center justify-center rounded-full text-[9px] font-bold transition-colors z-10 relative ${isDarkMode ? 'bg-slate-800 text-slate-400 hover:bg-slate-700' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}`}
+                                        title={`+${hiddenCount} more events`}
+                                      >
+                                        +{hiddenCount}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                                
+                                {holidayName && (
+                                  calendarView === 'Month' ? (
+                                    <div className={`flex items-center space-x-1 mb-1 px-1.5 py-1 text-[8px] sm:text-[9px] font-bold uppercase tracking-wider rounded-md ${isDarkMode ? 'bg-rose-500/20 text-rose-400' : 'bg-rose-50 text-rose-500'} truncate`}>
+                                      <Star size={8} className={`shrink-0 ${isDarkMode ? 'fill-rose-400' : 'fill-rose-500'}`} />
+                                      <span className="truncate">{holidayName}</span>
+                                    </div>
+                                  ) : calendarView === 'Week' ? (
+                                    <div className={`flex items-center space-x-1 mb-2 p-1.5 text-[9px] font-bold uppercase tracking-wider rounded-lg bg-rose-500 text-white truncate shadow-sm`}>
+                                      <Star size={10} className="fill-white shrink-0" />
+                                      <span className="truncate">{holidayName}</span>
+                                    </div>
+                                  ) : calendarView === '3 Month' || calendarView === 'Year' ? (
+                                    <div className="w-1.5 h-1.5 rounded-full bg-rose-500 mx-auto mt-0.5" title={holidayName}></div>
+                                  ) : null
+                                )}
+
+                                {isWeekView && (idx === 1 || idx === 3) && activeFilters.includes(1) && (
+                                  <div className={`mb-2 p-2 text-[10px] font-bold uppercase tracking-wider rounded-lg bg-emerald-500 text-white truncate shadow-sm`}>Block A</div>
+                                )}
+
+                                {(() => {
+                                  if (calendarView === 'Month' || calendarView === 'Week') {
+                                    return (
+                                      <>
+                                        {visibleEvents.map(evt => {
+                                          const isMultiDay = evt.durationDays > 0;
+                                          const isTrueStart = evt.dayOfOccurrence === 0;
+                                          const isTrueEnd = evt.dayOfOccurrence === evt.durationDays;
+                                          
+                                          const isRowStart = idx % 7 === 0;
+                                          const isMonthStart = dayNum === 1 && calendarView === 'Month';
+                                          const shouldDrawBar = isTrueStart || isRowStart || isMonthStart;
+
+                                          const IconCmp = iconOptions[evt.icon] || Calendar;
+                                          const colIdx = cellEventCols[evt.id] || 0;
+                                          const themeArr = iconThemes[evt.icon] || iconThemes.Calendar;
+                                          const colorStyle = themeArr[colIdx % 3];
+
+                                          if (isMultiDay) {
+                                              if (shouldDrawBar) {
+                                                  const remainingDays = evt.durationDays - evt.dayOfOccurrence + 1;
+                                                  const daysInRow = 7 - (idx % 7);
+                                                  
+                                                  let span = Math.min(remainingDays, daysInRow);
+                                                  const totalCells = calendarView === 'Week' ? 7 : getDaysInMonth(calendarDate).length;
+                                                  const cellsLeftInGrid = totalCells - idx;
+                                                  span = Math.min(span, cellsLeftInGrid);
+
+                                                  const gapOffset = calendarView === 'Month' ? 17 : 25;
+                                                  const roundedClass = `${isTrueStart ? 'rounded-l-md' : 'rounded-l-none'} ${isTrueEnd && span === remainingDays ? 'rounded-r-md' : 'rounded-r-none'}`;
+                                                  const borderClass = isTrueStart ? `border-l-[6px] ${colorStyle.border}` : '';
+
+                                                  return (
+                                                      <div key={evt.id} className="relative mt-1.5 h-[26px]">
+                                                          {/* Transparent placeholder reserves flow height */}
+                                                          <div className="opacity-0 w-full h-full" />
+                                                          {/* Visual spanning bar */}
+                                                          <div 
+                                                              onClick={(e) => { e.stopPropagation(); setSelectedEvent({ ...evt, _colorStyle: colorStyle }); }}
+                                                              className={`absolute top-0 left-0 h-full flex items-center space-x-1.5 px-2 py-1.5 text-[9px] font-bold ${colorStyle.text} ${roundedClass} ${borderClass} ${colorStyle.bg} truncate shadow-sm cursor-pointer hover:opacity-90 z-20`}
+                                                              style={{ width: `calc(${span * 100}% + ${(span - 1) * gapOffset}px)` }}
+                                                          >
+                                                              {isTrueStart && <IconCmp size={10} className="shrink-0" />}
+                                                              <span className="truncate">{isTrueStart ? evt.name : '\u00A0'}</span>
+                                                          </div>
+                                                      </div>
+                                                  );
+                                              } else {
+                                                  return <div key={evt.id} className="mt-1.5 h-[26px] opacity-0 pointer-events-none" />;
+                                              }
+                                          } else {
+                                              // Single Day Rendering
+                                              return (
+                                                  <div key={evt.id} onClick={(e) => { e.stopPropagation(); setSelectedEvent({ ...evt, _colorStyle: colorStyle }); }} className={`mt-1.5 h-[26px] flex items-center space-x-1.5 px-2 py-1.5 text-[9px] font-bold ${colorStyle.text} rounded-md border-l-[6px] ${colorStyle.border} ${colorStyle.bg} truncate shadow-sm cursor-pointer hover:opacity-90 relative z-10`}>
+                                                      <IconCmp size={10} className="shrink-0" />
+                                                      <span className="truncate">{evt.startTime ? `${evt.startTime} ` : ''}{evt.name}</span>
+                                                  </div>
+                                              )
+                                          }
+                                        })}
+                                      </>
+                                    );
+                                  } else if (calendarView === '3 Month' || calendarView === 'Year') {
+                                    return (
+                                      <div className="flex flex-col items-center">
+                                        {visibleEvents.map(evt => {
+                                          const colIdx = cellEventCols[evt.id] || 0;
+                                          const themeArr = iconThemes[evt.icon] || iconThemes.Calendar;
+                                          const colorStyle = themeArr[colIdx % 3];
+
+                                          return <div key={evt.id} onClick={(e) => { e.stopPropagation(); setSelectedEvent({ ...evt, _colorStyle: colorStyle }); }} className={`w-1.5 h-1.5 rounded-full ${colorStyle.primaryBg} mt-1 cursor-pointer hover:scale-150 transition-transform`} title={evt.name}></div>
+                                        })}
+                                        {hiddenCount > 0 && (
+                                          <div className={`mt-1 w-3 h-3 flex items-center justify-center rounded-full text-[6px] font-bold ${isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-300 text-slate-600'}`} title={`+${hiddenCount} more events`}>
+                                            +{hiddenCount}
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  }
+                                  return null;
+                                })()}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : activeTab === 'Create Calendar' ? (
+              <div className="space-y-8">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className={`text-2xl font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Calendar Management</h2>
+                    <p className={`text-sm mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Set up your academic year and manage specialized schedules.</p>
+                  </div>
+                  <button className={`flex items-center space-x-2 px-4 py-2 text-sm font-bold rounded-xl border transition-all shadow-sm shrink-0 ${isDarkMode ? 'bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
+                    <RefreshCw size={16} />
+                    <span className="hidden sm:inline">Sync Calendars</span>
+                  </button>
+                </div>
+
+                <div>
+                  <h3 className={`text-lg font-bold mb-4 tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Custom Sub-Calendars</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {customCalendars.map(cal => (
+                      <div key={cal.id} className={`p-6 rounded-3xl border transition-all cursor-pointer group ${isDarkMode ? 'bg-slate-900 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-md'}`}>
+                        <div className="flex items-center justify-between mb-4">
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-sm ${cal.color}`}>
+                            <Calendar size={22} />
+                          </div>
+                          <MoreVertical size={18} className={`transition-colors ${isDarkMode ? 'text-slate-600 hover:text-slate-300' : 'text-slate-300 hover:text-slate-600'}`} />
+                        </div>
+                        <h3 className={`text-lg font-bold ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>{cal.name}</h3>
+                        <p className={`text-[10px] font-bold uppercase tracking-widest mt-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>{cal.type}</p>
+                      </div>
+                    ))}
+                    
+                    <div 
+                      onClick={() => setShowCreateModal(true)}
+                      className={`p-6 rounded-3xl border-2 border-dashed flex flex-col items-center justify-center text-center cursor-pointer transition-all min-h-[180px] group ${isDarkMode ? 'border-slate-800 hover:border-slate-700 bg-slate-900/20 hover:bg-slate-800/50' : 'border-slate-200 hover:border-slate-300 bg-slate-50/50 hover:bg-slate-50'}`}
+                    >
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 transition-colors ${isDarkMode ? 'bg-slate-800 text-slate-400 group-hover:bg-slate-700 group-hover:text-white' : 'bg-slate-200 text-slate-500 group-hover:bg-indigo-100 group-hover:text-indigo-600'}`}>
+                        <Plus size={24} />
+                      </div>
+                      <span className={`font-bold ${isDarkMode ? 'text-slate-400 group-hover:text-slate-300' : 'text-slate-500 group-hover:text-indigo-600'}`}>Create New Calendar</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : activeTab === 'Settings' ? (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className={`text-2xl font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Settings</h2>
+                    <p className={`text-sm mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Manage your preferences and external integrations.</p>
+                  </div>
+                </div>
+
+                {/* Academic Year Parameters Card */}
+                <div className={`p-6 rounded-3xl border shadow-sm relative overflow-hidden ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+                  {/* Subtle Background Accent */}
+                  <div className={`absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-${theme.primary}/20 to-transparent rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none`}></div>
+                  
+                  <div className="flex items-start justify-between mb-8 relative z-10">
+                     <div>
+                       <h3 className={`text-xl font-extrabold tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Base Academic Year</h3>
+                       <p className={`text-sm mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Define your school year boundaries and instructional days.</p>
+                     </div>
+                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-sm ${theme.bg}`}>
+                       <Calendar size={22} />
+                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+                     <div>
+                        <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>First Day of School</label>
+                        <input 
+                          type="date" 
+                          value={academicYear.startDate} 
+                          onChange={(e) => setAcademicYear({...academicYear, startDate: e.target.value})} 
+                          className={`w-full px-4 py-3 rounded-xl border outline-none transition-colors text-sm font-semibold ${isDarkMode ? 'bg-slate-950 border-slate-800 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-500'}`} 
+                        />
+                     </div>
+                     <div>
+                        <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Last Day of School</label>
+                        <input 
+                          type="date" 
+                          value={academicYear.endDate} 
+                          onChange={(e) => setAcademicYear({...academicYear, endDate: e.target.value})} 
+                          className={`w-full px-4 py-3 rounded-xl border outline-none transition-colors text-sm font-semibold ${isDarkMode ? 'bg-slate-950 border-slate-800 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-500'}`} 
+                        />
+                     </div>
+                  </div>
+
+                  <div className="mt-8 relative z-10">
+                     <label className={`block text-[10px] font-bold uppercase tracking-widest mb-3 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Instructional Days (Working Days)</label>
+                     <div className="flex flex-wrap gap-2">
+                       {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, idx) => {
+                          const isSelected = academicYear.workingDays.includes(idx);
+                          return (
+                            <button
+                              key={day}
+                              onClick={() => {
+                                const newDays = isSelected
+                                  ? academicYear.workingDays.filter(d => d !== idx)
+                                  : [...academicYear.workingDays, idx].sort();
+                                setAcademicYear({...academicYear, workingDays: newDays});
+                              }}
+                              className={`w-14 h-12 rounded-xl text-sm font-bold flex items-center justify-center transition-all ${isSelected ? `${theme.bg} text-white shadow-md` : (isDarkMode ? 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900')}`}
+                            >
+                              {day.substring(0, 3)}
+                            </button>
+                          )
+                       })}
+                     </div>
+                  </div>
+
+                  <div className={`mt-8 pt-6 border-t flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10 ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+                    <button 
+                      onClick={() => setShowBreaksModal(true)}
+                      className={`text-sm font-bold flex items-center space-x-2 transition-colors ${theme.text} hover:opacity-80`}
+                    >
+                      <Plus size={18} />
+                      <span>Manage School Breaks & Holidays</span>
+                    </button>
+                    
+                    <div className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest border flex items-center space-x-2 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>
+                      <BarChart2 size={14} className={theme.text} />
+                      <span>
+                        {(() => {
+                          if (!academicYear.startDate || !academicYear.endDate) return "0 Days";
+                          let start = parseLocalDate(academicYear.startDate);
+                          let end = parseLocalDate(academicYear.endDate);
+                          if (start > end) return "Invalid Dates";
+                          let count = 0;
+                          let current = new Date(start);
+                          
+                          // Pre-parse breaks for faster lookup
+                          const parsedBreaks = academicYear.breaks.map(b => ({
+                             start: parseLocalDate(b.startDate).getTime(),
+                             end: parseLocalDate(b.endDate).getTime()
+                          }));
+
+                          while (current <= end) {
+                            if (academicYear.workingDays.includes(current.getDay())) {
+                               const cTime = current.getTime();
+                               let isBreak = false;
+                               for (const b of parsedBreaks) {
+                                  if (cTime >= b.start && cTime <= b.end) {
+                                     isBreak = true;
+                                     break;
+                                  }
+                               }
+                               if (!isBreak) count++;
+                            }
+                            current.setDate(current.getDate() + 1);
+                          }
+                          return `${count} Instructional Days`;
+                        })()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Sync Calendars Card */}
+                  <div className={`p-6 rounded-3xl border shadow-sm ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center space-x-4">
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-sm ${theme.bg}`}>
+                          <RefreshCw size={22} />
+                        </div>
+                        <div>
+                          <h3 className={`text-lg font-bold ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>Sync Calendars</h3>
+                          <p className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Integrations</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      {/* Google Calendar */}
+                      <div className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${isDarkMode ? 'border-slate-800 bg-slate-950/50' : 'border-slate-100 bg-slate-50/50'}`}>
+                         <div className="flex items-center space-x-4">
+                           <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center border border-slate-100 shrink-0">
+                             <svg className="w-5 h-5" viewBox="0 0 24 24">
+                               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                             </svg>
+                           </div>
+                           <div>
+                             <p className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Google Calendar</p>
+                             <p className={`text-xs font-medium ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Not connected</p>
+                           </div>
+                         </div>
+                         <button className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${isDarkMode ? 'bg-slate-800 text-white hover:bg-slate-700' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'}`}>Connect</button>
+                      </div>
+
+                      {/* Outlook */}
+                      <div className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${isDarkMode ? 'border-slate-800 bg-slate-950/50' : 'border-slate-100 bg-slate-50/50'}`}>
+                         <div className="flex items-center space-x-4">
+                           <div className="w-10 h-10 rounded-full bg-[#0078D4] shadow-sm flex items-center justify-center shrink-0">
+                             <Mail size={18} className="text-white" />
+                           </div>
+                           <div>
+                             <p className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Outlook</p>
+                             <p className={`text-xs font-medium ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Not connected</p>
+                           </div>
+                         </div>
+                         <button className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${isDarkMode ? 'bg-slate-800 text-white hover:bg-slate-700' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'}`}>Connect</button>
+                      </div>
+
+                      {/* Apple Calendar */}
+                      <div className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${isDarkMode ? 'border-slate-800 bg-slate-950/50' : 'border-slate-100 bg-slate-50/50'}`}>
+                         <div className="flex items-center space-x-4">
+                           <div className="w-10 h-10 rounded-full bg-slate-900 dark:bg-white shadow-sm flex items-center justify-center shrink-0">
+                             <svg className="w-5 h-5 text-white dark:text-slate-900" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.15 2.95.89 3.84 2.14-3.23 1.95-2.73 6.36.43 7.64-.67 1.34-1.39 2.45-2.92 3.23zm-3.66-15.6c.03-1.63 1.4-3.26 3.08-3.41.34 1.76-1.12 3.38-3.08 3.41z"/>
+                             </svg>
+                           </div>
+                           <div>
+                             <p className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Apple Calendar</p>
+                             <p className={`text-xs font-medium ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Not connected</p>
+                           </div>
+                         </div>
+                         <button className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${isDarkMode ? 'bg-slate-800 text-white hover:bg-slate-700' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'}`}>Connect</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="h-64 rounded-3xl bg-slate-200/50 dark:bg-slate-800/30 animate-pulse" />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {[1, 2, 3].map(i => <div key={i} className="h-48 rounded-3xl bg-slate-200/50 dark:bg-slate-800/30" />)}
+                </div>
+                <div className="h-96 rounded-3xl bg-slate-200/50 dark:bg-slate-800/30" />
+                <p className="text-center text-slate-400 text-sm py-10">End of Dashboard Content</p>
+              </>
+            )}
+          </div>
+        </main>
+
+        {/* Floating Action Buttons */}
+        {activeTab === 'Create Calendar' && (
+          <button 
+            onClick={() => setShowCreateModal(true)}
+            className={`absolute bottom-10 right-10 p-4 rounded-full shadow-xl text-white transition-all duration-300 hover:scale-105 z-40 ${theme.bg} hover:shadow-${theme.primary}/40`}
+            title="Create Calendar"
+          >
+            <Plus size={24} strokeWidth={2.5} />
+          </button>
+        )}
+
+        {activeTab === 'Calendar' && (
+          <button 
+            onClick={() => {
+              const dateStr = getFormattedDate(calendarDate);
+              setNewEvent({ name: '', date: dateStr, endDate: dateStr, startTime: '12:00', startAmpm: 'PM', endTime: '01:00', endAmpm: 'PM', calendarId: '', icon: 'Calendar', notes: '', isRecurring: false, frequency: 'Weekly', excludedDates: [] });
+              setShowEventModal(true);
+            }}
+            className={`absolute bottom-10 right-10 p-4 rounded-full shadow-xl text-white transition-all duration-300 hover:scale-105 z-40 ${theme.bg} hover:shadow-${theme.primary}/40`}
+            title="Add Event"
+          >
+            <Plus size={24} strokeWidth={2.5} />
+          </button>
+        )}
+
+        {/* Create Calendar Modal */}
+        {showCreateModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={() => setShowCreateModal(false)}></div>
+            <div className={`relative w-full max-w-md rounded-3xl shadow-2xl overflow-hidden flex flex-col transform transition-all scale-100 ${isDarkMode ? 'bg-slate-900 border border-slate-800' : 'bg-white border border-slate-100'}`}>
+              <div className={`flex items-center justify-between p-6 border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+                <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Create Custom Calendar</h3>
+                <button onClick={() => setShowCreateModal(false)} className={`p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-slate-800 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-900'}`}>
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="p-6 space-y-5">
+                <div>
+                  <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Calendar Name</label>
+                  <input type="text" placeholder="e.g. Specialist Rotation" className={`w-full px-4 py-3 rounded-xl border outline-none transition-colors text-sm font-semibold ${isDarkMode ? 'bg-slate-950 border-slate-800 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-500'}`}/>
+                </div>
+                <div>
+                  <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Calendar Type</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button className={`p-3 rounded-xl border text-sm font-semibold flex items-center justify-center transition-colors ${theme.text} ${theme.border} ${isDarkMode ? 'bg-indigo-500/10' : 'bg-indigo-50'}`}>Rotation</button>
+                    <button className={`p-3 rounded-xl border text-sm font-semibold flex items-center justify-center transition-colors ${isDarkMode ? 'border-slate-800 text-slate-400 hover:bg-slate-800 hover:text-white' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}>Block Schedule</button>
+                  </div>
+                </div>
+              </div>
+              <div className={`p-6 border-t flex space-x-3 ${isDarkMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-slate-50/50'}`}>
+                <button onClick={() => setShowCreateModal(false)} className={`flex-1 py-3 rounded-xl font-bold transition-colors text-sm ${isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'}`}>Cancel</button>
+                <button onClick={() => setShowCreateModal(false)} className={`flex-1 py-3 rounded-xl font-bold text-white transition-colors shadow-md text-sm ${theme.bg} hover:shadow-lg`}>Create</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Prompt Modal for Recurring Events */}
+        {showDeletePrompt && (
+          <div className="fixed inset-0 z-[140] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={() => setShowDeletePrompt(false)}></div>
+            <div className={`relative w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden flex flex-col transform transition-all scale-100 ${isDarkMode ? 'bg-slate-900 border border-slate-800' : 'bg-white border border-slate-100'}`}>
+              <div className={`p-6 border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+                <div className="flex items-center justify-between">
+                  <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Cancel Recurring Event</h3>
+                  <button onClick={() => setShowDeletePrompt(false)} className={`p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-slate-800 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-900'}`}>
+                    <X size={18} />
+                  </button>
+                </div>
+                <p className={`text-sm mt-2 font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>This is a repeating event. Do you want to cancel just this occurrence or the entire series?</p>
+              </div>
+              <div className="p-4 space-y-3 mb-2">
+                <button onClick={handleDeleteSingle} className={`w-full py-3 px-4 rounded-xl font-bold transition-colors text-sm text-left ${isDarkMode ? 'bg-slate-800 text-white hover:bg-slate-700' : 'bg-slate-100 text-slate-900 hover:bg-slate-200'}`}>
+                  Cancel This Event Only
+                </button>
+                <button onClick={handleDeleteSeries} className={`w-full py-3 px-4 rounded-xl font-bold transition-colors text-sm text-left ${isDarkMode ? 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20' : 'bg-rose-50 text-rose-600 hover:bg-rose-100'}`}>
+                  Cancel Entire Series
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Manage Breaks Modal */}
+        {showBreaksModal && (
+          <div className="fixed inset-0 z-[140] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={() => setShowBreaksModal(false)}></div>
+            <div className={`relative w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col transform transition-all scale-100 ${isDarkMode ? 'bg-slate-900 border border-slate-800' : 'bg-white border border-slate-100'}`}>
+              <div className={`p-6 border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Manage Breaks & Holidays</h3>
+                  <button onClick={() => setShowBreaksModal(false)} className={`p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-slate-800 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-900'}`}>
+                    <X size={18} />
+                  </button>
+                </div>
+                
+                {/* Tabs for Input Methods */}
+                <div className="flex space-x-1">
+                  {['Manual', 'Paste List', 'Select'].map((tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setBreaksTab(tab)}
+                      className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${breaksTab === tab ? `${theme.bg} text-white shadow-sm` : (isDarkMode ? 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900')}`}
+                    >
+                      {tab}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
+                {breaksTab === 'Manual' && (
+                  <div className={`p-5 rounded-2xl border ${isDarkMode ? 'bg-slate-950/50 border-slate-800' : 'bg-slate-50/50 border-slate-200'}`}>
+                    <h4 className={`text-[10px] font-bold uppercase tracking-widest mb-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Add Manual Break</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <input 
+                          type="text" 
+                          value={newBreak.name} 
+                          onChange={(e) => setNewBreak({...newBreak, name: e.target.value})} 
+                          placeholder="Break Label (e.g. Winter Break)" 
+                          className={`w-full px-4 py-3 rounded-xl border outline-none transition-colors text-sm font-semibold ${isDarkMode ? 'bg-slate-900 border-slate-700 text-white focus:border-indigo-500' : 'bg-white border-slate-200 text-slate-900 focus:border-indigo-500'}`} 
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Start Date</label>
+                          <input 
+                            type="date" 
+                            value={newBreak.startDate} 
+                            onChange={(e) => setNewBreak({...newBreak, startDate: e.target.value})} 
+                            className={`w-full px-4 py-3 rounded-xl border outline-none transition-colors text-sm font-semibold ${isDarkMode ? 'bg-slate-900 border-slate-700 text-white focus:border-indigo-500' : 'bg-white border-slate-200 text-slate-900 focus:border-indigo-500'}`} 
+                          />
+                        </div>
+                        <div>
+                          <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>End Date</label>
+                          <input 
+                            type="date" 
+                            value={newBreak.endDate} 
+                            min={newBreak.startDate}
+                            onChange={(e) => setNewBreak({...newBreak, endDate: e.target.value})} 
+                            className={`w-full px-4 py-3 rounded-xl border outline-none transition-colors text-sm font-semibold ${isDarkMode ? 'bg-slate-900 border-slate-700 text-white focus:border-indigo-500' : 'bg-white border-slate-200 text-slate-900 focus:border-indigo-500'}`} 
+                          />
+                        </div>
+                      </div>
+                      <button 
+                        onClick={handleAddBreak}
+                        disabled={!newBreak.name || !newBreak.startDate || !newBreak.endDate}
+                        className={`w-full py-3 rounded-xl font-bold transition-all text-sm flex items-center justify-center space-x-2 ${(!newBreak.name || !newBreak.startDate || !newBreak.endDate) ? (isDarkMode ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-slate-200 text-slate-400 cursor-not-allowed') : `${theme.bg} text-white shadow-md hover:opacity-90`}`}
+                      >
+                        <Plus size={16} />
+                        <span>Add Break</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {breaksTab === 'Paste List' && (
+                  <div className={`p-5 rounded-2xl border ${isDarkMode ? 'bg-slate-950/50 border-slate-800' : 'bg-slate-50/50 border-slate-200'}`}>
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className={`text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Smart Paste</h4>
+                      <span className={`text-[9px] font-medium ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>1 break per line</span>
+                    </div>
+                    <div className="space-y-4">
+                      <textarea 
+                        value={pasteText}
+                        onChange={(e) => setPasteText(e.target.value)}
+                        placeholder="e.g. Winter Break: 12/20/2024 to 01/02/2025&#10;Thanksgiving Nov 28, 2024"
+                        className={`w-full px-4 py-3 rounded-xl border outline-none transition-colors text-sm font-semibold min-h-[120px] resize-none ${isDarkMode ? 'bg-slate-900 border-slate-700 text-white focus:border-indigo-500' : 'bg-white border-slate-200 text-slate-900 focus:border-indigo-500'}`}
+                      />
+                      <button 
+                        onClick={handleParsePastedBreaks}
+                        disabled={!pasteText.trim()}
+                        className={`w-full py-3 rounded-xl font-bold transition-all text-sm flex items-center justify-center space-x-2 ${!pasteText.trim() ? (isDarkMode ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-slate-200 text-slate-400 cursor-not-allowed') : `${theme.bg} text-white shadow-md hover:opacity-90`}`}
+                      >
+                        <AlignLeft size={16} />
+                        <span>Parse & Add Breaks</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {breaksTab === 'Select' && (
+                  <div className={`p-5 rounded-2xl border ${isDarkMode ? 'bg-slate-950/50 border-slate-800' : 'bg-slate-50/50 border-slate-200'}`}>
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className={`text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Visual Selector</h4>
+                      <span className={`text-[9px] font-medium ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                        {!visualSelection.start ? 'Click a start date' : !visualSelection.end ? 'Click an end date' : 'Range selected'}
+                      </span>
+                    </div>
+
+                    {/* Mini Calendar UI */}
+                    <div className="mb-4 select-none">
+                      <div className="flex items-center justify-between mb-2 px-2">
+                        <button 
+                          onClick={() => setVisualCalDate(new Date(visualCalDate.getFullYear(), visualCalDate.getMonth() - 1, 1))}
+                          className={`p-1 rounded-md transition-colors ${isDarkMode ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-200 text-slate-500'}`}
+                        >
+                          <ChevronLeft size={16} />
+                        </button>
+                        <span className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
+                          {monthNames[visualCalDate.getMonth()]} {visualCalDate.getFullYear()}
+                        </span>
+                        <button 
+                          onClick={() => setVisualCalDate(new Date(visualCalDate.getFullYear(), visualCalDate.getMonth() + 1, 1))}
+                          className={`p-1 rounded-md transition-colors ${isDarkMode ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-200 text-slate-500'}`}
+                        >
+                          <ChevronRight size={16} />
+                        </button>
+                      </div>
+                      
+                      <div className="grid grid-cols-7 gap-y-1 text-center">
+                        {daysOfWeek.map(day => (
+                          <div key={day} className={`text-[9px] font-bold uppercase tracking-wider py-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                            {day[0]}
+                          </div>
+                        ))}
+                        {getDaysInMonth(visualCalDate).map((cell, idx) => {
+                          if (!cell) return <div key={`blank-${idx}`} className="h-8"></div>;
+                          
+                          const cellDateObj = new Date(visualCalDate.getFullYear(), visualCalDate.getMonth(), cell);
+                          const cellTime = cellDateObj.getTime();
+                          const startTime = visualSelection.start?.getTime();
+                          const endTime = visualSelection.end?.getTime();
+                          
+                          let isStart = startTime === cellTime;
+                          let isEnd = endTime === cellTime;
+                          let isInRange = startTime && endTime && cellTime > startTime && cellTime < endTime;
+                          let isSingleSelection = startTime === cellTime && !endTime;
+
+                          let bgClass = "bg-transparent";
+                          let textClass = isDarkMode ? "text-slate-300 hover:bg-slate-800" : "text-slate-700 hover:bg-slate-200";
+                          let roundedClass = "rounded-lg";
+
+                          if (isStart && isEnd) {
+                            bgClass = theme.bg;
+                            textClass = "text-white font-bold";
+                          } else if (isStart) {
+                            bgClass = theme.bg;
+                            textClass = "text-white font-bold";
+                            if (endTime) roundedClass = "rounded-l-lg rounded-r-none";
+                          } else if (isEnd) {
+                            bgClass = theme.bg;
+                            textClass = "text-white font-bold";
+                            roundedClass = "rounded-r-lg rounded-l-none";
+                          } else if (isInRange) {
+                            bgClass = isDarkMode ? "bg-indigo-500/20" : "bg-indigo-50";
+                            textClass = isDarkMode ? "text-indigo-300 font-semibold" : "text-indigo-700 font-semibold";
+                            roundedClass = "rounded-none";
+                          } else if (isSingleSelection) {
+                            bgClass = theme.bg;
+                            textClass = "text-white font-bold";
+                          }
+
+                          return (
+                            <div key={idx} className={`h-8 flex items-center justify-center`}>
+                              <button
+                                onClick={() => handleVisualDayClick(cellDateObj)}
+                                className={`w-full h-full flex items-center justify-center text-xs transition-all ${bgClass} ${textClass} ${roundedClass}`}
+                              >
+                                {cell}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="space-y-4 border-t pt-4 mt-2 border-slate-200 dark:border-slate-800">
+                      <input 
+                        type="text" 
+                        value={visualBreakName} 
+                        onChange={(e) => setVisualBreakName(e.target.value)} 
+                        placeholder="Break Label (e.g. Spring Break)" 
+                        className={`w-full px-4 py-3 rounded-xl border outline-none transition-colors text-sm font-semibold ${isDarkMode ? 'bg-slate-900 border-slate-700 text-white focus:border-indigo-500' : 'bg-white border-slate-200 text-slate-900 focus:border-indigo-500'}`} 
+                      />
+                      <button 
+                        onClick={handleAddVisualBreak}
+                        disabled={!visualSelection.start || !visualSelection.end || !visualBreakName.trim()}
+                        className={`w-full py-3 rounded-xl font-bold transition-all text-sm flex items-center justify-center space-x-2 ${(!visualSelection.start || !visualSelection.end || !visualBreakName.trim()) ? (isDarkMode ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-slate-200 text-slate-400 cursor-not-allowed') : `${theme.bg} text-white shadow-md hover:opacity-90`}`}
+                      >
+                        <Plus size={16} />
+                        <span>Add Selected Break</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-6">
+                  <h4 className={`text-[10px] font-bold uppercase tracking-widest mb-3 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                    Active Breaks ({academicYear.breaks.length})
+                  </h4>
+                  {academicYear.breaks.length === 0 ? (
+                    <p className={`text-xs italic ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>No breaks defined yet.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {academicYear.breaks.map(b => (
+                        <div key={b.id} className={`flex items-center justify-between p-3 rounded-xl border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+                          <div>
+                            <p className={`text-sm font-bold ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>{b.name}</p>
+                            <p className={`text-[10px] font-bold uppercase tracking-widest mt-0.5 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                              {b.startDate} to {b.endDate}
+                            </p>
+                          </div>
+                          <button 
+                            onClick={() => handleRemoveBreak(b.id)}
+                            className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'text-slate-500 hover:bg-rose-500/20 hover:text-rose-400' : 'text-slate-400 hover:bg-rose-50 hover:text-rose-600'}`}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className={`p-6 border-t ${isDarkMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-slate-50/50'}`}>
+                <button onClick={() => setShowBreaksModal(false)} className={`w-full py-3 rounded-xl font-bold transition-colors text-sm ${isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'}`}>
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add/Edit Event Modal */}
+        {showEventModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={() => setShowEventModal(false)}></div>
+            <div className={`relative w-full max-w-md rounded-3xl shadow-2xl overflow-hidden flex flex-col transform transition-all scale-100 ${isDarkMode ? 'bg-slate-900 border border-slate-800' : 'bg-white border border-slate-100'}`}>
+              <div className={`flex items-center justify-between p-6 border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+                <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{newEvent.id ? 'Edit Event' : 'Add New Event'}</h3>
+                <button onClick={() => setShowEventModal(false)} className={`p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-slate-800 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-900'}`}>
+                  <X size={18} />
+                </button>
+              </div>
+              
+              <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
+                <div>
+                  <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Event Name</label>
+                  <input type="text" value={newEvent.name} onChange={(e) => setNewEvent({...newEvent, name: e.target.value})} placeholder="e.g. Staff Meeting" className={`w-full px-4 py-3 rounded-xl border outline-none transition-colors text-sm font-semibold ${isDarkMode ? 'bg-slate-950 border-slate-800 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-500'}`} />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Start Date</label>
+                    <input 
+                      type="date" 
+                      value={newEvent.date} 
+                      onChange={(e) => {
+                        const newDate = e.target.value;
+                        setNewEvent(prev => ({ 
+                           ...prev, 
+                           date: newDate,
+                           endDate: (!prev.endDate || prev.endDate < newDate) ? newDate : prev.endDate
+                        }));
+                      }} 
+                      className={`w-full px-4 py-3 rounded-xl border outline-none transition-colors text-sm font-semibold ${isDarkMode ? 'bg-slate-950 border-slate-800 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-500'}`} 
+                    />
+                  </div>
+                  <div>
+                    <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>End Date</label>
+                    <input 
+                      type="date" 
+                      value={newEvent.endDate} 
+                      min={newEvent.date}
+                      onChange={(e) => setNewEvent({...newEvent, endDate: e.target.value})} 
+                      className={`w-full px-4 py-3 rounded-xl border outline-none transition-colors text-sm font-semibold ${isDarkMode ? 'bg-slate-950 border-slate-800 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-500'}`} 
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Recurring Options</label>
+                  <div className="flex items-center space-x-3">
+                    <button 
+                      onClick={() => setNewEvent({...newEvent, isRecurring: !newEvent.isRecurring})}
+                      className={`p-3 flex items-center justify-center rounded-xl border transition-all shrink-0 ${newEvent.isRecurring ? `${theme.bg} text-white border-transparent shadow-sm` : (isDarkMode ? 'bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-800 hover:text-white' : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-900')}`}
+                      title={newEvent.isRecurring ? 'Toggle Recurring Off' : 'Toggle Recurring On'}
+                    >
+                      <Repeat size={18} />
+                    </button>
+                    {newEvent.isRecurring ? (
+                      <select 
+                        value={newEvent.frequency} 
+                        onChange={(e) => setNewEvent({...newEvent, frequency: e.target.value})} 
+                        className={`w-full px-4 py-3 rounded-xl border outline-none transition-colors text-sm font-semibold cursor-pointer ${isDarkMode ? 'bg-slate-950 border-slate-800 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-500'}`}
+                      >
+                        <option value="Weekly">Weekly</option>
+                        <option value="Bi-Weekly">Bi-Weekly</option>
+                        <option value="Monthly">Monthly</option>
+                      </select>
+                    ) : (
+                      <div className={`w-full px-4 py-3 rounded-xl border transition-colors text-sm font-semibold flex items-center ${isDarkMode ? 'bg-slate-950/50 border-slate-800/50 text-slate-600' : 'bg-slate-50/50 border-slate-200/50 text-slate-400'}`}>
+                        Does not repeat
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Start Time</label>
+                    <div className="flex space-x-1.5">
+                      <input type="text" value={newEvent.startTime} onChange={(e) => setNewEvent({...newEvent, startTime: e.target.value})} placeholder="12:00" className={`w-full px-3 py-3 rounded-xl border outline-none transition-colors text-sm font-semibold ${isDarkMode ? 'bg-slate-950 border-slate-800 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-500'}`} />
+                      <div className={`flex rounded-xl border overflow-hidden shrink-0 transition-colors ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}>
+                        <button onClick={() => setNewEvent({...newEvent, startAmpm: 'AM'})} className={`px-2.5 font-bold text-xs transition-colors ${newEvent.startAmpm === 'AM' ? theme.bg + ' text-white' : (isDarkMode ? 'bg-slate-950 text-slate-500 hover:bg-slate-800' : 'bg-slate-50 text-slate-400 hover:bg-slate-100')}`}>AM</button>
+                        <button onClick={() => setNewEvent({...newEvent, startAmpm: 'PM'})} className={`px-2.5 font-bold text-xs transition-colors ${newEvent.startAmpm === 'PM' ? theme.bg + ' text-white' : (isDarkMode ? 'bg-slate-950 text-slate-500 hover:bg-slate-800' : 'bg-slate-50 text-slate-400 hover:bg-slate-100')}`}>PM</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>End Time</label>
+                    <div className="flex space-x-1.5">
+                      <input type="text" value={newEvent.endTime} onChange={(e) => setNewEvent({...newEvent, endTime: e.target.value})} placeholder="01:00" className={`w-full px-3 py-3 rounded-xl border outline-none transition-colors text-sm font-semibold ${isDarkMode ? 'bg-slate-950 border-slate-800 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-500'}`} />
+                      <div className={`flex rounded-xl border overflow-hidden shrink-0 transition-colors ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}>
+                        <button onClick={() => setNewEvent({...newEvent, endAmpm: 'AM'})} className={`px-2.5 font-bold text-xs transition-colors ${newEvent.endAmpm === 'AM' ? theme.bg + ' text-white' : (isDarkMode ? 'bg-slate-950 text-slate-500 hover:bg-slate-800' : 'bg-slate-50 text-slate-400 hover:bg-slate-100')}`}>AM</button>
+                        <button onClick={() => setNewEvent({...newEvent, endAmpm: 'PM'})} className={`px-2.5 font-bold text-xs transition-colors ${newEvent.endAmpm === 'PM' ? theme.bg + ' text-white' : (isDarkMode ? 'bg-slate-950 text-slate-500 hover:bg-slate-800' : 'bg-slate-50 text-slate-400 hover:bg-slate-100')}`}>PM</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Assign to Calendar</label>
+                  <select value={newEvent.calendarId} onChange={(e) => setNewEvent({...newEvent, calendarId: e.target.value})} className={`w-full px-4 py-3 rounded-xl border outline-none appearance-none transition-colors text-sm font-semibold ${isDarkMode ? 'bg-slate-950 border-slate-800 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-500'}`}>
+                    <option value="">None (Personal)</option>
+                    {customCalendars.map(cal => <option key={cal.id} value={cal.id}>{cal.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Event Icon</label>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.keys(iconOptions).map(iconKey => {
+                      const IconCmp = iconOptions[iconKey];
+                      const isSelected = newEvent.icon === iconKey;
+                      const primaryBg = iconThemes[iconKey][0].primaryBg;
+                      return (
+                        <button key={iconKey} onClick={() => setNewEvent({...newEvent, icon: iconKey})} className={`p-2.5 rounded-xl border transition-all ${isSelected ? `${primaryBg} text-white border-transparent shadow-sm` : (isDarkMode ? 'border-slate-800 text-slate-400 hover:bg-slate-800 hover:text-white' : 'border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-900')}`}>
+                          <IconCmp size={18} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div>
+                  <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Notes</label>
+                  <textarea value={newEvent.notes} onChange={(e) => setNewEvent({...newEvent, notes: e.target.value})} placeholder="Add any additional details or notes here..." className={`w-full px-4 py-3 rounded-xl border outline-none transition-colors text-sm font-semibold min-h-[80px] resize-none ${isDarkMode ? 'bg-slate-950 border-slate-800 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-500'}`} />
+                </div>
+              </div>
+              
+              <div className={`p-6 border-t flex space-x-3 ${isDarkMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-slate-50/50'}`}>
+                <button onClick={() => setShowEventModal(false)} className={`flex-1 py-3 rounded-xl font-bold transition-colors text-sm ${isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'}`}>Cancel</button>
+                <button onClick={handleAddEvent} className={`flex-1 py-3 rounded-xl font-bold text-white transition-colors shadow-md text-sm ${theme.bg} hover:shadow-lg`}>{newEvent.id ? 'Save Changes' : 'Add Event'}</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Day Click Context Menu Popout */}
+        {dayContextMenu && (
+          <div className="fixed inset-0 z-[120]" onMouseDown={() => setDayContextMenu(null)}>
+            <div className={`absolute w-48 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border py-2 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`} style={{ top: Math.min(dayContextMenu.y, window.innerHeight - 150), left: Math.min(dayContextMenu.x, window.innerWidth - 200) }} onMouseDown={(e) => e.stopPropagation()}>
+              <div className={`px-3 py-2 mb-1 border-b text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'border-slate-800/50 text-slate-400' : 'border-slate-50 text-slate-500'}`}>
+                {monthNames[dayContextMenu.date.getMonth()]} {dayContextMenu.date.getDate()} Options
+              </div>
+              <button className={`w-full flex items-center px-3 py-2.5 text-xs font-semibold transition-colors ${isDarkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-50'}`} onClick={() => handleViewDay(dayContextMenu.date)}>
+                <div className={`w-6 h-6 rounded flex items-center justify-center mr-3 ${isDarkMode ? 'bg-slate-800' : 'bg-slate-50'}`}><Calendar size={12} /></div>
+                View Day
+              </button>
+              <button className={`w-full flex items-center px-3 py-2.5 text-xs font-semibold transition-colors ${isDarkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-50'}`} onClick={() => { 
+                const dateStr = getFormattedDate(dayContextMenu.date);
+                setCalendarDate(dayContextMenu.date); 
+                setNewEvent({ name: '', date: dateStr, endDate: dateStr, startTime: '12:00', startAmpm: 'PM', endTime: '01:00', endAmpm: 'PM', calendarId: '', icon: 'Calendar', notes: '', isRecurring: false, frequency: 'Weekly', excludedDates: [] }); 
+                setShowEventModal(true); 
+                setDayContextMenu(null); 
+              }}>
+                <div className={`w-6 h-6 rounded flex items-center justify-center mr-3 ${isDarkMode ? 'bg-slate-800' : 'bg-slate-50'}`}><Plus size={12} /></div>
+                Add Event
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Event Details Modal */}
+        {selectedEvent && (() => {
+          const IconCmp = iconOptions[selectedEvent.icon] || Calendar;
+          const cal = customCalendars.find(c => c.id === Number(selectedEvent.calendarId));
+          const colorStyle = selectedEvent._colorStyle || iconThemes[selectedEvent.icon || 'Calendar'][0];
+
+          return (
+            <div className="fixed inset-0 z-[130] flex items-center justify-center p-4">
+              <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={() => setSelectedEvent(null)}></div>
+              <div className={`relative w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden flex flex-col transform transition-all scale-100 ${isDarkMode ? 'bg-slate-900' : 'bg-white'}`}>
+                <div className={`p-6 flex items-start justify-between ${colorStyle.bg} ${colorStyle.text}`}>
+                  <div className="flex items-center space-x-4">
+                     <div className={`${colorStyle.iconBg} p-3 rounded-2xl`}><IconCmp size={24} /></div>
+                     <div>
+                       <h3 className="text-xl font-bold leading-tight">{selectedEvent.name}</h3>
+                       <p className="text-sm opacity-90 font-medium mt-1">
+                         {selectedEvent.date === (selectedEvent.endDate || selectedEvent.date)
+                           ? (selectedEvent.occurrenceDate || selectedEvent.date)
+                           : `${selectedEvent.date} to ${selectedEvent.endDate || selectedEvent.date}`}
+                         {selectedEvent.isRecurring && ` • ${selectedEvent.frequency}`}
+                       </p>
+                     </div>
+                  </div>
+                  <button onClick={() => setSelectedEvent(null)} className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"><X size={18} /></button>
+                </div>
+                
+                <div className="p-6 space-y-6">
+                  <div className="flex items-center space-x-4">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'}`}><Clock size={18} /></div>
+                    <div>
+                      <p className={`text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Time Segment</p>
+                      <p className={`text-sm font-semibold ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>
+                        {selectedEvent.startTime} {selectedEvent.startAmpm} - {selectedEvent.endTime} {selectedEvent.endAmpm}
+                      </p>
+                    </div>
+                  </div>
+
+                  {cal && (
+                    <div className="flex items-center space-x-4">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'}`}><Calendar size={18} /></div>
+                      <div>
+                        <p className={`text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Assigned Calendar</p>
+                        <p className={`text-sm font-semibold ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>{cal.name}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-start space-x-4">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'}`}><AlignLeft size={18} /></div>
+                    <div>
+                      <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Event Notes</p>
+                      <p className={`text-sm font-medium leading-relaxed whitespace-pre-wrap ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                        {selectedEvent.notes || 'No additional notes provided.'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className={`p-6 border-t flex space-x-3 ${isDarkMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-slate-50/50'}`}>
+                  <button onClick={() => handleInitiateDelete(selectedEvent)} className={`flex-1 py-3 rounded-xl font-bold transition-colors text-sm ${isDarkMode ? 'bg-transparent text-slate-400 hover:bg-slate-800 hover:text-slate-200' : 'bg-transparent text-slate-500 hover:bg-slate-100 hover:text-slate-800'}`}>
+                    Cancel Event
+                  </button>
+                  <button onClick={() => handleEditEvent(selectedEvent)} className={`flex-1 py-3 rounded-xl font-bold text-white transition-colors shadow-md text-sm ${theme.bg} hover:shadow-lg`}>
+                    Edit Event
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+      </div>
+    </div>
+  );
+};
+
+export default App;

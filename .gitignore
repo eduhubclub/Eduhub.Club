@@ -1,0 +1,14 @@
+﻿# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+*.suo
+*.sw?
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Cursor / local
+.cursor/

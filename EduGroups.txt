@@ -1,0 +1,1167 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { 
+  Menu, 
+  ChevronLeft, 
+  ChevronDown,
+  Home, 
+  BarChart2, 
+  Users, 
+  Settings, 
+  HelpCircle, 
+  Layers,
+  ArrowLeftRight,
+  Bell,
+  Search,
+  MoreVertical,
+  Plus,
+  Edit,
+  Trash2,
+  ExternalLink,
+  Library,
+  ChevronRight,
+  Inbox,
+  Send,
+  Archive,
+  Grid,
+  User,
+  X,
+  Sun,
+  Moon,
+  Save,
+  RefreshCw,
+  UserPlus,
+  Check,
+  Ban,
+  Printer
+} from 'lucide-react';
+
+/**
+ * EduHub Primary Logo Components
+ */
+const LogoHorizontal = ({ className = "h-8 w-auto" }) => (
+  <svg viewBox="0 0 100 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <circle cx="12" cy="12" r="9.5" className="text-rose-500" />
+    <path d="M37 3 L46 19 H28 L37 3 Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" className="text-orange-500" />
+    <rect x="53" y="2.5" width="19" height="19" rx="3" className="text-emerald-500" />
+    <path d="M88 4 C 96 4, 98 12, 94 18 C 88 24, 78 18, 80 10 C 82 4, 94 8, 92 14 C 90 20, 82 18, 84 12 C 86 6, 92 10, 88 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky-500" />
+  </svg>
+);
+
+const LogoIcon2x2 = ({ className = "w-16 h-16" }) => (
+  <svg viewBox="0 0 44 44" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <circle cx="10" cy="10" r="8" className="text-rose-500" />
+    <path d="M34 2 L42 18 H26 L34 2 Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" className="text-orange-500" />
+    <rect x="2" y="26" width="16" height="16" rx="3" className="text-emerald-500" />
+    <path d="M34 26 C 40 26, 42 32, 39 36 C 34 41, 27 37, 28 31 C 29 27, 38 30, 37 34 C 36 38, 30 37, 31 32 C 32 28, 37 31, 34 35" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky-500" />
+  </svg>
+);
+
+const STUDENT_DATABASE = [
+  { id: 1, name: "Aiden Thompson", avatar: "🦁" },
+  { id: 2, name: "Bella Rodriguez", avatar: "🦋" },
+  { id: 3, name: "Caleb Wright", avatar: "🦊" },
+  { id: 4, name: "Dakota Smith", avatar: "🎨" },
+  { id: 5, name: "Elena Gilbert", avatar: "⭐" },
+  { id: 6, name: "Finn O'Shea", avatar: "🐳" },
+  { id: 7, name: "Grace Miller", avatar: "🌻" },
+  { id: 8, name: "Hunter Reed", avatar: "🏹" },
+  { id: 9, name: "Isla Brown", avatar: "🦄" },
+  { id: 10, name: "Julian Vance", avatar: "🚀" },
+  { id: 11, name: "Kai Nguyen", avatar: "🌊" },
+  { id: 12, name: "Lily Chen", avatar: "🌸" },
+  { id: 13, name: "Mason Davis", avatar: "🧱" },
+  { id: 14, name: "Nora Quinn", avatar: "🌙" },
+  { id: 15, name: "Owen Taylor", avatar: "🦉" },
+  { id: 16, name: "Piper Hall", avatar: "🍭" },
+  { id: 17, name: "Quinn Adams", avatar: "🐧" },
+  { id: 18, name: "Riley Cooper", avatar: "🐶" },
+  { id: 19, name: "Sofia Lopez", avatar: "☀️" },
+  { id: 20, name: "Toby Wilson", avatar: "🐯" },
+  { id: 21, name: "Ursula King", avatar: "🐚" },
+  { id: 22, name: "Victor Hugo", avatar: "🎩" },
+  { id: 23, name: "Willow Brooks", avatar: "🌿" }
+];
+
+const App = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [sidebarSide, setSidebarSide] = useState('left');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [activeTab, setActiveTab] = useState('Group Sorter');
+  const [expandedItem, setExpandedItem] = useState(null); 
+  const [popoutItem, setPopoutItem] = useState(null); 
+  const [panelItem, setPanelItem] = useState(null); 
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [useOverlaySearch, setUseOverlaySearch] = useState(false);
+  
+  // Modal State
+  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [customSize, setCustomSize] = useState("");
+  const [generatedGroups, setGeneratedGroups] = useState([]);
+  const [currentGroupSize, setCurrentGroupSize] = useState(null);
+  
+  // Drag and Drop & Assignment State
+  const [unassignedStudents, setUnassignedStudents] = useState([...STUDENT_DATABASE]);
+  const [builderGroups, setBuilderGroups] = useState([]);
+  const [draggedStudent, setDraggedStudent] = useState(null);
+  
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [saveGroupName, setSaveGroupName] = useState("");
+  const [savedGroupings, setSavedGroupings] = useState([]);
+  
+  // Pairing Preferences State
+  const [pairingPreferences, setPairingPreferences] = useState({});
+  const [isPairingModalOpen, setIsPairingModalOpen] = useState(false);
+  const [selectedStudentForPairing, setSelectedStudentForPairing] = useState(null);
+  const [localTogether, setLocalTogether] = useState([]);
+  const [localSeparate, setLocalSeparate] = useState([]);
+
+  const currentAppName = "Groups"; 
+  
+  const appThemes = {
+    "Groups": { primary: "orange-500", bg: "bg-orange-500", text: "text-orange-500", border: "border-orange-500", hoverBg: "hover:bg-orange-50", ring: "ring-orange-500" },
+    "Hub": { primary: "sky-500", bg: "bg-sky-500", text: "text-sky-500", border: "border-sky-500", hoverBg: "hover:bg-sky-50", ring: "ring-sky-500" },
+    "District": { primary: "rose-500", bg: "bg-rose-500", text: "text-rose-500", border: "border-rose-500", hoverBg: "hover:bg-rose-50", ring: "ring-rose-500" },
+    "Admin": { primary: "emerald-500", bg: "bg-emerald-500", text: "text-emerald-500", border: "border-emerald-500", hoverBg: "hover:bg-emerald-50", ring: "ring-emerald-500" },
+    "Analytics": { primary: "orange-500", bg: "bg-orange-500", text: "text-orange-500", border: "border-orange-500", hoverBg: "hover:bg-orange-50", ring: "ring-orange-500" }
+  };
+
+  const theme = appThemes[currentAppName] || appThemes["Hub"];
+  const popoutRef = useRef(null);
+  const searchRef = useRef(null);
+  const isLeft = sidebarSide === 'left';
+
+  useEffect(() => {
+    const handleResize = () => {
+      setUseOverlaySearch(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (popoutRef.current && !popoutRef.current.contains(event.target)) {
+        setPopoutItem(null);
+      }
+      if (searchRef.current && !searchRef.current.contains(event.target) && !searchQuery) {
+        setIsSearchExpanded(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [searchQuery]);
+
+  const navigationItems = [
+    { id: 'group-sorter', name: 'Group Sorter', icon: Users, type: 'link' },
+    { id: 'create-groups', name: 'Create Groups', icon: Layers, type: 'link' },
+    { id: 'pairing', name: 'Pairings', icon: UserPlus, type: 'link' },
+    { id: 'saved-groups', name: 'Saved Groups', icon: Archive, type: 'link' }
+  ];
+
+  const sidebarWidth = isSidebarOpen ? 'w-64' : 'w-20';
+  const navHeight = 'h-16';
+
+  const shuffleArray = (array) => {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+  };
+
+  const handleDragStart = (e, student, sourceIndex) => {
+    setDraggedStudent({ student, sourceIndex });
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e, targetIndex) => {
+    e.preventDefault();
+    if (!draggedStudent) return;
+
+    const { student, sourceIndex } = draggedStudent;
+    if (sourceIndex === targetIndex) {
+      setDraggedStudent(null);
+      return;
+    }
+
+    if (activeTab === 'Create Groups') {
+      let newUnassigned = [...unassignedStudents];
+      let newGroups = [...builderGroups];
+
+      // Remove from source
+      if (sourceIndex === -1) {
+        newUnassigned = newUnassigned.filter(s => s.id !== student.id);
+      } else {
+        newGroups[sourceIndex] = newGroups[sourceIndex].filter(s => s.id !== student.id);
+      }
+
+      // Add to target
+      if (targetIndex === -1) {
+        newUnassigned.push(student);
+      } else {
+        newGroups[targetIndex] = [...newGroups[targetIndex], student];
+      }
+
+      setUnassignedStudents(newUnassigned);
+      setBuilderGroups(newGroups);
+    } else if (activeTab === 'Group Sorter') {
+      let newGroups = [...generatedGroups];
+
+      // Remove from source
+      if (sourceIndex >= 0) {
+        newGroups[sourceIndex] = newGroups[sourceIndex].filter(s => s.id !== student.id);
+      }
+
+      // Add to target
+      if (targetIndex >= 0) {
+        newGroups[targetIndex] = [...newGroups[targetIndex], student];
+      }
+
+      setGeneratedGroups(newGroups);
+    }
+    
+    setDraggedStudent(null);
+  };
+
+  const handleCreateGroups = (size) => {
+    if (activeTab === 'Create Groups') {
+      const emptyGroups = Array.from({ length: size }, () => []);
+      setBuilderGroups(emptyGroups);
+      setUnassignedStudents([...STUDENT_DATABASE]);
+    } else {
+      const shuffled = shuffleArray(STUDENT_DATABASE);
+      const newGroups = [];
+      for (let i = 0; i < shuffled.length; i += size) {
+        newGroups.push(shuffled.slice(i, i + size));
+      }
+      setGeneratedGroups(newGroups);
+      setCurrentGroupSize(size);
+      if (activeTab === 'Saved Groups') setActiveTab('Group Sorter');
+    }
+    setIsGroupModalOpen(false);
+    setShowCustomInput(false);
+    setCustomSize("");
+  };
+
+  const handleRefreshGroups = () => {
+    if (currentGroupSize) {
+      handleCreateGroups(currentGroupSize);
+    }
+  };
+
+  const handleSaveGrouping = () => {
+    if (!saveGroupName.trim()) return;
+    const newSaved = {
+      id: Date.now(),
+      name: saveGroupName.trim(),
+      groups: activeTab === 'Create Groups' ? builderGroups : generatedGroups,
+      unassigned: activeTab === 'Create Groups' ? unassignedStudents : [],
+      date: new Date().toLocaleDateString()
+    };
+    setSavedGroupings([newSaved, ...savedGroupings]);
+    setIsSaveModalOpen(false);
+    setSaveGroupName("");
+  };
+
+  const handleOpenPairingModal = (student) => {
+    setSelectedStudentForPairing(student);
+    setLocalTogether(pairingPreferences[student.id]?.together || []);
+    setLocalSeparate(pairingPreferences[student.id]?.separate || []);
+    setIsPairingModalOpen(true);
+  };
+
+  const handleSavePairingPreferences = () => {
+    if (selectedStudentForPairing) {
+        setPairingPreferences(prev => ({
+            ...prev,
+            [selectedStudentForPairing.id]: {
+                together: localTogether,
+                separate: localSeparate
+            }
+        }));
+    }
+    setIsPairingModalOpen(false);
+    setSelectedStudentForPairing(null);
+  };
+
+  const toggleTogether = (id) => {
+    if (localTogether.includes(id)) {
+        setLocalTogether(prev => prev.filter(i => i !== id));
+    } else {
+        setLocalTogether(prev => [...prev, id]);
+        setLocalSeparate(prev => prev.filter(i => i !== id)); // ensure a student isn't in both lists
+    }
+  };
+
+  const toggleSeparate = (id) => {
+    if (localSeparate.includes(id)) {
+        setLocalSeparate(prev => prev.filter(i => i !== id));
+    } else {
+        setLocalSeparate(prev => [...prev, id]);
+        setLocalTogether(prev => prev.filter(i => i !== id)); // ensure a student isn't in both lists
+    }
+  };
+
+  const handleItemClick = (item) => {
+    if (item.type === 'link') {
+      setActiveTab(item.name);
+      setExpandedItem(null);
+      setPanelItem(null);
+    } else if (item.type === 'accordion') {
+      if (!isSidebarOpen) setIsSidebarOpen(true);
+      setExpandedItem(expandedItem === item.id ? null : item.id);
+      setPanelItem(null);
+    } else if (item.type === 'popout') {
+      setPopoutItem(popoutItem === item.id ? null : item.id);
+    } else if (item.type === 'panel') {
+      const isOpening = panelItem !== item.id;
+      setPanelItem(isOpening ? item.id : null);
+      setExpandedItem(null);
+      if (isOpening) setActiveTab(null);
+    }
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  return (
+    <>
+      <style>{`
+        @media print {
+          @page { size: 8.5in 11in portrait; margin: 0.5in; }
+          body { 
+            -webkit-print-color-adjust: exact; 
+            print-color-adjust: exact; 
+            background-color: white !important; 
+          }
+          .print-hide { display: none !important; }
+          .print-reset { 
+            display: block !important; 
+            position: static !important;
+            height: auto !important; 
+            overflow: visible !important; 
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            background-color: white !important;
+          }
+          .print-grid { 
+            display: grid !important; 
+            grid-template-columns: 1fr 1fr !important; 
+            gap: 1.5rem !important; 
+            width: 100% !important;
+          }
+          .print-card { 
+            page-break-inside: avoid !important; 
+            break-inside: avoid !important; 
+            border: 2px solid #e2e8f0 !important; 
+            box-shadow: none !important; 
+            background-color: white !important;
+          }
+          .print-text { color: #0f172a !important; }
+          .print-title { 
+            font-size: 1.5rem !important; 
+            font-weight: 900 !important; 
+            color: black !important; 
+            margin-bottom: 1rem !important; 
+          }
+        }
+      `}</style>
+      
+      <div className={`flex h-screen overflow-hidden font-sans transition-all duration-300 ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'} ${isLeft ? 'flex-row' : 'flex-row-reverse'} print-reset`}>
+        
+        {/* 1. PRIMARY SIDEBAR */}
+        <aside className={`relative z-50 transition-all duration-300 ease-in-out flex flex-col shadow-sm ${sidebarWidth} ${isLeft ? 'border-r' : 'border-l'} ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} print-hide`}>
+          <div className={`flex items-center justify-center shrink-0 border-b ${navHeight} w-full ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+            <div className="flex items-center justify-center px-4">
+              {isSidebarOpen ? <LogoHorizontal className="h-6 w-auto" /> : <LogoIcon2x2 className="w-8 h-8" />}
+            </div>
+          </div>
+
+          <div className="pt-2 shrink-0"></div>
+
+          <nav className="flex-1 px-2 space-y-1 pt-2 pb-10 relative overflow-x-visible">
+            {navigationItems.map((item) => {
+              const isTabActive = activeTab === item.name || (item.type === 'accordion' && item.subItems.includes(activeTab));
+              const isPanelOpen = panelItem === item.id;
+              const isVisuallyActive = isTabActive || isPanelOpen;
+              const isExpanded = expandedItem === item.id;
+              const hasPopout = popoutItem === item.id;
+
+              return (
+                <div key={item.id} className="relative">
+                  <button
+                    onClick={() => handleItemClick(item)}
+                    className={`flex items-center transition-all group relative rounded-xl h-12
+                      ${isSidebarOpen ? 'w-full px-3' : 'w-16 mx-auto justify-center'}
+                      ${isVisuallyActive ? `${theme.bg} text-white shadow-lg` : `${isDarkMode ? 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}`}
+                  >
+                    <div className={`flex items-center justify-center shrink-0`}>
+                      <item.icon size={20} strokeWidth={isVisuallyActive ? 2.5 : 2} />
+                    </div>
+                    {isSidebarOpen && (
+                      <>
+                        <span className="ml-4 font-semibold text-sm flex-1 text-left truncate">{item.name}</span>
+                        {item.type === 'accordion' && (
+                          <ChevronDown size={14} className={`transition-transform duration-200 shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
+                        )}
+                        {item.type === 'panel' && (
+                          <ChevronRight size={14} className={`transition-all duration-200 shrink-0 ${isLeft ? '' : 'rotate-180'} ${isPanelOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-40'}`} />
+                        )}
+                        {item.type === 'popout' && <MoreVertical size={14} className="opacity-40 shrink-0" />}
+                      </>
+                    )}
+                    {!isSidebarOpen && (
+                      <div className={`absolute ${isLeft ? 'left-full ml-4' : 'right-full mr-4'} px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-[60] whitespace-nowrap shadow-xl`}>
+                        {item.name}
+                      </div>
+                    )}
+                  </button>
+                  {item.type === 'accordion' && isExpanded && isSidebarOpen && (
+                    <div className={`mt-1 space-y-1 ${isDarkMode ? 'border-slate-800' : 'border-slate-100'} ${isLeft ? 'ml-10 border-l-2' : 'mr-10 border-r-2'}`}>
+                      {item.subItems.map(sub => (
+                        <button 
+                          key={sub}
+                          onClick={() => setActiveTab(sub)}
+                          className={`block w-full text-left py-2 px-4 text-xs font-medium transition-colors
+                            ${isLeft ? 'rounded-r-lg' : 'rounded-l-lg text-right'}
+                            ${activeTab === sub ? `${theme.text} ${isDarkMode ? 'bg-slate-800' : 'bg-slate-50'} font-bold` : `${isDarkMode ? 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/50' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50/50'}`}`}
+                        >
+                          {sub}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {item.type === 'popout' && hasPopout && (
+                    <div 
+                      ref={popoutRef} 
+                      className={`absolute z-[100] border rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] py-2 min-w-[200px]
+                        ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}
+                        ${isLeft ? 'left-full ml-4' : 'right-full mr-4'}
+                        top-0`}
+                    >
+                      <div className={`px-3 py-2 mb-1 border-b ${isDarkMode ? 'border-slate-800/50' : 'border-slate-50'}`}>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.name} Options</p>
+                      </div>
+                      {item.actions.map(action => (
+                        <button
+                          key={action.name}
+                          className={`w-full flex items-center px-3 py-2.5 text-xs font-semibold transition-colors ${action.color || (isDarkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-50')}`}
+                          onClick={() => { setPopoutItem(null); setActiveTab(`${item.name}: ${action.name}`); }}
+                        >
+                          <div className={`w-6 h-6 rounded flex items-center justify-center mr-3 ${action.color ? 'bg-rose-50' : (isDarkMode ? 'bg-slate-800' : 'bg-slate-50')}`}>
+                             <action.icon size={12} />
+                          </div>
+                          {action.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </nav>
+
+          {/* BOTTOM QUICK SETTINGS SECTION */}
+          <div className={`p-2 border-t ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+             <div className={`flex transition-all duration-300 ${isSidebarOpen ? 'flex-row items-center space-x-2' : 'flex-col items-center space-y-2'}`}>
+                
+                {/* DARK MODE - LEFT / TOP */}
+                <button 
+                  onClick={() => setIsDarkMode(!isDarkMode)}
+                  className={`flex items-center justify-center rounded-xl transition-all h-12 ${isSidebarOpen ? 'flex-1 px-3' : 'w-16'} ${isDarkMode ? 'text-amber-400 bg-slate-800 hover:bg-slate-700' : 'text-slate-400 bg-slate-50 hover:bg-slate-100 hover:text-slate-900'}`}
+                  title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                >
+                  <div className="shrink-0 flex items-center justify-center">
+                    {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+                  </div>
+                  {isSidebarOpen && <span className="ml-2 text-[9px] font-black uppercase tracking-tighter whitespace-nowrap">Dark</span>}
+                </button>
+
+                {/* FLIP - MIDDLE */}
+                <button 
+                  onClick={() => { setSidebarSide(isLeft ? 'right' : 'left'); setPanelItem(null); }}
+                  className={`flex items-center justify-center rounded-xl transition-all h-12 ${isSidebarOpen ? 'flex-1 px-3' : 'w-16'} ${isDarkMode ? 'text-slate-500 hover:bg-slate-800 hover:text-slate-200' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`}
+                  title="Flip Sidebar Side"
+                >
+                  <div className="shrink-0 flex items-center justify-center">
+                    <ArrowLeftRight size={16} />
+                  </div>
+                  {isSidebarOpen && <span className="ml-2 text-[9px] font-black uppercase tracking-tighter whitespace-nowrap">Flip</span>}
+                </button>
+
+                {/* COLLAPSE - RIGHT / BOTTOM */}
+                <button
+                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                  className={`flex items-center justify-center transition-all rounded-xl h-12 ${isSidebarOpen ? 'flex-1 px-3' : 'mx-auto w-16'} ${isDarkMode ? 'text-slate-400 bg-slate-800/40 hover:bg-slate-700/60 hover:text-slate-200' : 'text-slate-400 bg-slate-50 hover:bg-slate-100 hover:text-slate-900'}`}
+                  title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
+                >
+                  <div className="shrink-0 flex items-center justify-center">
+                    {isSidebarOpen ? <ChevronLeft size={18} className={!isLeft ? 'rotate-180' : ''} /> : <Menu size={20} />}
+                  </div>
+                  {isSidebarOpen && <span className="ml-2 text-[9px] font-black uppercase tracking-tighter whitespace-nowrap">Menu</span>}
+                </button>
+             </div>
+          </div>
+        </aside>
+
+        {/* 2. SECONDARY SIDEBAR PANEL */}
+        <div 
+          className={`z-40 transition-all duration-300 ease-in-out overflow-hidden flex flex-col print-hide
+            ${panelItem ? 'w-72' : 'w-0'}
+            ${isDarkMode ? 'bg-slate-900' : 'bg-white'}
+            ${isLeft ? `border-r ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}` : `border-l ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}`}
+        >
+          <div className={`w-72 flex flex-col h-full transition-opacity duration-300 ${panelItem ? 'opacity-100' : 'opacity-0'}`}>
+            <div className={`flex items-center justify-between p-6 shrink-0 border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-100'} ${navHeight}`}>
+              <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Resources</h2>
+              <button onClick={() => setPanelItem(null)} className={`p-1 rounded-md transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50'}`}>
+                <X size={16} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              {navigationItems.find(i => i.id === panelItem)?.panelContent?.map((sub, index, arr) => (
+                <button 
+                  key={sub.label}
+                  onClick={() => setActiveTab(`Resource: ${sub.label}`)}
+                  className={`w-full flex items-center p-5 text-left group transition-all relative
+                    ${isDarkMode ? 'hover:bg-slate-800/50' : 'hover:bg-slate-50/50'}
+                    ${index !== arr.length - 1 ? `border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}` : ''}`}
+                >
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-400 group-hover:text-white group-hover:bg-slate-700' : 'bg-slate-50 border border-slate-100 text-slate-400 group-hover:bg-white group-hover:shadow-sm'} group-hover:${theme.text} group-hover:${theme.border}`}>
+                    <sub.icon size={18} />
+                  </div>
+                  <div className="ml-4 flex-1">
+                    <span className={`block text-sm font-bold group-hover:${theme.text} transition-colors ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>{sub.label}</span>
+                    <span className="block text-[10px] text-slate-500 font-medium uppercase tracking-tight">Access files</span>
+                  </div>
+                  <ChevronRight size={14} className={`text-slate-300 opacity-0 group-hover:opacity-100 transition-all transform ${isLeft ? 'group-hover:translate-x-1' : 'rotate-180 group-hover:-translate-x-1'} group-hover:${theme.text}`} />
+                </button>
+              ))}
+            </div>
+            <div className={`p-4 border-t ${isDarkMode ? 'bg-slate-900/50 border-slate-800' : 'bg-slate-50/50 border-slate-100'}`}>
+              <button className={`w-full py-3 px-4 rounded-xl border-2 border-dashed text-xs font-bold transition-all flex items-center justify-center ${isDarkMode ? 'border-slate-800 text-slate-500 hover:border-slate-700 hover:text-slate-300' : 'border-slate-200 text-slate-400 hover:border-slate-300 hover:text-slate-600'} hover:${theme.border} hover:${theme.text}`}>
+                 <Plus size={14} className="mr-2" /> Create New
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* MAIN CONTENT AREA */}
+        <div className="flex-1 flex flex-col min-w-0 relative z-10 print-reset">
+          <header className={`border-b flex items-center px-6 z-20 shrink-0 ${navHeight} sticky top-0 transition-colors duration-300 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} print-hide`}>
+            
+            {/* LEFT: STATIC BRANDING SECTION */}
+            <div 
+              className={`transition-all duration-500 overflow-hidden flex items-center shrink-0 ${isSearchExpanded && !useOverlaySearch ? 'w-0 opacity-0 mr-0' : 'flex-1 opacity-100 mr-4'}`}
+            >
+              <div className="flex items-center text-lg font-bold whitespace-nowrap tracking-tight">
+                <span className={isDarkMode ? 'text-white' : 'text-slate-900'}>Edu.</span>
+                <span className={theme.text}>{currentAppName}</span>
+              </div>
+            </div>
+            
+            {/* MOBILE OVERLAY SEARCH */}
+            {useOverlaySearch && isSearchExpanded && (
+              <div className={`absolute inset-x-0 inset-y-0 z-50 flex items-center px-4 animate-in fade-in slide-in-from-top-2 duration-300 ${isDarkMode ? 'bg-slate-900' : 'bg-white'}`}>
+                  <Search size={18} className="text-slate-400 mr-3" />
+                  <input
+                      type="text"
+                      placeholder="Search..."
+                      autoFocus
+                      className={`flex-1 bg-transparent border-none outline-none text-sm font-medium ${isDarkMode ? 'text-white' : 'text-slate-900'}`}
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <button onClick={() => setIsSearchExpanded(false)} className="p-2 text-slate-400 hover:text-slate-900">
+                      <X size={18} />
+                  </button>
+              </div>
+            )}
+            
+            {/* NAV ACTIONS */}
+            <div className={`flex items-center justify-end flex-1 h-full relative`}>
+               
+               {!useOverlaySearch && (
+                 <div 
+                    ref={searchRef} 
+                    className={`flex items-center relative transition-all duration-500 ease-in-out h-10 justify-end
+                      ${isSearchExpanded ? 'flex-1 max-w-xl mr-4' : 'w-10'}`}
+                 >
+                    <div className={`relative h-full transition-all duration-500 overflow-hidden flex items-center ${isSearchExpanded ? 'w-full' : 'w-0'}`}>
+                      <div className={`absolute left-0 flex items-center justify-center w-12 h-10 z-30 ${isSearchExpanded ? theme.text : 'text-slate-400'}`}>
+                          <Search size={18} />
+                      </div>
+
+                      <input
+                        type="text"
+                        placeholder="Search resources..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className={`w-full h-full border rounded-full pl-12 pr-12 text-sm font-medium outline-none focus:outline-none transition-all duration-300 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white focus:bg-slate-700 focus:border-slate-600' : 'bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-slate-300'}`}
+                        autoFocus={isSearchExpanded}
+                      />
+                      
+                      <div className="absolute right-0 flex items-center justify-center w-12 h-10 z-30">
+                          <button 
+                              onClick={(e) => { 
+                                  e.stopPropagation();
+                                  if (searchQuery) {
+                                      setSearchQuery("");
+                                  } else {
+                                      setIsSearchExpanded(false);
+                                  }
+                              }}
+                              className={`p-1.5 text-slate-400 hover:text-slate-900 transition-all duration-300 transform
+                              ${isSearchExpanded ? 'opacity-100 scale-100' : 'opacity-0 scale-50 pointer-events-none'}`}
+                          >
+                              <X size={16} strokeWidth={2.5} />
+                          </button>
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={() => setIsSearchExpanded(true)}
+                      className={`absolute right-0 p-2 text-slate-400 hover:${theme.text} rounded-full transition-all duration-300 z-20 
+                        ${isSearchExpanded ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                    >
+                      <Search size={18} />
+                    </button>
+                 </div>
+               )}
+
+               {useOverlaySearch && !isSearchExpanded && (
+                  <button onClick={() => setIsSearchExpanded(true)} className="p-2 text-slate-400 hover:text-slate-900 rounded-full mr-2">
+                      <Search size={18} />
+                  </button>
+               )}
+               
+               {/* RIGHT-SIDE FIXED ACTIONS */}
+               <div className={`flex items-center space-x-2 shrink-0 transition-all duration-300 ${isSearchExpanded && useOverlaySearch ? 'opacity-0' : 'opacity-100'}`}>
+                  <button className={`p-2 text-slate-400 hover:${theme.text} rounded-full transition-colors`}>
+                    <Grid size={18} />
+                  </button>
+                  <button className={`p-2 text-slate-400 hover:${theme.text} rounded-full transition-colors relative`}>
+                    <Bell size={18} />
+                    <span className={`absolute top-2.5 right-2.5 w-1.5 h-1.5 ${theme.bg} rounded-full border border-white`}></span>
+                  </button>
+                  <div className={`h-6 w-[1px] mx-1 shrink-0 ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`}></div>
+                  <button className={`w-9 h-9 rounded-full flex items-center justify-center transition-all shadow-sm ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white hover:border-slate-600' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-white hover:shadow-md'}`}>
+                    <User size={20} strokeWidth={2} />
+                  </button>
+               </div>
+            </div>
+          </header>
+
+          <main className="flex-1 overflow-auto p-10 relative print-reset">
+            {activeTab === 'Pairings' ? (
+              <div className="animate-in fade-in duration-500 pb-20 max-w-4xl mx-auto print-reset">
+                <h1 className={`text-2xl font-black tracking-tight mb-6 ${isDarkMode ? 'text-white' : 'text-slate-900'} print-title`}>Pairings</h1>
+                <div className={`rounded-2xl shadow-sm border overflow-hidden transition-all ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'} print-card`}>
+                  {STUDENT_DATABASE.map((student, index) => (
+                    <div 
+                      key={student.id} 
+                      onClick={() => handleOpenPairingModal(student)}
+                      className={`flex items-center p-4 transition-colors cursor-pointer print-text
+                        ${index !== STUDENT_DATABASE.length - 1 ? (isDarkMode ? 'border-b border-slate-800/50' : 'border-b border-slate-50') : ''} 
+                        ${isDarkMode ? 'hover:bg-slate-800/50' : 'hover:bg-slate-50'}`}
+                    >
+                      <div className={`w-10 h-10 flex items-center justify-center rounded-full text-xl mr-4 shadow-sm border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-100 border-slate-200'}`}>
+                        {student.avatar}
+                      </div>
+                      <span className={`font-semibold text-base flex-1 ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>{student.name}</span>
+                      
+                      {/* Visual indicator of saved preferences */}
+                      {pairingPreferences[student.id] && (pairingPreferences[student.id].together.length > 0 || pairingPreferences[student.id].separate.length > 0) && (
+                          <div className="flex space-x-2 mr-4">
+                              {pairingPreferences[student.id].together.length > 0 && (
+                                  <span className="text-[10px] uppercase tracking-wider bg-emerald-100 text-emerald-700 px-2 py-1 rounded-md font-bold">
+                                      {pairingPreferences[student.id].together.length} Together
+                                  </span>
+                              )}
+                              {pairingPreferences[student.id].separate.length > 0 && (
+                                  <span className="text-[10px] uppercase tracking-wider bg-rose-100 text-rose-700 px-2 py-1 rounded-md font-bold">
+                                      {pairingPreferences[student.id].separate.length} Apart
+                                  </span>
+                              )}
+                          </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : activeTab === 'Saved Groups' ? (
+              <div className="animate-in fade-in duration-500 pb-20 print-reset">
+                <h1 className={`text-2xl font-black tracking-tight mb-6 ${isDarkMode ? 'text-white' : 'text-slate-900'} print-title`}>Saved Groups</h1>
+                {savedGroupings.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center mt-20 text-slate-400 opacity-50 print-hide">
+                    <Archive size={64} className="mb-4" />
+                    <h2 className="text-xl font-bold">No Saved Groups</h2>
+                    <p>Create and save a group arrangement to see it here.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 print-grid">
+                    {savedGroupings.map((saved) => (
+                      <div 
+                        key={saved.id} 
+                        onClick={() => { 
+                          setGeneratedGroups(saved.groups);
+                          setActiveTab('Group Sorter');
+                        }} 
+                        className={`rounded-2xl p-5 shadow-sm border transition-all hover:shadow-md cursor-pointer ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'} print-card`}
+                      >
+                        <h3 className={`font-bold text-lg tracking-tight mb-1 ${isDarkMode ? 'text-slate-200' : 'text-slate-800'} print-text`}>{saved.name}</h3>
+                        <p className={`text-sm font-medium mb-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'} print-text`}>{saved.groups.length} Groups • Saved {saved.date}</p>
+                        <div className="flex -space-x-2 overflow-hidden">
+                          {saved.groups.flat().slice(0, 8).map((student, i) => (
+                            <div key={i} className={`w-8 h-8 rounded-full flex items-center justify-center text-sm border-2 ${isDarkMode ? 'bg-slate-800 border-slate-900' : 'bg-slate-100 border-white'}`}>
+                              {student.avatar}
+                            </div>
+                          ))}
+                          {saved.groups.flat().length > 8 && (
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 ${isDarkMode ? 'bg-slate-800 border-slate-900 text-slate-400' : 'bg-slate-100 border-white text-slate-500'}`}>
+                              +{saved.groups.flat().length - 8}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : activeTab === 'Group Sorter' ? (
+              generatedGroups.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-slate-400 opacity-50 print-hide">
+                  <Users size={64} className="mb-4" />
+                  <h2 className="text-xl font-bold">No Groups Generated</h2>
+                  <p>Click the + button below to create quick student groups.</p>
+                </div>
+              ) : (
+                <div className="animate-in fade-in duration-500 pb-20 print-reset">
+                  <div className="flex justify-between items-center mb-6">
+                    <h1 className={`text-2xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'} print-title`}>Quick Groups</h1>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 print-grid">
+                    {generatedGroups.map((group, index) => (
+                      <div 
+                        key={index} 
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, index)}
+                        className={`rounded-2xl p-5 shadow-sm border transition-all min-h-[150px] flex flex-col print-card ${draggedStudent && draggedStudent.sourceIndex !== index ? (isDarkMode ? 'ring-2 ring-slate-700 bg-slate-800/30' : 'ring-2 ring-slate-300 bg-slate-50/80') : (isDarkMode ? 'bg-slate-900 border-slate-800 hover:shadow-md' : 'bg-white border-slate-100 hover:shadow-md')}`}
+                      >
+                        <div className={`flex items-center justify-between mb-4 pb-4 border-b ${isDarkMode ? 'border-slate-800/50' : 'border-slate-50'}`}>
+                          <h3 className={`font-bold text-lg flex items-center tracking-tight ${isDarkMode ? 'text-slate-200' : 'text-slate-800'} print-text`}>
+                            Group {index + 1}
+                          </h3>
+                          <button className={`p-1.5 rounded-lg text-slate-400 hover:${theme.text} hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors print-hide`}>
+                            <MoreVertical size={16}/>
+                          </button>
+                        </div>
+                        <div className="space-y-1 flex-1">
+                          {group.map(student => (
+                            <div 
+                              key={student.id} 
+                              draggable
+                              onDragStart={(e) => handleDragStart(e, student, index)}
+                              className={`flex items-center p-1.5 -mx-1.5 rounded-lg transition-colors cursor-grab active:cursor-grabbing print-text ${isDarkMode ? 'hover:bg-slate-800/50' : 'hover:bg-slate-50'}`}
+                            >
+                              <div className={`w-7 h-7 flex items-center justify-center rounded-full text-sm mr-2.5 shadow-sm border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-100 border-slate-200'}`}>
+                                {student.avatar}
+                              </div>
+                              <span className={`font-medium text-sm ${isDarkMode ? 'text-slate-300' : 'text-slate-700'} print-text`}>{student.name}</span>
+                            </div>
+                          ))}
+                          {group.length === 0 && (
+                            <div className="h-full w-full flex items-center justify-center text-slate-400 text-xs italic py-4 print-hide">
+                              Drop student here
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            ) : activeTab === 'Create Groups' ? (
+              <div className="animate-in fade-in duration-500 pb-20 print-reset">
+                <div className="flex justify-between items-center mb-6">
+                  <h1 className={`text-2xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'} print-title`}>Group Builder</h1>
+                </div>
+                
+                {/* UNASSIGNED STUDENTS POOL */}
+                <div 
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, -1)}
+                  className={`mb-6 p-5 rounded-2xl border-2 border-dashed transition-all print-hide ${draggedStudent && draggedStudent.sourceIndex !== -1 ? (isDarkMode ? 'border-slate-600 bg-slate-800/30' : 'border-slate-300 bg-slate-50/50') : (isDarkMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-200 bg-slate-50/50')}`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center">
+                      <h3 className={`text-sm font-bold uppercase tracking-wider ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Unassigned Students</h3>
+                      <span className={`ml-3 px-2 py-0.5 rounded-full text-[10px] font-bold ${theme.bg} text-white`}>{unassignedStudents.length}</span>
+                    </div>
+                    <button 
+                      onClick={() => setBuilderGroups([...builderGroups, []])}
+                      className={`flex items-center px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-white text-slate-600 shadow-sm border border-slate-200 hover:bg-slate-50'}`}
+                    >
+                      <Plus size={14} className="mr-1.5" strokeWidth={3} /> Add Box
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2 min-h-[44px]">
+                    {unassignedStudents.length === 0 ? (
+                      <div className="w-full flex items-center justify-center text-slate-400 italic text-sm py-2">
+                        All students are assigned. Drag students here to remove them from a group.
+                      </div>
+                    ) : (
+                      unassignedStudents.map(student => (
+                        <div 
+                          key={student.id} 
+                          draggable 
+                          onDragStart={(e) => handleDragStart(e, student, -1)}
+                          className={`flex items-center px-3 py-1.5 rounded-full cursor-grab active:cursor-grabbing shadow-sm border transition-transform hover:scale-105 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-200 hover:border-slate-600' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'}`}
+                        >
+                          <span className="mr-2 text-sm">{student.avatar}</span>
+                          <span className="text-sm font-semibold">{student.name}</span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* BUILDER GROUPS GRID */}
+                {builderGroups.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-slate-400 opacity-50 border-2 border-dashed rounded-2xl border-slate-200 dark:border-slate-800 print-hide">
+                    <Layers size={48} className="mb-4" />
+                    <p className="font-semibold">Click "Add Box" or the + button to create group containers.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 print-grid">
+                    {builderGroups.map((group, index) => (
+                      <div 
+                        key={index} 
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, index)}
+                        className={`rounded-2xl p-5 shadow-sm border transition-all min-h-[150px] flex flex-col print-card ${draggedStudent && draggedStudent.sourceIndex !== index ? (isDarkMode ? 'ring-2 ring-slate-700 bg-slate-800/30' : 'ring-2 ring-slate-300 bg-slate-50/80') : (isDarkMode ? 'bg-slate-900 border-slate-800 hover:shadow-md' : 'bg-white border-slate-100 hover:shadow-md')}`}
+                      >
+                        <div className={`flex items-center justify-between mb-4 pb-4 border-b ${isDarkMode ? 'border-slate-800/50' : 'border-slate-50'}`}>
+                          <h3 className={`font-bold text-lg flex items-center tracking-tight ${isDarkMode ? 'text-slate-200' : 'text-slate-800'} print-text`}>
+                            Group {index + 1}
+                          </h3>
+                          <button className={`p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 transition-colors print-hide`}
+                                  onClick={() => {
+                                    const updatedGroups = [...builderGroups];
+                                    const removedGroup = updatedGroups.splice(index, 1)[0];
+                                    setBuilderGroups(updatedGroups);
+                                    setUnassignedStudents([...unassignedStudents, ...removedGroup]);
+                                  }}>
+                            <Trash2 size={16}/>
+                          </button>
+                        </div>
+                        <div className="space-y-1 flex-1">
+                          {group.map(student => (
+                            <div 
+                              key={student.id} 
+                              draggable
+                              onDragStart={(e) => handleDragStart(e, student, index)}
+                              className={`flex items-center p-1.5 -mx-1.5 rounded-lg transition-colors cursor-grab active:cursor-grabbing print-text ${isDarkMode ? 'hover:bg-slate-800/50' : 'hover:bg-slate-50'}`}
+                            >
+                              <div className={`w-7 h-7 flex items-center justify-center rounded-full text-sm mr-2.5 shadow-sm border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-100 border-slate-200'}`}>
+                                {student.avatar}
+                              </div>
+                              <span className={`font-medium text-sm ${isDarkMode ? 'text-slate-300' : 'text-slate-700'} print-text`}>{student.name}</span>
+                            </div>
+                          ))}
+                          {group.length === 0 && (
+                            <div className="h-full w-full flex items-center justify-center text-slate-400 text-xs italic py-4 print-hide">
+                              Drop student here
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : null}
+          </main>
+
+          {/* FLOATING ACTION BUTTONS */}
+          {activeTab === 'Group Sorter' && (
+            <div className="absolute bottom-8 right-8 flex items-center space-x-3 z-50 print-hide">
+              {generatedGroups.length > 0 && (
+                <>
+                  <button 
+                    onClick={handlePrint}
+                    className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${isDarkMode ? 'bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'}`}
+                    title="Print Groups"
+                  >
+                    <Printer size={24} strokeWidth={2.5} />
+                  </button>
+                  <button 
+                    onClick={handleRefreshGroups}
+                    className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${isDarkMode ? 'bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'}`}
+                    title="Reshuffle Groups"
+                  >
+                    <RefreshCw size={24} strokeWidth={2.5} />
+                  </button>
+                  <button 
+                    onClick={() => setIsSaveModalOpen(true)}
+                    className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${isDarkMode ? 'bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'}`}
+                    title="Save Groups"
+                  >
+                    <Save size={24} strokeWidth={2.5} />
+                  </button>
+                </>
+              )}
+              <button 
+                onClick={() => setIsGroupModalOpen(true)}
+                className={`w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${theme.bg}`}
+                title="Create New Group"
+              >
+                <Plus size={28} strokeWidth={2.5} />
+              </button>
+            </div>
+          )}
+
+          {activeTab === 'Create Groups' && (
+            <div className="absolute bottom-8 right-8 flex items-center space-x-3 z-50 print-hide">
+               {builderGroups.length > 0 && (
+                 <>
+                   <button 
+                     onClick={handlePrint}
+                     className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${isDarkMode ? 'bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'}`}
+                     title="Print Groups"
+                   >
+                     <Printer size={24} strokeWidth={2.5} />
+                   </button>
+                   <button 
+                     onClick={() => setIsSaveModalOpen(true)}
+                     className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${isDarkMode ? 'bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'}`}
+                     title="Save Groups"
+                   >
+                     <Save size={24} strokeWidth={2.5} />
+                   </button>
+                 </>
+               )}
+               <button 
+                 onClick={() => setIsGroupModalOpen(true)}
+                 className={`w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${theme.bg}`}
+                 title="Setup Boxes"
+               >
+                 <Plus size={28} strokeWidth={2.5} />
+               </button>
+            </div>
+          )}
+          
+          {activeTab === 'Saved Groups' && (
+            <div className="absolute bottom-8 right-8 flex items-center space-x-3 z-50 print-hide">
+              <button 
+                onClick={() => setIsGroupModalOpen(true)}
+                className={`w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${theme.bg}`}
+                title="Add Saved Group"
+              >
+                <Plus size={28} strokeWidth={2.5} />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* CREATE GROUPS MODAL */}
+        {isGroupModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200 print-hide">
+            <div className={`w-full max-w-sm p-6 rounded-2xl shadow-2xl transform transition-all ${isDarkMode ? 'bg-slate-900 border border-slate-800' : 'bg-white border border-slate-100'}`}>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                  {activeTab === 'Create Groups' ? 'Add Empty Boxes' : 'Create Groups'}
+                </h3>
+                <button 
+                  onClick={() => { setIsGroupModalOpen(false); setShowCustomInput(false); }} 
+                  className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'text-slate-400 hover:bg-slate-800 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <div className="mb-6">
+                <p className={`text-sm font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                  {activeTab === 'Create Groups' ? 'How many empty boxes do you need?' : 'How many students in each group?'}
+                </p>
+              </div>
+
+              {!showCustomInput ? (
+                <div className="grid grid-cols-3 gap-3">
+                  {[2, 3, 4, 5, 6].map(num => (
+                    <button
+                      key={num}
+                      onClick={() => handleCreateGroups(num)}
+                      className={`py-4 rounded-xl font-bold text-xl transition-all duration-200 border-2 border-transparent ${isDarkMode ? 'bg-slate-800 text-slate-200 hover:border-slate-700' : 'bg-slate-50 text-slate-700 hover:border-slate-200'} hover:${theme.text} hover:shadow-sm`}
+                    >
+                      {num}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setShowCustomInput(true)}
+                    className={`flex items-center justify-center py-4 rounded-xl transition-all duration-200 border-2 border-transparent ${isDarkMode ? 'bg-slate-800 text-slate-400 hover:border-slate-700 hover:text-white' : 'bg-slate-50 text-slate-500 hover:border-slate-200 hover:text-slate-900'} hover:shadow-sm`}
+                    title="Custom group size"
+                  >
+                    <Plus size={24} strokeWidth={3} />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col space-y-4 animate-in slide-in-from-right-4 duration-200">
+                  <input
+                    type="number"
+                    min="2"
+                    placeholder="Enter size..."
+                    value={customSize}
+                    onChange={(e) => setCustomSize(e.target.value)}
+                    autoFocus
+                    className={`w-full p-4 rounded-xl border-2 text-center font-bold text-xl outline-none transition-all ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white focus:border-slate-600' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-slate-300 focus:bg-white'} focus:ring-2 ${theme.ring} focus:border-transparent`}
+                  />
+                  <div className="flex space-x-3">
+                     <button 
+                       onClick={() => setShowCustomInput(false)} 
+                       className={`flex-1 py-3.5 rounded-xl font-bold text-sm transition-all ${isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                     >
+                       Back
+                     </button>
+                     <button 
+                       onClick={() => handleCreateGroups(parseInt(customSize))}
+                       disabled={!customSize || isNaN(customSize) || parseInt(customSize) < 2}
+                       className={`flex-1 py-3.5 rounded-xl font-bold text-sm text-white transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${theme.bg}`}
+                     >
+                       Create
+                     </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* SAVE GROUPS MODAL */}
+        {isSaveModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200 print-hide">
+            <div className={`w-full max-w-sm p-6 rounded-2xl shadow-2xl transform transition-all ${isDarkMode ? 'bg-slate-900 border border-slate-800' : 'bg-white border border-slate-100'}`}>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Save Groups</h3>
+                <button 
+                  onClick={() => setIsSaveModalOpen(false)} 
+                  className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'text-slate-400 hover:bg-slate-800 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <p className={`text-sm font-medium mb-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                Give this grouping a name to access it later.
+              </p>
+
+              <div className="flex flex-col space-y-4">
+                <input
+                  type="text"
+                  placeholder="e.g. Science Project Groups"
+                  value={saveGroupName}
+                  onChange={(e) => setSaveGroupName(e.target.value)}
+                  autoFocus
+                  className={`w-full p-4 rounded-xl border-2 font-semibold text-lg outline-none transition-all ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white focus:border-slate-600' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-slate-300 focus:bg-white'} focus:ring-2 ${theme.ring} focus:border-transparent`}
+                />
+                <div className="flex space-x-3">
+                   <button 
+                     onClick={() => setIsSaveModalOpen(false)} 
+                     className={`flex-1 py-3.5 rounded-xl font-bold text-sm transition-all ${isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                   >
+                     Cancel
+                   </button>
+                   <button 
+                     onClick={handleSaveGrouping}
+                     disabled={!saveGroupName.trim()}
+                     className={`flex-1 py-3.5 rounded-xl font-bold text-sm text-white transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${theme.bg}`}
+                   >
+                     Save
+                   </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* PAIRING PREFERENCES MODAL */}
+        {isPairingModalOpen && selectedStudentForPairing && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200 p-4 print-hide">
+            <div className={`w-full max-w-lg flex flex-col max-h-[85vh] rounded-2xl shadow-2xl transform transition-all overflow-hidden ${isDarkMode ? 'bg-slate-900 border border-slate-800' : 'bg-white border border-slate-100'}`}>
+              {/* Header */}
+              <div className={`p-6 pb-4 border-b shrink-0 flex justify-between items-center ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+                <div>
+                  <h3 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Pairing Preferences</h3>
+                  <p className={`text-sm font-medium flex items-center mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                    <span className="mr-2 text-lg">{selectedStudentForPairing.avatar}</span> {selectedStudentForPairing.name}
+                  </p>
+                </div>
+                <button 
+                  onClick={() => setIsPairingModalOpen(false)} 
+                  className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'text-slate-400 hover:bg-slate-800 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Scrollable list of students to pair/separate */}
+              <div className="p-2 overflow-y-auto flex-1">
+                {STUDENT_DATABASE.filter(s => s.id !== selectedStudentForPairing.id).map(student => (
+                  <div key={student.id} className={`flex items-center justify-between p-3 my-1 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-slate-800/50' : 'hover:bg-slate-50'}`}>
+                     <div className="flex items-center">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm shadow-sm border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-100 border-slate-200'}`}>
+                          {student.avatar}
+                        </div>
+                        <span className={`font-semibold text-sm ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>{student.name}</span>
+                     </div>
+                     <div className="flex space-x-2">
+                        <button 
+                          onClick={() => toggleTogether(student.id)}
+                          className={`px-3 py-1.5 rounded-lg text-[11px] font-bold flex items-center transition-colors border ${localTogether.includes(student.id) ? 'bg-emerald-500 border-emerald-600 text-white shadow-sm' : isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200' : 'bg-white border-slate-200 text-slate-500 hover:text-slate-700'}`}
+                        >
+                           <Check size={12} className="mr-1.5" strokeWidth={3} /> Pair
+                        </button>
+                        <button 
+                          onClick={() => toggleSeparate(student.id)}
+                          className={`px-3 py-1.5 rounded-lg text-[11px] font-bold flex items-center transition-colors border ${localSeparate.includes(student.id) ? 'bg-rose-500 border-rose-600 text-white shadow-sm' : isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200' : 'bg-white border-slate-200 text-slate-500 hover:text-slate-700'}`}
+                        >
+                           <Ban size={12} className="mr-1.5" strokeWidth={3} /> Separate
+                        </button>
+                     </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Footer */}
+              <div className={`p-4 border-t shrink-0 flex space-x-3 ${isDarkMode ? 'border-slate-800 bg-slate-900' : 'border-slate-100 bg-white'}`}>
+                 <button 
+                   onClick={() => setIsPairingModalOpen(false)} 
+                   className={`flex-1 py-3.5 rounded-xl font-bold text-sm transition-all ${isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                 >
+                   Cancel
+                 </button>
+                 <button 
+                   onClick={handleSavePairingPreferences}
+                   className={`flex-1 py-3.5 rounded-xl font-bold text-sm text-white transition-all shadow-md hover:shadow-lg ${theme.bg}`}
+                 >
+                   Save Preferences
+                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  );
+};
+
+export default App;

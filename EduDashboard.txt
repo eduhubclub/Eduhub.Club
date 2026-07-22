@@ -1,0 +1,1644 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { 
+  Menu, 
+  ChevronLeft, 
+  ChevronDown,
+  Home, 
+  BarChart2, 
+  Users, 
+  Settings, 
+  HelpCircle, 
+  Layers,
+  ArrowLeftRight,
+  Bell,
+  Search,
+  MoreVertical,
+  Plus,
+  Edit,
+  Trash2,
+  ExternalLink,
+  Library,
+  ChevronRight,
+  Inbox,
+  Send,
+  Archive,
+  Grid,
+  User,
+  X,
+  Sun,
+  Moon,
+  Check,
+  MonitorPlay,
+  Info,
+  PenTool,
+  Presentation,
+  Highlighter,
+  Square,
+  RectangleHorizontal,
+  Circle,
+  Minus,
+  ArrowRight,
+  MousePointer2,
+  Move,
+  Eraser,
+  Save,
+  LayoutGrid,
+  Grip,
+  AlignJustify,
+  Undo,
+  Redo,
+  Type,
+  Upload,
+  Download,
+  Eye,
+  EyeOff
+} from 'lucide-react';
+
+/**
+ * EduHub Primary Logo Components
+ */
+const LogoHorizontal = ({ className = "h-8 w-auto" }) => (
+  <svg viewBox="0 0 100 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <circle cx="12" cy="12" r="9.5" className="text-rose-500" />
+    <path d="M37 3 L46 19 H28 L37 3 Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" className="text-orange-500" />
+    <rect x="53" y="2.5" width="19" height="19" rx="3" className="text-emerald-500" />
+    <path d="M88 4 C 96 4, 98 12, 94 18 C 88 24, 78 18, 80 10 C 82 4, 94 8, 92 14 C 90 20, 82 18, 84 12 C 86 6, 92 10, 88 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky-500" />
+  </svg>
+);
+
+const LogoIcon2x2 = ({ className = "w-16 h-16" }) => (
+  <svg viewBox="0 0 44 44" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <circle cx="10" cy="10" r="8" className="text-rose-500" />
+    <path d="M34 2 L42 18 H26 L34 2 Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" className="text-orange-500" />
+    <rect x="2" y="26" width="16" height="16" rx="3" className="text-emerald-500" />
+    <path d="M34 26 C 40 26, 42 32, 39 36 C 34 41, 27 37, 28 31 C 29 27, 38 30, 37 34 C 36 38, 30 37, 31 32 C 32 28, 37 31, 34 35" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky-500" />
+  </svg>
+);
+
+// Math utilities for hit-testing strokes/shapes
+const sqr = x => x * x;
+const dist2 = (v, w) => sqr(v.x - w.x) + sqr(v.y - w.y);
+const distToSegmentSquared = (p, v, w) => {
+  let l2 = dist2(v, w);
+  if (l2 === 0) return dist2(p, v);
+  let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+  t = Math.max(0, Math.min(1, t));
+  return dist2(p, { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) });
+};
+
+const App = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [sidebarSide, setSidebarSide] = useState('left');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [activeTab, setActiveTab] = useState('Whiteboard');
+  const [expandedItem, setExpandedItem] = useState(null); 
+  const [popoutItem, setPopoutItem] = useState(null); 
+  const [panelItem, setPanelItem] = useState(null); 
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [panelSearchQuery, setPanelSearchQuery] = useState("");
+  const [useOverlaySearch, setUseOverlaySearch] = useState(false);
+  const [newLinkUrl, setNewLinkUrl] = useState("");
+  
+  // Annotation States
+  const [isAnnotateMode, setIsAnnotateMode] = useState(false);
+  const [annotateTool, setAnnotateTool] = useState('pen'); // 'select', 'move', 'pen', 'highlight', 'shape', 'eraser'
+  const [annotateShapeType, setAnnotateShapeType] = useState('rectangle'); // 'rectangle', 'square', 'ellipse', 'circle', 'line', 'arrow'
+  const [showShapePicker, setShowShapePicker] = useState(false);
+  const [annotateColor, setAnnotateColor] = useState('#ef4444');
+  const [annotateSize, setAnnotateSize] = useState(4);
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [isAnnotationsVisible, setIsAnnotationsVisible] = useState(true);
+
+  // Text Tool States
+  const [textInput, setTextInputState] = useState({ active: false, x: 0, y: 0, text: '' });
+  const textInputRef = useRef({ active: false, x: 0, y: 0, text: '' });
+  const setTextInput = (val) => {
+    const next = typeof val === 'function' ? val(textInputRef.current) : val;
+    textInputRef.current = next;
+    setTextInputState(next);
+  };
+
+  // Background States
+  const [wbBackground, setWbBackground] = useState('plain'); // 'plain', 'grid', 'dots', 'lines'
+  const [wbBackgroundSize, setWbBackgroundSize] = useState(24);
+  const [showBgPicker, setShowBgPicker] = useState(false);
+
+  // Whiteboard States
+  const canvasRef = useRef(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [whiteboardPage, setWhiteboardPage] = useState(1);
+  const [whiteboardTotalPages, setWhiteboardTotalPages] = useState(1);
+  
+  // Drawing Engine Refs (Vector based)
+  const drawingsRef = useRef({}); // Object holding arrays of drawing objects per page/lesson
+  const currentPathRef = useRef(null);
+  const draggingItemRef = useRef(null);
+  const lastCoordsRef = useRef(null); // Used for eraser interpolation
+
+  const activeDrawingKey = activeTab === 'Whiteboard' ? `whiteboard-${whiteboardPage}` : `overlay-${activeTab}`;
+
+  const historyRef = useRef({});
+  const historyStepRef = useRef({});
+  const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false });
+  const eraserHasChangedRef = useRef(false);
+
+  const updateHistoryUI = () => {
+    const history = historyRef.current[activeDrawingKey] || [];
+    const step = historyStepRef.current[activeDrawingKey] ?? -1;
+    setHistoryState({
+      canUndo: step > 0,
+      canRedo: step >= 0 && step < history.length - 1
+    });
+  };
+
+  useEffect(() => {
+    const key = activeDrawingKey;
+    if (!historyRef.current[key]) {
+      historyRef.current[key] = [JSON.parse(JSON.stringify(drawingsRef.current[key] || []))];
+      historyStepRef.current[key] = 0;
+    }
+    updateHistoryUI();
+  }, [activeDrawingKey]);
+
+  const saveHistorySnapshot = () => {
+    const key = activeDrawingKey;
+    if (!historyRef.current[key]) {
+      historyRef.current[key] = [[]];
+      historyStepRef.current[key] = 0;
+    }
+
+    const currentDrawingsDeepCopy = JSON.parse(JSON.stringify(drawingsRef.current[key] || []));
+    let step = historyStepRef.current[key];
+    let history = historyRef.current[key];
+
+    // If we undid and then drew something new, truncate the redo history
+    if (step < history.length - 1) {
+       history = history.slice(0, step + 1);
+    }
+
+    history.push(currentDrawingsDeepCopy);
+    historyRef.current[key] = history;
+    historyStepRef.current[key] = history.length - 1;
+    updateHistoryUI();
+  };
+
+  const undoDrawing = () => {
+    const key = activeDrawingKey;
+    const history = historyRef.current[key] || [];
+    const step = historyStepRef.current[key] ?? -1;
+    
+    if (step > 0) {
+      historyStepRef.current[key] = step - 1;
+      drawingsRef.current[key] = JSON.parse(JSON.stringify(history[step - 1]));
+      redrawCanvas();
+      updateHistoryUI();
+    }
+  };
+
+  const redoDrawing = () => {
+    const key = activeDrawingKey;
+    const history = historyRef.current[key] || [];
+    const step = historyStepRef.current[key] ?? -1;
+    
+    if (step >= 0 && step < history.length - 1) {
+      historyStepRef.current[key] = step + 1;
+      drawingsRef.current[key] = JSON.parse(JSON.stringify(history[step + 1]));
+      redrawCanvas();
+      updateHistoryUI();
+    }
+  };
+
+  const [selectedClass, setSelectedClass] = useState('Algebra I');
+  const [lessonsData, setLessonsData] = useState({
+    'Algebra I': [
+      { label: 'Graphing Calculator', icon: ExternalLink, description: 'Desmos Tool', link: 'https://www.desmos.com/calculator' },
+      { label: 'Quadratic Formulas', icon: ExternalLink, description: 'Wikipedia Reference', link: 'https://en.wikipedia.org/wiki/Quadratic_formula' }
+    ],
+    'Biology': [
+      { label: 'Horse Evolution', icon: ExternalLink, description: 'Wikipedia', link: 'https://en.wikipedia.org/wiki/Horse' },
+      { label: 'Build an Atom', icon: MonitorPlay, description: 'PhET Interactive Sim', link: 'https://phet.colorado.edu/sims/html/build-an-atom/latest/build-an-atom_en.html' },
+      { label: 'Cell Structure', icon: ExternalLink, description: 'Wikipedia Reference', link: 'https://en.wikipedia.org/wiki/Cell_(biology)' }
+    ],
+    'World History': [
+      { label: 'Cold War Slides', icon: Presentation, description: 'Google Slides', link: 'https://docs.google.com/presentation/d/1zIKIqMv6DPQTVUo_WO3BKZ_WuH81vc28lBGXLxfRujw/embed?rm=minimal' },
+      { label: 'Ancient Rome', icon: ExternalLink, description: 'Wikipedia Reference', link: 'https://en.wikipedia.org/wiki/Ancient_Rome' }
+    ]
+  });
+
+  const classesData = [
+    { label: 'Algebra I', icon: Users, description: 'Period 1' },
+    { label: 'Biology', icon: Users, description: 'Period 2' },
+    { label: 'World History', icon: Users, description: 'Period 3' }
+  ];
+
+  const navigationItems = [
+    { 
+      id: 'classes', 
+      name: 'Classes', 
+      panelName: 'Select a Class',
+      icon: Layers, 
+      type: 'panel',
+      panelContent: classesData
+    },
+    { 
+      id: 'lessons', 
+      name: 'Lessons', 
+      panelName: `${selectedClass} Resources`,
+      icon: Library, 
+      type: 'panel',
+      panelContent: lessonsData[selectedClass] || []
+    },
+    { id: 'whiteboard', name: 'Whiteboard', icon: Presentation, type: 'link' }
+  ];
+
+  // Locked the app name to "Dashboard" so it remains constant across all views
+  const currentAppName = "Dashboard";
+  
+  const appThemes = {
+    "Dashboard": { primary: "sky-500", bg: "bg-sky-500", text: "text-sky-500", border: "border-sky-500", hoverBg: "hover:bg-sky-50", ring: "ring-sky-500" },
+    "Classes": { primary: "sky-500", bg: "bg-sky-500", text: "text-sky-500", border: "border-sky-500", hoverBg: "hover:bg-sky-50", ring: "ring-sky-500" },
+    "District": { primary: "rose-500", bg: "bg-rose-500", text: "text-rose-500", border: "border-rose-500", hoverBg: "hover:bg-rose-50", ring: "ring-rose-500" },
+    "Admin": { primary: "emerald-500", bg: "bg-emerald-500", text: "text-emerald-500", border: "border-emerald-500", hoverBg: "hover:bg-emerald-50", ring: "ring-emerald-500" },
+    "Analytics": { primary: "orange-500", bg: "bg-orange-500", text: "text-orange-500", border: "border-orange-500", hoverBg: "hover:bg-orange-50", ring: "ring-orange-500" }
+  };
+
+  const theme = appThemes[currentAppName] || appThemes["Dashboard"];
+  const popoutRef = useRef(null);
+  const searchRef = useRef(null);
+  const primarySidebarRef = useRef(null);
+  const secondaryPanelRef = useRef(null);
+  const shapePickerRef = useRef(null);
+  const bgPickerRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const isLeft = sidebarSide === 'left';
+
+  useEffect(() => {
+    setPanelSearchQuery("");
+  }, [panelItem]);
+
+  useEffect(() => {
+    const handleResize = () => setUseOverlaySearch(window.innerWidth < 768);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (popoutRef.current && !popoutRef.current.contains(event.target)) setPopoutItem(null);
+      if (searchRef.current && !searchRef.current.contains(event.target) && !searchQuery) setIsSearchExpanded(false);
+      if (panelItem && secondaryPanelRef.current && !secondaryPanelRef.current.contains(event.target) &&
+          primarySidebarRef.current && !primarySidebarRef.current.contains(event.target)) {
+        setPanelItem(null);
+      }
+      if (shapePickerRef.current && !shapePickerRef.current.contains(event.target)) {
+        setShowShapePicker(false);
+      }
+      if (bgPickerRef.current && !bgPickerRef.current.contains(event.target)) {
+        setShowBgPicker(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [searchQuery, panelItem]);
+
+  const sidebarWidth = isSidebarOpen ? 'w-64' : 'w-20';
+  const navHeight = 'h-16';
+
+  // --- Drawing & Render Engine ---
+  const redrawCanvas = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (!isAnnotationsVisible) return;
+
+    const drawings = drawingsRef.current[activeDrawingKey] || [];
+
+    const renderObj = (obj) => {
+      const isHighlight = obj.type === 'highlight';
+      ctx.strokeStyle = isHighlight ? obj.color + '80' : obj.color;
+      ctx.lineWidth = obj.size;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      
+      if (obj.type === 'text') {
+        ctx.font = `bold ${obj.size}px sans-serif`;
+        ctx.fillStyle = obj.color;
+        ctx.textBaseline = 'top';
+        const lines = obj.text.split('\n');
+        const lineHeight = obj.size * 1.2;
+        lines.forEach((line, index) => {
+          ctx.fillText(line, obj.x, obj.y + (index * lineHeight));
+        });
+        return; // Early return to avoid stroking text
+      }
+
+      if (obj.type === 'shape') {
+        if (obj.shapeType === 'rectangle' || obj.shapeType === 'square') {
+          ctx.rect(obj.x, obj.y, obj.w, obj.h);
+        } else if (obj.shapeType === 'ellipse' || obj.shapeType === 'circle') {
+          ctx.ellipse(obj.x + obj.w / 2, obj.y + obj.h / 2, Math.abs(obj.w / 2), Math.abs(obj.h / 2), 0, 0, 2 * Math.PI);
+        } else if (obj.shapeType === 'line' || obj.shapeType === 'arrow') {
+          ctx.moveTo(obj.x, obj.y);
+          ctx.lineTo(obj.x + obj.w, obj.y + obj.h);
+          if (obj.shapeType === 'arrow') {
+            const angle = Math.atan2(obj.h, obj.w);
+            const headlen = Math.max(15, obj.size * 3);
+            ctx.lineTo(obj.x + obj.w - headlen * Math.cos(angle - Math.PI / 6), obj.y + obj.h - headlen * Math.sin(angle - Math.PI / 6));
+            ctx.moveTo(obj.x + obj.w, obj.y + obj.h);
+            ctx.lineTo(obj.x + obj.w - headlen * Math.cos(angle + Math.PI / 6), obj.y + obj.h - headlen * Math.sin(angle + Math.PI / 6));
+          }
+        }
+      } else if (obj.points && obj.points.length > 0) {
+        ctx.moveTo(obj.points[0].x, obj.points[0].y);
+        for (let i = 1; i < obj.points.length; i++) {
+          ctx.lineTo(obj.points[i].x, obj.points[i].y);
+        }
+      }
+      ctx.stroke();
+    };
+
+    drawings.forEach(renderObj);
+    if (currentPathRef.current) renderObj(currentPathRef.current);
+  };
+
+  // Re-render when visibility is toggled
+  useEffect(() => {
+    redrawCanvas();
+  }, [isAnnotationsVisible]);
+
+  // Robustly handle canvas sizing to prevent stretching/ellipses
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const parent = canvas.parentElement;
+    if (!parent) return;
+
+    const updateSize = () => {
+      if (canvas.width !== parent.clientWidth || canvas.height !== parent.clientHeight) {
+          canvas.width = parent.clientWidth;
+          canvas.height = parent.clientHeight;
+      }
+      // Always redraw when size updates OR when dependencies (like the active page) change
+      redrawCanvas();
+    };
+
+    updateSize(); // Initial sync
+
+    // ResizeObserver watches the parent container to keep the canvas 1:1 with CSS pixels
+    const resizeObserver = new ResizeObserver(() => updateSize());
+    resizeObserver.observe(parent);
+
+    return () => resizeObserver.disconnect();
+  }, [activeDrawingKey, isAnnotateMode, isDarkMode]);
+
+  const getCanvasCoordinates = (e, canvas) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    if (e.touches && e.touches.length > 0) {
+      return { 
+        x: (e.touches[0].clientX - rect.left) * scaleX, 
+        y: (e.touches[0].clientY - rect.top) * scaleY 
+      };
+    }
+    return { 
+      x: (e.clientX - rect.left) * scaleX, 
+      y: (e.clientY - rect.top) * scaleY 
+    };
+  };
+
+  const findHitObject = (coords, objects) => {
+    for (let i = objects.length - 1; i >= 0; i--) {
+        const obj = objects[i];
+        const tol = Math.max(obj.size / 2, 8); 
+        
+        if (obj.type === 'shape' || obj.type === 'text') {
+            if (obj.shapeType === 'line' || obj.shapeType === 'arrow') {
+                if (Math.sqrt(distToSegmentSquared(coords, {x: obj.x, y: obj.y}, {x: obj.x + obj.w, y: obj.y + obj.h})) <= tol) {
+                    return i;
+                }
+            } else {
+                const left = Math.min(obj.x, obj.x + obj.w);
+                const right = Math.max(obj.x, obj.x + obj.w);
+                const top = Math.min(obj.y, obj.y + obj.h);
+                const bottom = Math.max(obj.y, obj.y + obj.h);
+                if (coords.x >= left - tol && coords.x <= right + tol && coords.y >= top - tol && coords.y <= bottom + tol) {
+                    return i;
+                }
+            }
+        } else if (obj.points) {
+            for (let j = 0; j < obj.points.length - 1; j++) {
+                if (Math.sqrt(distToSegmentSquared(coords, obj.points[j], obj.points[j+1])) <= tol) {
+                    return i;
+                }
+            }
+        }
+    }
+    return -1;
+  };
+
+  const eraseAt = (coords) => {
+    const eraseRadius = Math.max(12, annotateSize * 2);
+    const eraseRadiusSq = eraseRadius * eraseRadius;
+    let objects = drawingsRef.current[activeDrawingKey] || [];
+
+    let hitIndex = -1;
+
+    // Iterate backwards to find the top-most intersecting object
+    for (let i = objects.length - 1; i >= 0; i--) {
+      const obj = objects[i];
+      
+      if (obj.type === 'shape' || obj.type === 'text') {
+        if (obj.shapeType === 'line' || obj.shapeType === 'arrow') {
+            const dSq = distToSegmentSquared(coords, {x: obj.x, y: obj.y}, {x: obj.x + obj.w, y: obj.y + obj.h});
+            if (dSq <= eraseRadiusSq) {
+                hitIndex = i;
+                break;
+            }
+        } else {
+            const left = Math.min(obj.x, obj.x + obj.w);
+            const right = Math.max(obj.x, obj.x + obj.w);
+            const top = Math.min(obj.y, obj.y + obj.h);
+            const bottom = Math.max(obj.y, obj.y + obj.h);
+            
+            if (coords.x >= left - eraseRadius && coords.x <= right + eraseRadius && 
+                coords.y >= top - eraseRadius && coords.y <= bottom + eraseRadius) {
+                hitIndex = i;
+                break;
+            }
+        }
+      } else if (obj.points && obj.points.length > 0) {
+        let hitDistSq = eraseRadiusSq + Math.pow(obj.size / 2, 2);
+        let foundHit = false;
+        for (let j = 0; j < obj.points.length - 1; j++) {
+          if (distToSegmentSquared(coords, obj.points[j], obj.points[j+1]) <= hitDistSq) {
+            foundHit = true;
+            break;
+          }
+        }
+        if (foundHit) {
+          hitIndex = i;
+          break;
+        }
+      }
+    }
+    
+    if (hitIndex !== -1) {
+      eraserHasChangedRef.current = true;
+      const obj = objects[hitIndex];
+      let newObjects = [...objects.slice(0, hitIndex)];
+
+      if (obj.type === 'shape' || obj.type === 'text') {
+          // Shape/Text is completely removed.
+      } else if (obj.points && obj.points.length > 0) {
+          let currentChunk = [];
+          let chunks = [];
+          const hitDistSq = eraseRadiusSq + Math.pow(obj.size / 2, 2);
+
+          for (let j = 0; j < obj.points.length - 1; j++) {
+            const p1 = obj.points[j];
+            const p2 = obj.points[j+1];
+            const dSq = distToSegmentSquared(coords, p1, p2);
+
+            if (dSq <= hitDistSq) {
+              if (currentChunk.length > 1) {
+                  chunks.push(currentChunk);
+              }
+              currentChunk = [];
+            } else {
+              if (currentChunk.length === 0) {
+                  currentChunk.push(p1);
+              }
+              currentChunk.push(p2);
+            }
+          }
+          if (currentChunk.length > 1) {
+              chunks.push(currentChunk);
+          }
+
+          chunks.forEach(chunk => {
+              if (chunk.length > 0) {
+                  newObjects.push({ ...obj, points: chunk });
+              }
+          });
+      }
+
+      newObjects = newObjects.concat(objects.slice(hitIndex + 1));
+      drawingsRef.current[activeDrawingKey] = newObjects;
+      redrawCanvas();
+    }
+  };
+
+  const commitText = () => {
+    const current = textInputRef.current;
+    if (current.active) {
+      if (current.text.trim()) {
+          const computedColor = isAnnotateMode ? annotateColor : (isDarkMode ? '#ffffff' : '#0f172a');
+          const fontSize = annotateSize * 4 + 12;
+          
+          const canvas = canvasRef.current;
+          if (canvas) {
+              const ctx = canvas.getContext('2d');
+              ctx.font = `bold ${fontSize}px sans-serif`;
+              
+              const lines = current.text.split('\n');
+              let maxWidth = 0;
+              lines.forEach(line => {
+                  const metrics = ctx.measureText(line);
+                  if (metrics.width > maxWidth) maxWidth = metrics.width;
+              });
+              const totalHeight = lines.length * (fontSize * 1.2);
+              
+              const key = activeDrawingKey;
+              if (!drawingsRef.current[key]) drawingsRef.current[key] = [];
+              
+              drawingsRef.current[key].push({
+                  type: 'text',
+                  text: current.text,
+                  color: computedColor,
+                  size: fontSize,
+                  x: current.x,
+                  y: current.y,
+                  w: maxWidth,
+                  h: totalHeight
+              });
+              
+              redrawCanvas();
+              saveHistorySnapshot();
+          }
+      }
+      setTextInput({ active: false, x: 0, y: 0, text: '' });
+    }
+  };
+
+  // Automatically save text if the user switches tools or closes annotation mode
+  useEffect(() => {
+    if ((annotateTool !== 'text' || !isAnnotateMode) && textInputRef.current.active) {
+      commitText();
+    }
+  }, [annotateTool, isAnnotateMode]);
+
+  const startDrawing = (e) => {
+    if (!isAnnotationsVisible) setIsAnnotationsVisible(true);
+    if (annotateTool === 'select' && activeTab !== 'Whiteboard') return; 
+    
+    const canvas = canvasRef.current;
+    const coords = getCanvasCoordinates(e, canvas);
+    lastCoordsRef.current = coords;
+    
+    if (annotateTool === 'text') {
+      if (e && e.preventDefault) e.preventDefault(); // Stop canvas from stealing focus back
+      if (textInputRef.current.active) commitText();
+      setTextInput({ active: true, x: coords.x, y: coords.y, text: '' });
+      // Guarantee focus connects after the click resolves
+      setTimeout(() => {
+        const el = document.getElementById('annotate-text-input');
+        if (el) el.focus();
+      }, 50);
+      return;
+    }
+
+    if (annotateTool === 'move') {
+      const objects = drawingsRef.current[activeDrawingKey] || [];
+      const hitIndex = findHitObject(coords, objects);
+      if (hitIndex !== -1) {
+        draggingItemRef.current = { index: hitIndex, startX: coords.x, startY: coords.y };
+        setIsDrawing(true);
+      }
+      return;
+    }
+
+    if (annotateTool === 'eraser') {
+      setIsDrawing(true);
+      eraserHasChangedRef.current = false;
+      eraseAt(coords);
+      return;
+    }
+
+    // Default: starting a new drawing/shape
+    const isHighlight = isAnnotateMode && annotateTool === 'highlight';
+    const computedColor = isAnnotateMode ? annotateColor : (isDarkMode ? '#ffffff' : '#0f172a');
+    
+    currentPathRef.current = {
+      type: isAnnotateMode ? annotateTool : 'pen',
+      shapeType: annotateTool === 'shape' ? annotateShapeType : null,
+      color: computedColor,
+      size: isHighlight ? annotateSize * 4 : (isAnnotateMode ? annotateSize : 4),
+      points: [coords],
+      x: coords.x,
+      y: coords.y,
+      w: 0,
+      h: 0
+    };
+    setIsDrawing(true);
+  };
+
+  const draw = (e) => {
+    if (!isDrawing) return;
+    const canvas = canvasRef.current;
+    const coords = getCanvasCoordinates(e, canvas);
+    
+    if (annotateTool === 'move') {
+      if (draggingItemRef.current) {
+        const { index, startX, startY } = draggingItemRef.current;
+        const dx = coords.x - startX;
+        const dy = coords.y - startY;
+        
+        const objects = drawingsRef.current[activeDrawingKey];
+        const obj = objects[index];
+        
+        if (obj.type === 'shape' || obj.type === 'text') {
+          obj.x += dx;
+          obj.y += dy;
+        } else if (obj.points) {
+          obj.points.forEach(p => { p.x += dx; p.y += dy; });
+        }
+        
+        if (dx !== 0 || dy !== 0) draggingItemRef.current.hasMoved = true;
+        
+        draggingItemRef.current.startX = coords.x;
+        draggingItemRef.current.startY = coords.y;
+        redrawCanvas();
+      }
+      return;
+    }
+
+    if (annotateTool === 'eraser') {
+      const dist = Math.sqrt(dist2(lastCoordsRef.current, coords));
+      const steps = Math.max(1, Math.floor(dist / 5)); 
+      for (let i = 1; i <= steps; i++) {
+          const t = i / steps;
+          const interpCoords = {
+              x: lastCoordsRef.current.x + (coords.x - lastCoordsRef.current.x) * t,
+              y: lastCoordsRef.current.y + (coords.y - lastCoordsRef.current.y) * t
+          };
+          eraseAt(interpCoords);
+      }
+      lastCoordsRef.current = coords;
+      return;
+    }
+
+    if (currentPathRef.current) {
+      if (currentPathRef.current.type === 'shape') {
+        let dx = coords.x - currentPathRef.current.x;
+        let dy = coords.y - currentPathRef.current.y;
+
+        // Force 1:1 aspect ratio for squares and circles
+        if (currentPathRef.current.shapeType === 'square' || currentPathRef.current.shapeType === 'circle') {
+           const maxDist = Math.max(Math.abs(dx), Math.abs(dy));
+           // Logical fallback to 1 prevents collapsing line to 0 when dragging perfectly straight
+           dx = maxDist * (Math.sign(dx) || 1);
+           dy = maxDist * (Math.sign(dy) || 1);
+        }
+
+        currentPathRef.current.w = dx;
+        currentPathRef.current.h = dy;
+      } else {
+        currentPathRef.current.points.push(coords);
+      }
+      redrawCanvas();
+    }
+  };
+
+  const stopDrawing = () => {
+    if (isDrawing) {
+      let actionHappened = false;
+
+      if (annotateTool === 'move') {
+        if (draggingItemRef.current && draggingItemRef.current.hasMoved) actionHappened = true;
+        draggingItemRef.current = null;
+      } else if (annotateTool === 'eraser') {
+        if (eraserHasChangedRef.current) actionHappened = true;
+      } else if (currentPathRef.current) {
+        if (!drawingsRef.current[activeDrawingKey]) {
+          drawingsRef.current[activeDrawingKey] = [];
+        }
+        drawingsRef.current[activeDrawingKey].push(currentPathRef.current);
+        currentPathRef.current = null;
+        actionHappened = true;
+      }
+      
+      setIsDrawing(false);
+      redrawCanvas();
+      
+      if (actionHappened) {
+        saveHistorySnapshot();
+      }
+    }
+  };
+
+  const clearAllDrawings = () => {
+    const key = activeDrawingKey;
+    if (drawingsRef.current[key] && drawingsRef.current[key].length > 0) {
+      drawingsRef.current[key] = [];
+      redrawCanvas();
+      saveHistorySnapshot();
+    }
+  };
+
+  const saveDrawing = () => {
+    if (!canvasRef.current) return;
+    
+    const canvas = canvasRef.current;
+    
+    // Create an off-screen canvas to composite the image
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const ctx = tempCanvas.getContext('2d');
+    
+    // Fill with background color if it's the whiteboard, else leave transparent for lesson overlay
+    if (activeTab === 'Whiteboard') {
+      ctx.fillStyle = isDarkMode ? '#0f172a' : '#ffffff'; // slate-900 or white
+      ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+      // Draw the selected background pattern to the saved file
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+      ctx.fillStyle = isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)';
+
+      if (wbBackground === 'grid') {
+          ctx.beginPath();
+          for (let x = 0; x <= tempCanvas.width; x += wbBackgroundSize) { ctx.moveTo(x, 0); ctx.lineTo(x, tempCanvas.height); }
+          for (let y = 0; y <= tempCanvas.height; y += wbBackgroundSize) { ctx.moveTo(0, y); ctx.lineTo(tempCanvas.width, y); }
+          ctx.stroke();
+      } else if (wbBackground === 'dots') {
+          for (let x = wbBackgroundSize / 2; x <= tempCanvas.width; x += wbBackgroundSize) {
+             for (let y = wbBackgroundSize / 2; y <= tempCanvas.height; y += wbBackgroundSize) {
+                ctx.beginPath(); ctx.arc(x, y, 1.5, 0, Math.PI * 2); ctx.fill();
+             }
+          }
+      } else if (wbBackground === 'lines') {
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)';
+          ctx.beginPath();
+          for (let y = wbBackgroundSize; y <= tempCanvas.height; y += wbBackgroundSize) { ctx.moveTo(0, y); ctx.lineTo(tempCanvas.width, y); }
+          ctx.stroke();
+      }
+    }
+    
+    // Draw the actual annotation strokes on top
+    ctx.drawImage(canvas, 0, 0);
+    
+    const link = document.createElement('a');
+    const safeTabName = activeTab ? activeTab.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'canvas';
+    const pageSuffix = activeTab === 'Whiteboard' ? `-page-${whiteboardPage}` : '';
+    
+    link.download = `eduhub-${safeTabName}${pageSuffix}.png`;
+    link.href = tempCanvas.toDataURL('image/png');
+    link.click();
+  };
+
+  const handlePageChange = (direction) => {
+    if (direction === 'next') {
+      if (whiteboardPage === whiteboardTotalPages) {
+        setWhiteboardTotalPages(prev => prev + 1);
+      }
+      setWhiteboardPage(prev => prev + 1);
+    } else if (direction === 'prev' && whiteboardPage > 1) {
+      setWhiteboardPage(prev => prev - 1);
+    }
+  };
+
+  // Helper method to set the CSS background for the live whiteboard
+  const getWhiteboardBgStyle = () => {
+    if (activeTab !== 'Whiteboard') return {};
+    const color = isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+    const dotColor = isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)';
+    const lineColor = isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)';
+    
+    if (wbBackground === 'grid') {
+        return { backgroundImage: `linear-gradient(to right, ${color} 1px, transparent 1px), linear-gradient(to bottom, ${color} 1px, transparent 1px)`, backgroundSize: `${wbBackgroundSize}px ${wbBackgroundSize}px` };
+    }
+    if (wbBackground === 'dots') {
+        return { backgroundImage: `radial-gradient(${dotColor} 1.5px, transparent 1.5px)`, backgroundSize: `${wbBackgroundSize}px ${wbBackgroundSize}px`, backgroundPosition: `${wbBackgroundSize / 2}px ${wbBackgroundSize / 2}px` };
+    }
+    if (wbBackground === 'lines') {
+        return { backgroundImage: `linear-gradient(transparent ${wbBackgroundSize - 2}px, ${lineColor} ${wbBackgroundSize - 2}px, ${lineColor} ${wbBackgroundSize}px)`, backgroundSize: `100% ${wbBackgroundSize}px` };
+    }
+    return {}; // Plain
+  };
+
+  let activeContentLink = null;
+  navigationItems.forEach(nav => {
+    if (nav.type === 'panel' && nav.panelContent) {
+      const matchedContent = nav.panelContent.find(content => content.label === activeTab);
+      if (matchedContent && matchedContent.link) {
+        activeContentLink = matchedContent.link;
+      }
+    }
+  });
+
+  const handleAddLink = () => {
+    if (!newLinkUrl.trim()) return;
+    let formattedLink = newLinkUrl.trim();
+    if (formattedLink.includes('docs.google.com') && !formattedLink.includes('/embed')) {
+      formattedLink = formattedLink.replace(/\/edit.*$/, '/embed?rm=minimal');
+    }
+    let newLabel = "Saved Link";
+    
+    if (panelItem === 'lessons') {
+      const currentContent = lessonsData[selectedClass] || [];
+      newLabel = `Link ${currentContent.length + 1}`;
+      setLessonsData(prev => ({
+        ...prev,
+        [selectedClass]: [...currentContent, { label: newLabel, icon: ExternalLink, description: 'Added Resource', link: formattedLink }]
+      }));
+    }
+    
+    setNewLinkUrl("");
+    setActiveTab(newLabel);
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Create a local blob URL for the browser to read
+    const fileUrl = URL.createObjectURL(file);
+    const newLabel = file.name;
+
+    // Append a simple hash so the renderer knows how to handle the blob
+    let typeHash = '#other';
+    if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+        typeHash = '#pdf';
+    } else if (file.type.startsWith('image/')) {
+        typeHash = '#img';
+    }
+
+    const finalUrl = fileUrl + typeHash;
+
+    if (panelItem === 'lessons') {
+      const currentContent = lessonsData[selectedClass] || [];
+      setLessonsData(prev => ({
+        ...prev,
+        [selectedClass]: [...currentContent, { label: newLabel, icon: Upload, description: 'Local File', link: finalUrl }]
+      }));
+    }
+    
+    setActiveTab(newLabel);
+    
+    // Reset the input so the same file can be uploaded again if removed
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDeleteLink = (e, classKey, itemLabel) => {
+    e.stopPropagation(); // Prevents the click from opening the lesson
+    setLessonsData(prev => ({
+      ...prev,
+      [classKey]: prev[classKey].filter(item => item.label !== itemLabel)
+    }));
+    
+    // If the user deletes the tab they are currently looking at, bounce back to Whiteboard
+    if (activeTab === itemLabel) {
+      setActiveTab('Whiteboard');
+    }
+  };
+
+  const handleItemClick = (item) => {
+    if (item.type === 'link') {
+      setActiveTab(item.name);
+      setExpandedItem(null);
+      setPanelItem(null);
+    } else if (item.type === 'accordion') {
+      if (!isSidebarOpen) setIsSidebarOpen(true);
+      setExpandedItem(expandedItem === item.id ? null : item.id);
+      setPanelItem(null);
+    } else if (item.type === 'popout') {
+      setPopoutItem(popoutItem === item.id ? null : item.id);
+    } else if (item.type === 'panel') {
+      const isOpening = panelItem !== item.id;
+      setPanelItem(isOpening ? item.id : null);
+      setExpandedItem(null);
+      if (isOpening) setActiveTab(null);
+    }
+  };
+
+  const getCursorClass = () => {
+    if (annotateTool === 'select' && activeTab !== 'Whiteboard') return 'pointer-events-none';
+    if (annotateTool === 'move') return 'cursor-move';
+    if (annotateTool === 'text') return 'cursor-text';
+    return 'cursor-crosshair';
+  };
+
+  const currentPanel = navigationItems.find(i => i.id === panelItem);
+  const filteredPanelContent = currentPanel?.panelContent?.filter(sub => 
+    sub.label.toLowerCase().includes(panelSearchQuery.toLowerCase()) ||
+    (sub.description && sub.description.toLowerCase().includes(panelSearchQuery.toLowerCase()))
+  ) || [];
+
+  return (
+    // Fixed height wrapper ensures the whole app takes exactly the viewport height
+    <div className={`flex h-screen overflow-hidden font-sans transition-all duration-300 ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'} ${isLeft ? 'flex-row' : 'flex-row-reverse'}`}>
+      
+      {/* 1. PRIMARY SIDEBAR */}
+      <aside ref={primarySidebarRef} className={`relative z-50 transition-all duration-300 ease-in-out flex flex-col h-full shrink-0 shadow-sm ${sidebarWidth} ${isLeft ? 'border-r' : 'border-l'} ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+        <div className={`flex items-center justify-center shrink-0 border-b ${navHeight} w-full ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+          <div className="flex items-center justify-center px-4">
+            {isSidebarOpen ? <LogoHorizontal className="h-6 w-auto" /> : <LogoIcon2x2 className="w-8 h-8" />}
+          </div>
+        </div>
+
+        <div className="pt-2 shrink-0"></div>
+
+        <nav className="flex-1 px-2 space-y-1 pt-2 pb-2">
+          {navigationItems.map((item) => {
+            const isTabActive = activeTab === item.name || (item.type === 'accordion' && item.subItems.includes(activeTab));
+            const isPanelOpen = panelItem === item.id;
+            const isVisuallyActive = isTabActive || isPanelOpen;
+            const isExpanded = expandedItem === item.id;
+            const hasPopout = popoutItem === item.id;
+
+            return (
+              <div key={item.id} className="relative">
+                <button
+                  onClick={() => handleItemClick(item)}
+                  className={`flex items-center transition-all group relative rounded-xl h-12
+                    ${isSidebarOpen ? 'w-full px-3' : 'w-16 mx-auto justify-center'}
+                    ${isVisuallyActive ? `${theme.bg} text-white shadow-lg` : `${isDarkMode ? 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}`}
+                >
+                  <div className={`flex items-center justify-center shrink-0`}>
+                    <item.icon size={20} strokeWidth={isVisuallyActive ? 2.5 : 2} />
+                  </div>
+                  {isSidebarOpen && (
+                    <>
+                      <span className="ml-4 font-semibold text-sm flex-1 text-left truncate">{item.name}</span>
+                      {item.type === 'accordion' && (
+                        <ChevronDown size={14} className={`transition-transform duration-200 shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
+                      )}
+                      {item.type === 'panel' && (
+                        <ChevronRight size={14} className={`transition-all duration-200 shrink-0 ${isLeft ? '' : 'rotate-180'} ${isPanelOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-40'}`} />
+                      )}
+                      {item.type === 'popout' && <MoreVertical size={14} className="opacity-40 shrink-0" />}
+                    </>
+                  )}
+                  {!isSidebarOpen && (
+                    <div className={`absolute ${isLeft ? 'left-full ml-4' : 'right-full mr-4'} px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-[60] whitespace-nowrap shadow-xl`}>
+                      {item.name}
+                    </div>
+                  )}
+                </button>
+                {item.type === 'accordion' && isExpanded && isSidebarOpen && (
+                  <div className={`mt-1 space-y-1 ${isDarkMode ? 'border-slate-800' : 'border-slate-100'} ${isLeft ? 'ml-10 border-l-2' : 'mr-10 border-r-2'}`}>
+                    {item.subItems.map(sub => (
+                      <button 
+                        key={sub}
+                        onClick={() => setActiveTab(sub)}
+                        className={`block w-full text-left py-2 px-4 text-xs font-medium transition-colors
+                          ${isLeft ? 'rounded-r-lg' : 'rounded-l-lg text-right'}
+                          ${activeTab === sub ? `${theme.text} ${isDarkMode ? 'bg-slate-800' : 'bg-slate-50'} font-bold` : `${isDarkMode ? 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/50' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50/50'}`}`}
+                      >
+                        {sub}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {item.type === 'popout' && hasPopout && (
+                  <div 
+                    ref={popoutRef} 
+                    className={`absolute z-[100] border rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] py-2 min-w-[200px]
+                      ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}
+                      ${isLeft ? 'left-full ml-4' : 'right-full mr-4'}
+                      top-0`}
+                  >
+                    <div className={`px-3 py-2 mb-1 border-b ${isDarkMode ? 'border-slate-800/50' : 'border-slate-50'}`}>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.name} Options</p>
+                    </div>
+                    {item.actions.map(action => (
+                      <button
+                        key={action.name}
+                        className={`w-full flex items-center px-3 py-2.5 text-xs font-semibold transition-colors ${action.color || (isDarkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-50')}`}
+                        onClick={() => { setPopoutItem(null); setActiveTab(`${item.name}: ${action.name}`); }}
+                      >
+                        <div className={`w-6 h-6 rounded flex items-center justify-center mr-3 ${action.color ? 'bg-rose-50' : (isDarkMode ? 'bg-slate-800' : 'bg-slate-50')}`}>
+                           <action.icon size={12} />
+                        </div>
+                        {action.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </nav>
+
+        {/* Whiteboard Page Counter */}
+        {activeTab === 'Whiteboard' && (
+          <div className="p-3 shrink-0">
+             <div className={`py-2 px-2 rounded-xl text-center text-[10px] font-black uppercase tracking-widest transition-all ${isDarkMode ? 'bg-slate-800/50 text-slate-400' : 'bg-slate-100 text-slate-500'}`}>
+                {isSidebarOpen ? `Page ${whiteboardPage} of ${whiteboardTotalPages}` : `${whiteboardPage}/${whiteboardTotalPages}`}
+             </div>
+          </div>
+        )}
+
+        {/* BOTTOM QUICK SETTINGS SECTION */}
+        <div className={`p-2 border-t shrink-0 ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+           <div className={`flex transition-all duration-300 ${isSidebarOpen ? 'flex-row items-center space-x-2' : 'flex-col items-center space-y-2'}`}>
+              <button 
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className={`flex items-center justify-center rounded-xl transition-all h-12 ${isSidebarOpen ? 'flex-1 px-3' : 'w-16'} ${isDarkMode ? 'text-amber-400 bg-slate-800 hover:bg-slate-700' : 'text-slate-400 bg-slate-50 hover:bg-slate-100 hover:text-slate-900'}`}
+                title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              >
+                <div className="shrink-0 flex items-center justify-center">
+                  {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+                </div>
+                {isSidebarOpen && <span className="ml-2 text-[9px] font-black uppercase tracking-tighter whitespace-nowrap">Dark</span>}
+              </button>
+
+              <button 
+                onClick={() => { setSidebarSide(isLeft ? 'right' : 'left'); setPanelItem(null); }}
+                className={`flex items-center justify-center rounded-xl transition-all h-12 ${isSidebarOpen ? 'flex-1 px-3' : 'w-16'} ${isDarkMode ? 'text-slate-500 hover:bg-slate-800 hover:text-slate-200' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`}
+                title="Flip Sidebar Side"
+              >
+                <div className="shrink-0 flex items-center justify-center">
+                  <ArrowLeftRight size={16} />
+                </div>
+                {isSidebarOpen && <span className="ml-2 text-[9px] font-black uppercase tracking-tighter whitespace-nowrap">Flip</span>}
+              </button>
+
+              <button
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className={`flex items-center justify-center transition-all rounded-xl h-12 ${isSidebarOpen ? 'flex-1 px-3' : 'mx-auto w-16'} ${isDarkMode ? 'text-slate-400 bg-slate-800/40 hover:bg-slate-700/60 hover:text-slate-200' : 'text-slate-400 bg-slate-50 hover:bg-slate-100 hover:text-slate-900'}`}
+                title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
+              >
+                <div className="shrink-0 flex items-center justify-center">
+                  {isSidebarOpen ? <ChevronLeft size={18} className={!isLeft ? 'rotate-180' : ''} /> : <Menu size={20} />}
+                </div>
+                {isSidebarOpen && <span className="ml-2 text-[9px] font-black uppercase tracking-tighter whitespace-nowrap">Menu</span>}
+              </button>
+           </div>
+        </div>
+      </aside>
+
+      {/* 2. SECONDARY SIDEBAR PANEL */}
+      <div 
+        ref={secondaryPanelRef}
+        className={`z-40 h-full transition-all duration-300 ease-in-out overflow-hidden flex flex-col shrink-0
+          ${panelItem ? 'w-72' : 'w-0'}
+          ${isDarkMode ? 'bg-slate-900' : 'bg-white'}
+          ${isLeft ? `border-r ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}` : `border-l ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}`}
+      >
+        <div className={`w-72 flex flex-col h-full transition-opacity duration-300 ${panelItem ? 'opacity-100' : 'opacity-0'}`}>
+          <div className={`flex items-center justify-between p-6 shrink-0 border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-100'} ${navHeight}`}>
+            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+              {currentPanel?.panelName || currentPanel?.name || "Panel"}
+            </h2>
+            <button onClick={() => setPanelItem(null)} className={`p-1 rounded-md transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50'}`}>
+              <X size={16} />
+            </button>
+          </div>
+
+          {/* Panel Content Search Bar */}
+          {currentPanel?.panelContent && currentPanel.panelContent.length > 0 && (
+            <div className={`p-4 shrink-0 border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+              <div className={`flex items-center px-3 py-2.5 rounded-lg border transition-all focus-within:ring-2 focus-within:ring-sky-500/50 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`}>
+                <Search size={16} className={`mr-2 shrink-0 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`} />
+                <input
+                  type="text"
+                  placeholder={`Search ${currentPanel.name.toLowerCase()}...`}
+                  value={panelSearchQuery}
+                  onChange={(e) => setPanelSearchQuery(e.target.value)}
+                  className="bg-transparent border-none outline-none w-full text-xs font-medium placeholder:text-slate-400 min-w-0"
+                />
+                {panelSearchQuery && (
+                  <button onClick={() => setPanelSearchQuery("")} className={`p-0.5 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                    <X size={12} />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="flex-1 overflow-y-auto">
+            {filteredPanelContent.length > 0 ? (
+              filteredPanelContent.map((sub, index, arr) => {
+                const isClassPanel = panelItem === 'classes';
+                const isSelected = isClassPanel ? selectedClass === sub.label : activeTab === sub.label;
+                
+                return (
+                  <div 
+                    key={sub.label}
+                    onClick={() => {
+                      if (isClassPanel) {
+                        setSelectedClass(sub.label);
+                      } else {
+                        setActiveTab(sub.label);
+                      }
+                    }}
+                    className={`w-full flex items-center p-5 text-left group transition-all relative cursor-pointer
+                      ${isDarkMode ? 'hover:bg-slate-800/50' : 'hover:bg-slate-50/50'}
+                      ${index !== arr.length - 1 ? `border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}` : ''}`}
+                  >
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${isSelected ? `${theme.bg} text-white shadow-md border-transparent` : (isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-slate-50 border border-slate-100 text-slate-400')} group-hover:${isSelected ? 'text-white' : theme.text}`}>
+                      <sub.icon size={18} />
+                    </div>
+                    <div className="ml-4 flex-1">
+                      <span className={`block text-sm font-bold transition-colors ${isSelected ? theme.text : (isDarkMode ? 'text-slate-200' : 'text-slate-700')} group-hover:${theme.text}`}>{sub.label}</span>
+                      <span className="block text-[10px] text-slate-500 font-medium uppercase tracking-tight">{sub.description || 'Access item'}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-1">
+                      {!isClassPanel && sub.link && (
+                        <button 
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            if (sub.link.startsWith('blob:')) {
+                                const a = document.createElement('a');
+                                a.href = sub.link.replace(/(#pdf|#img|#other)$/, '');
+                                a.download = sub.label;
+                                a.click();
+                            } else {
+                                window.open(sub.link.replace('/embed?rm=minimal', '/edit'), '_blank'); 
+                            }
+                          }}
+                          className={`p-1.5 rounded-md text-slate-400 hover:text-sky-500 transition-all opacity-0 group-hover:opacity-100 ${isSelected ? 'opacity-100' : ''} ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'}`}
+                          title={sub.link.startsWith('blob:') ? "Download File" : "Open in new tab"}
+                        >
+                          {sub.link.startsWith('blob:') ? <Download size={14} /> : <ExternalLink size={14} />}
+                        </button>
+                      )}
+                      
+                      {!isClassPanel && (
+                        <button 
+                          onClick={(e) => handleDeleteLink(e, selectedClass, sub.label)}
+                          className={`p-1.5 rounded-md text-slate-400 hover:text-rose-500 transition-all opacity-0 group-hover:opacity-100 ${isSelected ? 'opacity-100' : ''} ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'}`}
+                          title="Delete Resource"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+
+                      {isSelected ? (
+                        <Check size={18} className={`${theme.text} transition-all ml-1 shrink-0`} strokeWidth={3} />
+                      ) : (
+                        <ChevronRight size={14} className={`text-slate-300 opacity-0 group-hover:opacity-100 transition-all transform shrink-0 ${isLeft ? 'group-hover:translate-x-1' : 'rotate-180 group-hover:-translate-x-1'} group-hover:${theme.text} ml-1`} />
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="p-8 text-center text-sm font-medium text-slate-400">
+                No matching {currentPanel?.name.toLowerCase()} found.
+              </div>
+            )}
+          </div>
+          {panelItem === 'lessons' && (
+            <div className={`p-4 border-t shrink-0 ${isDarkMode ? 'bg-slate-900/50 border-slate-800' : 'bg-slate-50/50 border-slate-100'}`}>
+              <div className="flex flex-col gap-2">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Add Resource</p>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder="Paste link here..."
+                    value={newLinkUrl}
+                    onChange={(e) => setNewLinkUrl(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleAddLink()}
+                    className={`flex-1 min-w-0 px-3 py-2.5 rounded-lg border text-xs font-medium outline-none transition-all duration-300 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 focus:border-slate-500' : 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-slate-400'}`}
+                  />
+                  
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={handleFileUpload} 
+                    className="hidden" 
+                    accept="application/pdf,image/*,.txt"
+                  />
+                  
+                  <button 
+                    onClick={handleAddLink}
+                    disabled={!newLinkUrl.trim()}
+                    className={`p-2.5 rounded-lg flex items-center justify-center transition-all ${!newLinkUrl.trim() ? (isDarkMode ? 'bg-slate-800 text-slate-600' : 'bg-slate-100 text-slate-400') : `${theme.bg} text-white shadow-md hover:opacity-90`}`}
+                    title="Add Link"
+                  >
+                    <Plus size={16} strokeWidth={2.5} />
+                  </button>
+
+                  <button 
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`p-2.5 rounded-lg flex items-center justify-center transition-all ${isDarkMode ? 'bg-slate-800 text-slate-400 hover:text-sky-400 hover:bg-slate-700' : 'bg-slate-100 text-slate-500 hover:text-sky-500 hover:bg-slate-200'}`}
+                    title="Upload Local File"
+                  >
+                    <Upload size={16} strokeWidth={2.5} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* MAIN CONTENT AREA */}
+      <div className="flex-1 flex flex-col h-full min-w-0 relative z-10 overflow-hidden">
+        <header className={`border-b flex items-center px-6 z-20 shrink-0 ${navHeight} transition-colors duration-300 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+          <div className={`transition-all duration-500 overflow-hidden flex items-center shrink-0 ${isSearchExpanded && !useOverlaySearch ? 'w-0 opacity-0 mr-0' : 'flex-1 opacity-100 mr-4'}`}>
+            <div className="flex items-center text-lg font-bold whitespace-nowrap tracking-tight">
+              <span className={isDarkMode ? 'text-white' : 'text-slate-900'}>Edu.</span>
+              <span className={theme.text}>{currentAppName}</span>
+            </div>
+          </div>
+          
+          <div className={`flex items-center justify-end flex-1 h-full relative`}>
+             {!useOverlaySearch && (
+               <div ref={searchRef} className={`flex items-center relative transition-all duration-500 ease-in-out h-10 justify-end ${isSearchExpanded ? 'flex-1 max-w-xl mr-4' : 'w-10'}`}>
+                  <div className={`relative h-full transition-all duration-500 overflow-hidden flex items-center ${isSearchExpanded ? 'w-full' : 'w-0'}`}>
+                    <div className={`absolute left-0 flex items-center justify-center w-12 h-10 z-30 ${isSearchExpanded ? theme.text : 'text-slate-400'}`}><Search size={18} /></div>
+                    <input type="text" placeholder="Search resources..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className={`w-full h-full border rounded-full pl-12 pr-12 text-sm font-medium outline-none transition-all duration-300 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`}/>
+                    <div className="absolute right-0 flex items-center justify-center w-12 h-10 z-30">
+                        <button onClick={(e) => { e.stopPropagation(); searchQuery ? setSearchQuery("") : setIsSearchExpanded(false); }} className={`p-1.5 text-slate-400 hover:text-slate-900 transition-all transform ${isSearchExpanded ? 'opacity-100 scale-100' : 'opacity-0 scale-50 pointer-events-none'}`}><X size={16} strokeWidth={2.5} /></button>
+                    </div>
+                  </div>
+                  <button onClick={() => setIsSearchExpanded(true)} className={`absolute right-0 p-2 text-slate-400 hover:${theme.text} rounded-full transition-all duration-300 z-20 ${isSearchExpanded ? 'opacity-0' : 'opacity-100'}`}><Search size={18} /></button>
+               </div>
+             )}
+
+             <div className={`flex items-center space-x-2 shrink-0 transition-all duration-300 ${isSearchExpanded && useOverlaySearch ? 'opacity-0' : 'opacity-100'}`}>
+                <button className={`p-2 text-slate-400 hover:${theme.text} rounded-full transition-colors`}><Grid size={18} /></button>
+                <button className={`p-2 text-slate-400 hover:${theme.text} rounded-full transition-colors relative`}>
+                  <Bell size={18} />
+                  <span className={`absolute top-2.5 right-2.5 w-1.5 h-1.5 ${theme.bg} rounded-full border border-white`}></span>
+                </button>
+                <div className={`h-6 w-[1px] mx-1 shrink-0 ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`}></div>
+                <button className={`w-9 h-9 rounded-full flex items-center justify-center transition-all shadow-sm ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-white'}`}><User size={20} strokeWidth={2} /></button>
+             </div>
+          </div>
+        </header>
+
+        <main className={`flex-1 overflow-y-auto ${activeContentLink ? 'p-0' : 'p-10'} bg-transparent flex flex-col relative`}>
+          
+          {/* Annotation Overlay Layer */}
+          {isAnnotateMode && activeTab !== 'Whiteboard' && (
+            <>
+              <canvas
+                ref={canvasRef}
+                className={`absolute inset-0 z-[60] w-full h-full touch-none ${getCursorClass()}`}
+                onMouseDown={startDrawing}
+                onMouseMove={draw}
+                onMouseUp={stopDrawing}
+                onMouseOut={stopDrawing}
+                onTouchStart={startDrawing}
+                onTouchMove={draw}
+                onTouchEnd={stopDrawing}
+              />
+              {textInput.active && (
+                <textarea
+                  id="annotate-text-input"
+                  autoFocus
+                  value={textInput.text}
+                  onChange={e => setTextInput({ ...textInput, text: e.target.value })}
+                  onKeyDown={e => { if (e.key === 'Escape') commitText(); }}
+                  style={{
+                    position: 'absolute',
+                    left: textInput.x,
+                    top: textInput.y,
+                    color: isAnnotateMode ? annotateColor : (isDarkMode ? '#ffffff' : '#0f172a'),
+                    fontSize: `${annotateSize * 4 + 12}px`,
+                    fontWeight: 'bold',
+                    fontFamily: 'sans-serif',
+                    background: 'transparent',
+                    border: `1px dashed ${isDarkMode ? '#475569' : '#94a3b8'}`,
+                    outline: 'none',
+                    padding: 0,
+                    margin: 0,
+                    zIndex: 65,
+                    resize: 'none',
+                    overflow: 'hidden',
+                    lineHeight: 1.2,
+                    whiteSpace: 'pre',
+                    width: `${Math.max(50, Math.max(...(textInput.text || ' ').split('\n').map(l => l.length)) * (annotateSize * 2.5 + 8) + 20)}px`,
+                    height: `${(textInput.text || ' ').split('\n').length * (annotateSize * 4 + 12) * 1.2 + 20}px`
+                  }}
+                />
+              )}
+            </>
+          )}
+
+          {/* Floating Annotation Toolbar */}
+          {isAnnotateMode && (
+            <div className="absolute bottom-4 sm:bottom-6 left-1/2 transform -translate-x-1/2 flex flex-wrap items-center justify-center gap-1 sm:gap-1.5 p-1.5 sm:p-2 bg-slate-900/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-slate-700 shadow-2xl z-[70] text-white w-[95vw] md:w-max md:max-w-[90vw] transition-all">
+              
+              <button onClick={() => setAnnotateTool('select')} className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all ${annotateTool === 'select' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`} title="Select Tool (Interact with content)">
+                <MousePointer2 size={16} />
+              </button>
+
+              <button onClick={() => setAnnotateTool('move')} className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all ${annotateTool === 'move' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`} title="Move Drawings">
+                <Move size={16} />
+              </button>
+              
+              <div className="hidden lg:block w-[1px] h-5 bg-slate-700 mx-0.5"></div>
+              
+              <button onClick={() => setAnnotateTool('pen')} className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all ${annotateTool === 'pen' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`} title="Pen Tool">
+                <PenTool size={16} />
+              </button>
+              
+              <button onClick={() => setAnnotateTool('highlight')} className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all ${annotateTool === 'highlight' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`} title="Highlight Tool">
+                <Highlighter size={16} />
+              </button>
+
+              <button onClick={() => setAnnotateTool('text')} className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all ${annotateTool === 'text' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`} title="Text Tool">
+                <Type size={16} />
+              </button>
+              
+              {/* Dynamic Shape Dropdown Tool */}
+              <div className="relative flex flex-col items-center" ref={shapePickerRef}>
+                <button 
+                  onClick={() => { 
+                    if (annotateTool === 'shape') {
+                      setShowShapePicker(!showShapePicker);
+                    } else {
+                      setAnnotateTool('shape'); 
+                      setShowShapePicker(false); 
+                    }
+                  }}
+                  className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all ${annotateTool === 'shape' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`} 
+                  title="Shape Tool (Click again for more options)"
+                >
+                  {annotateShapeType === 'square' && <Square size={16} />}
+                  {annotateShapeType === 'rectangle' && <RectangleHorizontal size={16} />}
+                  {annotateShapeType === 'circle' && <Circle size={16} />}
+                  {annotateShapeType === 'ellipse' && <Circle size={16} className="scale-x-125" />}
+                  {annotateShapeType === 'line' && <Minus size={16} className="rotate-45" />}
+                  {annotateShapeType === 'arrow' && <ArrowRight size={16} className="-rotate-45" />}
+                  {!['square', 'rectangle', 'circle', 'ellipse', 'line', 'arrow'].includes(annotateShapeType) && <RectangleHorizontal size={16} />}
+                </button>
+                
+                {showShapePicker && (
+                  <div className="absolute bottom-full mb-4 flex gap-1 p-1 sm:gap-2 sm:p-2 bg-slate-900 border border-slate-700 rounded-2xl shadow-xl z-50 animate-in fade-in slide-in-from-bottom-2">
+                    <button onClick={() => { setAnnotateShapeType('rectangle'); setAnnotateTool('shape'); setShowShapePicker(false); }} title="Rectangle" className={`p-1.5 sm:p-2 rounded-xl transition-colors hover:bg-slate-800 ${annotateShapeType === 'rectangle' ? 'text-sky-400' : 'text-slate-400'}`}><RectangleHorizontal size={16} /></button>
+                    <button onClick={() => { setAnnotateShapeType('square'); setAnnotateTool('shape'); setShowShapePicker(false); }} title="Square" className={`p-1.5 sm:p-2 rounded-xl transition-colors hover:bg-slate-800 ${annotateShapeType === 'square' ? 'text-sky-400' : 'text-slate-400'}`}><Square size={16} /></button>
+                    <button onClick={() => { setAnnotateShapeType('ellipse'); setAnnotateTool('shape'); setShowShapePicker(false); }} title="Ellipse" className={`p-1.5 sm:p-2 rounded-xl transition-colors hover:bg-slate-800 ${annotateShapeType === 'ellipse' ? 'text-sky-400' : 'text-slate-400'}`}><Circle size={16} className="scale-x-125" /></button>
+                    <button onClick={() => { setAnnotateShapeType('circle'); setAnnotateTool('shape'); setShowShapePicker(false); }} title="Circle" className={`p-1.5 sm:p-2 rounded-xl transition-colors hover:bg-slate-800 ${annotateShapeType === 'circle' ? 'text-sky-400' : 'text-slate-400'}`}><Circle size={16} /></button>
+                    <button onClick={() => { setAnnotateShapeType('line'); setAnnotateTool('shape'); setShowShapePicker(false); }} title="Line" className={`p-1.5 sm:p-2 rounded-xl transition-colors hover:bg-slate-800 ${annotateShapeType === 'line' ? 'text-sky-400' : 'text-slate-400'}`}><Minus size={16} className="rotate-45" /></button>
+                    <button onClick={() => { setAnnotateShapeType('arrow'); setAnnotateTool('shape'); setShowShapePicker(false); }} title="Arrow" className={`p-1.5 sm:p-2 rounded-xl transition-colors hover:bg-slate-800 ${annotateShapeType === 'arrow' ? 'text-sky-400' : 'text-slate-400'}`}><ArrowRight size={16} className="-rotate-45" /></button>
+                  </div>
+                )}
+              </div>
+              
+              <button onClick={() => setAnnotateTool('eraser')} className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all ${annotateTool === 'eraser' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`} title="Eraser Tool (Splits Lines)">
+                <Eraser size={16} />
+              </button>
+
+              <div className="hidden lg:block w-[1px] h-5 bg-slate-700 mx-0.5"></div>
+
+              {/* Background Selector - Only visible on Whiteboard */}
+              {activeTab === 'Whiteboard' && (
+                <>
+                  <div className="relative flex flex-col items-center" ref={bgPickerRef}>
+                    <button 
+                      onClick={() => setShowBgPicker(!showBgPicker)}
+                      className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all ${wbBackground !== 'plain' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`} 
+                      title="Canvas Background"
+                    >
+                      <LayoutGrid size={16} />
+                    </button>
+                    
+                    {showBgPicker && (
+                      <div className="absolute bottom-full mb-4 flex flex-col gap-2 p-2 bg-slate-900 border border-slate-700 rounded-2xl shadow-xl z-50 animate-in fade-in slide-in-from-bottom-2">
+                        <div className="flex gap-1">
+                          <button onClick={() => { setWbBackground('plain'); setShowBgPicker(false); }} title="Plain" className={`p-1.5 rounded-xl transition-colors hover:bg-slate-800 ${wbBackground === 'plain' ? 'bg-slate-800 text-sky-400' : 'text-slate-400'}`}><Square size={16} /></button>
+                          <button onClick={() => setWbBackground('grid')} title="Grid" className={`p-1.5 rounded-xl transition-colors hover:bg-slate-800 ${wbBackground === 'grid' ? 'bg-slate-800 text-sky-400' : 'text-slate-400'}`}><Grid size={16} /></button>
+                          <button onClick={() => setWbBackground('dots')} title="Dots" className={`p-1.5 rounded-xl transition-colors hover:bg-slate-800 ${wbBackground === 'dots' ? 'bg-slate-800 text-sky-400' : 'text-slate-400'}`}><Grip size={16} /></button>
+                          <button onClick={() => setWbBackground('lines')} title="Lines" className={`p-1.5 rounded-xl transition-colors hover:bg-slate-800 ${wbBackground === 'lines' ? 'bg-slate-800 text-sky-400' : 'text-slate-400'}`}><AlignJustify size={16} /></button>
+                        </div>
+                        
+                        {wbBackground !== 'plain' && (
+                          <>
+                            <div className="w-full h-[1px] bg-slate-700"></div>
+                            <div className="flex items-center justify-between gap-2 px-1" title="Adjust Background Spacing">
+                              <Minus size={14} className="text-slate-500 shrink-0" />
+                              <input 
+                                type="range" 
+                                min="12" 
+                                max="120" 
+                                step="4"
+                                value={wbBackgroundSize} 
+                                onChange={(e) => setWbBackgroundSize(parseInt(e.target.value))}
+                                className="w-20 accent-sky-500 cursor-pointer"
+                              />
+                              <LayoutGrid size={14} className="text-slate-500 shrink-0" />
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div className="hidden lg:block w-[1px] h-5 bg-slate-700 mx-0.5"></div>
+                </>
+              )}
+
+              {/* Color Selector */}
+              <div className="relative">
+                <button onClick={() => setShowColorPicker(!showColorPicker)} className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center hover:bg-slate-800 transition-colors" title="Color Selector">
+                  <div className="w-4 h-4 rounded-full border-2 border-slate-600 shadow-inner" style={{ backgroundColor: annotateColor }}></div>
+                </button>
+                
+                {showColorPicker && (
+                  <div className="absolute bottom-full mb-4 left-1/2 transform -translate-x-1/2 flex flex-wrap gap-2 w-48 sm:w-auto p-3 bg-slate-900 border border-slate-700 rounded-2xl shadow-xl z-50">
+                    {['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#a855f7', '#ffffff', '#000000'].map(color => (
+                      <button
+                        key={color}
+                        onClick={() => { setAnnotateColor(color); setShowColorPicker(false); }}
+                        className={`w-6 h-6 rounded-full transition-transform hover:scale-110 shrink-0 ${annotateColor === color ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-900' : ''}`}
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="hidden lg:block w-[1px] h-5 bg-slate-700 mx-0.5"></div>
+              
+              {/* Size Slider */}
+              <div className="flex items-center gap-1 px-1 sm:px-2 h-8 sm:h-9" title="Adjust Pen/Highlighter/Eraser Size">
+                <input 
+                  type="range" 
+                  min="1" 
+                  max="20" 
+                  value={annotateSize} 
+                  onChange={(e) => setAnnotateSize(parseInt(e.target.value))}
+                  className="w-16 sm:w-20 accent-sky-500 cursor-pointer"
+                />
+              </div>
+
+              <div className="hidden lg:block w-[1px] h-5 bg-slate-700 mx-0.5"></div>
+
+              <button onClick={undoDrawing} disabled={!historyState.canUndo} className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-colors ${historyState.canUndo ? 'text-slate-400 hover:text-sky-400 hover:bg-slate-800' : 'text-slate-600 cursor-not-allowed opacity-50'}`} title="Undo">
+                <Undo size={16} />
+              </button>
+              
+              <button onClick={redoDrawing} disabled={!historyState.canRedo} className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-colors ${historyState.canRedo ? 'text-slate-400 hover:text-sky-400 hover:bg-slate-800' : 'text-slate-600 cursor-not-allowed opacity-50'}`} title="Redo">
+                <Redo size={16} />
+              </button>
+
+              <div className="hidden lg:block w-[1px] h-5 bg-slate-700 mx-0.5"></div>
+
+              <button onClick={() => setIsAnnotationsVisible(!isAnnotationsVisible)} className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all ${!isAnnotationsVisible ? 'bg-amber-500 text-white shadow-md' : 'text-slate-400 hover:text-amber-400 hover:bg-slate-800'}`} title={isAnnotationsVisible ? "Hide Annotations" : "Show Annotations"}>
+                {isAnnotationsVisible ? <Eye size={16} /> : <EyeOff size={16} />}
+              </button>
+
+              <div className="hidden lg:block w-[1px] h-5 bg-slate-700 mx-0.5"></div>
+
+              <button onClick={clearAllDrawings} className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-rose-400 hover:bg-rose-500/20 transition-colors`} title="Clear All Annotations">
+                <Trash2 size={16} />
+              </button>
+
+              <div className="hidden lg:block w-[1px] h-5 bg-slate-700 mx-0.5"></div>
+
+              <button onClick={saveDrawing} className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/20 transition-colors`} title="Save Annotation as Image">
+                <Save size={16} />
+              </button>
+
+              <div className="hidden lg:block w-[1px] h-5 bg-slate-700 mx-0.5"></div>
+              
+              <button onClick={() => setIsAnnotateMode(false)} className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-rose-400 hover:bg-rose-500/20 transition-colors`} title="Close Annotation">
+                <X size={16} />
+              </button>
+            </div>
+          )}
+
+          {activeContentLink ? (
+            <div className={`relative w-full h-full flex-1 flex flex-col ${isDarkMode ? 'bg-slate-950' : 'bg-white'}`}>
+              {activeContentLink.startsWith('blob:') ? (
+                 activeContentLink.endsWith('#pdf') ? (
+                   <object 
+                     data={activeContentLink.replace('#pdf', '')} 
+                     type="application/pdf"
+                     className="w-full h-full border-0 flex-1 bg-slate-100 dark:bg-slate-900"
+                   >
+                     <div className="flex flex-col items-center justify-center h-full p-8 text-center space-y-4">
+                       <div className="w-16 h-16 bg-slate-200 dark:bg-slate-800 rounded-2xl flex items-center justify-center text-slate-400">
+                         <Info size={32} />
+                       </div>
+                       <p className="text-slate-500 font-medium">Your browser's security settings prevent inline PDF previews.</p>
+                       <a href={activeContentLink.replace('#pdf', '')} download={activeTab} className="px-5 py-2.5 bg-sky-500 text-white font-bold rounded-xl shadow-md hover:bg-sky-600 transition-colors">
+                         Download PDF to View
+                       </a>
+                     </div>
+                   </object>
+                 ) : activeContentLink.endsWith('#img') ? (
+                   <div className="w-full h-full flex-1 p-8 flex items-center justify-center bg-slate-100 dark:bg-slate-900">
+                      <img src={activeContentLink.replace('#img', '')} alt={activeTab} className="max-w-full max-h-full object-contain rounded-lg shadow-sm pointer-events-none" />
+                   </div>
+                 ) : (
+                   <iframe 
+                     src={activeContentLink.replace('#other', '')} 
+                     className="w-full h-full border-0 flex-1 bg-white" 
+                     allowFullScreen
+                     title={activeTab}
+                   />
+                 )
+              ) : (
+                <iframe 
+                  src={activeContentLink} 
+                  className="w-full h-full border-0 flex-1 bg-white" 
+                  allowFullScreen
+                  title={activeTab}
+                />
+              )}
+            </div>
+          ) : activeTab === 'Whiteboard' ? (
+            <div className="w-full h-full flex-1 flex items-center justify-between gap-2">
+              
+              <button 
+                onClick={() => handlePageChange('prev')} 
+                disabled={whiteboardPage === 1}
+                className={`shrink-0 p-2 z-[50] transition-all duration-300 ${whiteboardPage === 1 ? 'opacity-0 pointer-events-none' : 'opacity-100'} ${isDarkMode ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-sky-500'}`}
+                title="Previous Page"
+              >
+                <ChevronLeft size={24} strokeWidth={3} />
+              </button>
+              
+              <div 
+                className="relative flex-1 h-full overflow-hidden bg-white dark:bg-slate-900 shadow-inner rounded-3xl border border-slate-200 dark:border-slate-800"
+                style={getWhiteboardBgStyle()}
+              >
+                <canvas
+                  ref={canvasRef}
+                  className={`absolute inset-0 w-full h-full touch-none ${getCursorClass()}`}
+                  onMouseDown={startDrawing}
+                  onMouseMove={draw}
+                  onMouseUp={stopDrawing}
+                  onMouseOut={stopDrawing}
+                  onTouchStart={startDrawing}
+                  onTouchMove={draw}
+                  onTouchEnd={stopDrawing}
+                />
+                {textInput.active && (
+                  <textarea
+                    id="annotate-text-input"
+                    autoFocus
+                    value={textInput.text}
+                    onChange={e => setTextInput({ ...textInput, text: e.target.value })}
+                    onKeyDown={e => { if (e.key === 'Escape') commitText(); }}
+                    style={{
+                      position: 'absolute',
+                      left: textInput.x,
+                      top: textInput.y,
+                      color: isAnnotateMode ? annotateColor : (isDarkMode ? '#ffffff' : '#0f172a'),
+                      fontSize: `${annotateSize * 4 + 12}px`,
+                      fontWeight: 'bold',
+                      fontFamily: 'sans-serif',
+                      background: 'transparent',
+                      border: `1px dashed ${isDarkMode ? '#475569' : '#94a3b8'}`,
+                      outline: 'none',
+                      padding: 0,
+                      margin: 0,
+                      zIndex: 65,
+                      resize: 'none',
+                      overflow: 'hidden',
+                      lineHeight: 1.2,
+                      whiteSpace: 'pre',
+                      width: `${Math.max(50, Math.max(...(textInput.text || ' ').split('\n').map(l => l.length)) * (annotateSize * 2.5 + 8) + 20)}px`,
+                      height: `${(textInput.text || ' ').split('\n').length * (annotateSize * 4 + 12) * 1.2 + 20}px`
+                    }}
+                  />
+                )}
+              </div>
+
+              <button 
+                onClick={() => handlePageChange('next')}
+                className={`shrink-0 p-2 z-[50] transition-all duration-300 ${isDarkMode ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-sky-500'}`}
+                title="Next Page"
+              >
+                <ChevronRight size={24} strokeWidth={3} />
+              </button>
+
+            </div>
+          ) : (
+            <div className="max-w-5xl mx-auto w-full space-y-8 p-10">
+              <div className="h-64 rounded-3xl bg-slate-200/50 dark:bg-slate-800/30 animate-pulse" />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[1, 2, 3].map(i => <div key={i} className="h-48 rounded-3xl bg-slate-200/50 dark:bg-slate-800/30" />)}
+              </div>
+              <div className="h-96 rounded-3xl bg-slate-200/50 dark:bg-slate-800/30" />
+              <div className="h-96 rounded-3xl bg-slate-200/50 dark:bg-slate-800/30" />
+              <p className="text-center text-slate-400 text-sm py-10">End of Dashboard Content</p>
+            </div>
+          )}
+        </main>
+
+        {/* Global Quick-Launch Annotate Button - Fixed to Bottom Right of Main Area */}
+        {!isAnnotateMode && (
+          <button 
+            onClick={() => setIsAnnotateMode(true)}
+            className={`absolute bottom-8 right-8 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl z-[70] text-white transition-all transform hover:scale-110 ${theme.bg} hover:shadow-lg`}
+            title="Open Annotate Tools"
+          >
+            <PenTool size={24} strokeWidth={2.5} />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default App;\

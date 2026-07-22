@@ -1,0 +1,2200 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { 
+  Menu, 
+  ChevronLeft, 
+  ChevronDown,
+  Home, 
+  BarChart2, 
+  Users, 
+  Settings, 
+  HelpCircle, 
+  Layers,
+  ArrowLeftRight,
+  Bell,
+  Search,
+  MoreVertical,
+  Plus,
+  Edit,
+  Trash2,
+  ExternalLink,
+  Library,
+  ChevronRight,
+  Inbox,
+  Send,
+  Archive,
+  Grid,
+  User,
+  X,
+  Sun,
+  Moon,
+  BookOpen,
+  MoreHorizontal,
+  Calculator,
+  Globe,
+  FlaskConical,
+  Music,
+  Palette,
+  Monitor,
+  Dumbbell,
+  ArrowLeft,
+  FileText,
+  Shield,
+  UploadCloud,
+  UserPlus,
+  Link2,
+  CheckCircle,
+  Activity,
+  Pencil,
+  Shuffle,
+  CircleDashed,
+  Play,
+  SquareStack,
+  GripHorizontal
+} from 'lucide-react';
+
+/**
+ * EduHub Primary Logo Components
+ */
+const LogoHorizontal = ({ className = "h-8 w-auto" }) => (
+  <svg viewBox="0 0 100 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <circle cx="12" cy="12" r="9.5" className="text-rose-500" />
+    <path d="M37 3 L46 19 H28 L37 3 Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" className="text-orange-500" />
+    <rect x="53" y="2.5" width="19" height="19" rx="3" className="text-emerald-500" />
+    <path d="M88 4 C 96 4, 98 12, 94 18 C 88 24, 78 18, 80 10 C 82 4, 94 8, 92 14 C 90 20, 82 18, 84 12 C 86 6, 92 10, 88 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky-500" />
+  </svg>
+);
+
+const LogoIcon2x2 = ({ className = "w-16 h-16" }) => (
+  <svg viewBox="0 0 44 44" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <circle cx="10" cy="10" r="8" className="text-rose-500" />
+    <path d="M34 2 L42 18 H26 L34 2 Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" className="text-orange-500" />
+    <rect x="2" y="26" width="16" height="16" rx="3" className="text-emerald-500" />
+    <path d="M34 26 C 40 26, 42 32, 39 36 C 34 41, 27 37, 28 31 C 29 27, 38 30, 37 34 C 36 38, 30 37, 31 32 C 32 28, 37 31, 34 35" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky-500" />
+  </svg>
+);
+
+const iconMap = {
+  BookOpen: BookOpen,
+  Calculator: Calculator,
+  Globe: Globe,
+  FlaskConical: FlaskConical,
+  Music: Music,
+  Palette: Palette,
+  Monitor: Monitor,
+  Dumbbell: Dumbbell
+};
+
+const EMOJI_LIST = [
+  '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃', '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '☺️', '😚', '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤥', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '🥵', '🥶', '🥴', '😵', '🤯', '🤠', '🥳', '😎', '🤓', '🧐', '😕', '😟', '🙁', '☹️', '😮', '😯', '😲', '😳', '🥺', '😦', '😧', '😨', '😰', '😥', '😢', '😭', '😱', '😖', '😣', '😞', '😓', '😩', '😫', '🥱', '😤', '😡', '😠', '🤬', '😈', '👿', '💀', '☠️', '💩', '🤡', '👹', '👺', '👻', '👽', '👾', '🤖',
+  '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐦', '🐤', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞', '🐜', '🦟', '🐢', '🐍', '🦎', '🦖', '🦕', '🐙', '🦑', '🦐', '🦞', '🦀', '🐡', '🐠', '🐟', '🐬', '🐳', '🐋', '🦈', '🐊', '🐅', '🦓', '🦍', '🦧', '🐘', '🦛', '🦏', '🐪', '🐫', '🦒', '🦘', '🐃', '🐂', '🐄', '🐎', '🐖', '🐏', '🐑', '🦙', '🐐', '🦌', '🐕', '🐩', '🦮', '🐕‍🦺', '🐈', '🐓', '🦃', '🦚', '🦜', '🦢', '🦩', '🕊️', '🐇', '🦝', '🦨', '🦡', '🦦', '🦥', '🐁', '🐀', '🐿️', '🦔', '🐾',
+  '🍏', '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦', '🥬', '🥒', '🌶️', '🌽', '🥕', '🧄', '🧅', '🥔', '🍠', '🥐', '🥯', '🍞', '🥖', '🥨', '🧀', '🥚', '🍳', '🧈', '🥞', '🧇', '🥓', '🥩', '🍗', '🍖', '🦴', '🌭', '🍔', '🍟', '🍕', '🥪', '🥙', '🧆', '🌮', '🌯', '🥗', '🥘', '🥫', '🍝', '🍜', '🍲', '🍛', '🍣', '🍱', '🥟', '🦪', '🍤', '🍙', '🍚', '🍘', '🍥', '🥠', '🥮', '🍢', '🍡', '🍧', '🍨', '🍦', '🥧', '🧁', '🍰', '🎂', '🍮', '🍭', '🍬', '🍫', '🍿', '🍩', '🍪', '🌰', '🥜', '🍯', '🥛', '🍼', '☕', '🍵', '🧃', '🥤', '🍶', '🍺', '🍻', '🥂', '🍷', '🥃', '🍸', '🍹', '🧉', '🍾', '🧊', '🥄', '🍴', '🍽️', '🥣', '🥡', '🥢', '🧂',
+  '⚽', '⚾', '🥎', '🏀', '🏐', '🏈', '🏉', '🎾', '🥏', '🎳', '🏏', '🏑', '🏒', '🥍', '🏓', '🏸', '🥊', '🥋', '🥅', '⛳', '⛸️', '🎣', '🤿', '🎽', '🎿', '🛷', '🥌', '🎯', '🪀', '🪁', '🎱', '🔮', '🧿', '🎮', '🕹️', '🎰', '🎲', '🧩', '🧸', '♠️', '♥️', '♦️', '♣️', '♟️', '🃏', '🀄', '🎴', '🎭', '🖼️', '🎨', '🧵', '🧶', '🚀', '🚁', '🛶', '⛵', '🚤', '🛳️', '⛴️', '🚢', '⚓', '⛽', '🚧', '🚥', '🚦', '🛑', '🎡', '🎢', '🎠', '🏗️', '🌁', '🗼', '🏭', '⛲', '🎑', '⛰️', '🏔️', '🗻', '🌋', '🗾', '🏕️', '⛺', '🏞️', '🛣️', '🛤️', '🌅', '🌄', '🏜️', '🏖️', '🏝️', '🌇', '🌆', '🏙️', '🌃', '🌌', '🌉', '🌟', '⭐', '🌠', '✨', '⚡', '🔥', '💧', '🌊'
+];
+
+const STUDENT_DATABASE = [
+  { id: 1, name: "Aiden Thompson", avatar: "🦁" },
+  { id: 2, name: "Bella Rodriguez", avatar: "🦋" },
+  { id: 3, name: "Caleb Wright", avatar: "🦊" },
+  { id: 4, name: "Dakota Smith", avatar: "🎨" },
+  { id: 5, name: "Elena Gilbert", avatar: "⭐" },
+  { id: 6, name: "Finn O'Shea", avatar: "🐳" },
+  { id: 7, name: "Grace Miller", avatar: "🌻" },
+  { id: 8, name: "Hunter Reed", avatar: "🏹" },
+  { id: 9, name: "Isla Brown", avatar: "🦄" },
+  { id: 10, name: "Julian Vance", avatar: "🚀" },
+  { id: 11, name: "Kai Nguyen", avatar: "🌊" },
+  { id: 12, name: "Lily Chen", avatar: "🌸" },
+  { id: 13, name: "Mason Davis", avatar: "🧱" },
+  { id: 14, name: "Nora Quinn", avatar: "🌙" },
+  { id: 15, name: "Owen Taylor", avatar: "🦉" },
+  { id: 16, name: "Piper Hall", avatar: "🍭" },
+  { id: 17, name: "Quinn Adams", avatar: "🐧" },
+  { id: 18, name: "Riley Cooper", avatar: "🐶" },
+  { id: 19, name: "Sofia Lopez", avatar: "☀️" },
+  { id: 20, name: "Toby Wilson", avatar: "🐯" },
+  { id: 21, name: "Ursula King", avatar: "🐚" },
+  { id: 22, name: "Victor Hugo", avatar: "🎩" },
+  { id: 23, name: "Willow Brooks", avatar: "🌿" }
+];
+
+const getStudentAvatar = (student) => {
+  if (!student) return '';
+  if (student.emoji) return student.emoji;
+  if (student.avatar) return student.avatar;
+  if (!student.name) return 'ST';
+  return student.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+};
+
+export const ClassContext = React.createContext(null);
+
+const App = () => {
+  // Global Application State
+  const [activeApp, setActiveApp] = useState('Classes'); // 'Classes' | 'Randomizer'
+  const [classesTab, setClassesTab] = useState('Classes');
+  const [randomizerTab, setRandomizerTab] = useState('Randomizer');
+  
+  // Computed Tab State (Determines what is rendered based on active app)
+  const activeTab = activeApp === 'Classes' ? classesTab : randomizerTab;
+  
+  // Shared UI States
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [sidebarSide, setSidebarSide] = useState('left');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [expandedItem, setExpandedItem] = useState(null); 
+  const [popoutItem, setPopoutItem] = useState(null); 
+  const [panelItem, setPanelItem] = useState(null); 
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [useOverlaySearch, setUseOverlaySearch] = useState(false);
+  const [isAppsMenuOpen, setIsAppsMenuOpen] = useState(false);
+
+  // ---------- CLASSES APP STATE ----------
+  const [isAddClassModalOpen, setIsAddClassModalOpen] = useState(false);
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isAppSettingModalOpen, setIsAppSettingModalOpen] = useState(false);
+  const [selectedAppSetting, setSelectedAppSetting] = useState(null);
+  const [modalStep, setModalStep] = useState(1);
+  const [studentAddMethod, setStudentAddMethod] = useState(null);
+  const [manualStudents, setManualStudents] = useState('');
+  const [csvFileName, setCsvFileName] = useState('');
+  const [parsedCsvStudents, setParsedCsvStudents] = useState([]);
+  const [activeClassView, setActiveClassView] = useState('overview');
+  const [newClassForm, setNewClassForm] = useState({ name: '', subject: '', grade: '', icon: 'BookOpen' });
+  const [editClassForm, setEditClassForm] = useState({ name: '', subject: '', grade: '', icon: 'BookOpen' });
+  const [selectedClass, setSelectedClass] = useState(null);
+  const [selectedClassStudent, setSelectedClassStudent] = useState(null);
+  const [openCardMenu, setOpenCardMenu] = useState(null);
+  const [draggedClassId, setDraggedClassId] = useState(null);
+  const [dragOverClassId, setDragOverClassId] = useState(null);
+  const [classes, setClasses] = useState([
+    { 
+      id: 1, name: 'AP Physics', subject: 'Science', grade: '11th Grade', icon: 'FlaskConical', isArchived: false, appCodes: { app1: 'PHY829', app2: 'PHY830', app3: 'PHY831', app4: 'PHY832' }, 
+      studentList: [
+        {name: 'Albert Einstein', id: '101', gender: 'Male', birthdate: '03/14/2007'}, 
+        {name: 'Isaac Newton', id: '102', gender: 'Male', birthdate: '01/04/2007'}, 
+        {name: 'Marie Curie', id: '103', gender: 'Female', birthdate: '11/07/2006'}, 
+        {name: 'Niels Bohr', id: '104', gender: 'Male', birthdate: '10/07/2006'}
+      ] 
+    },
+    { 
+      id: 2, name: 'World History', subject: 'History', grade: '10th Grade', icon: 'Globe', isArchived: false, appCodes: { app1: 'HIS411', app2: 'HIS412', app3: 'HIS413', app4: 'HIS414' }, 
+      studentList: [
+        {name: 'Winston Churchill', id: '201', gender: 'Male', birthdate: '11/30/2008'}, 
+        {name: 'Cleopatra', id: '202', gender: 'Female', birthdate: '08/12/2008'}, 
+        {name: 'Julius Caesar', id: '203', gender: 'Male', birthdate: '07/12/2008'}
+      ] 
+    },
+    { 
+      id: 3, name: 'Creative Writing', subject: 'English', grade: '12th Grade', icon: 'BookOpen', isArchived: false, appCodes: { app1: 'ENG702', app2: 'ENG703', app3: 'ENG704', app4: 'ENG705' }, 
+      studentList: [
+        {name: 'Eleanor Shellstrop', id: '301', gender: 'Female', birthdate: '10/14/2005'}, 
+        {name: 'Chidi Anagonye', id: '302', gender: 'Male', birthdate: '07/01/2005'}, 
+        {name: 'Tahani Al-Jamil', id: '303', gender: 'Female', birthdate: '02/25/2006'}, 
+        {name: 'Jason Mendoza', id: '304', gender: 'Male', birthdate: '08/16/2005'}, 
+        {name: 'Michael Realman', id: '305', gender: 'Male', birthdate: '06/08/2005'}
+      ] 
+    }
+  ]);
+
+  // ---------- RANDOMIZER APP STATE ----------
+  const [randomizerSelectedClass, setRandomizerSelectedClass] = useState(null);
+  const [selectedRandomStudent, setSelectedRandomStudent] = useState(null);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [activeStudents, setActiveStudents] = useState([]);
+  const [wheelRotation, setWheelRotation] = useState(0);
+  const [isSpinningWheel, setIsSpinningWheel] = useState(false);
+  const [wheelWinner, setWheelWinner] = useState(null);
+  const [shuffledDeck, setShuffledDeck] = useState([]);
+  const [flippedCards, setFlippedCards] = useState(new Set());
+  const [pullDragY, setPullDragY] = useState(0);
+  const [isPullDragging, setIsPullDragging] = useState(false);
+  const [pullStartY, setPullStartY] = useState(0);
+  const [hasPulledName, setHasPulledName] = useState(false);
+  const [stagedStudent, setStagedStudent] = useState(null);
+  const [showActiveList, setShowActiveList] = useState(false);
+  const activeListRef = useRef(null);
+
+  // App Theme Config
+  const appThemes = {
+    "Classes": { primary: "sky-500", bg: "bg-sky-500", text: "text-sky-500", border: "border-sky-500", hoverBg: "hover:bg-sky-50", ring: "ring-sky-500" },
+    "Randomizer": { primary: "rose-500", bg: "bg-rose-500", text: "text-rose-500", border: "border-rose-500", hoverBg: "hover:bg-rose-50", ring: "ring-rose-500" },
+    "District": { primary: "rose-500", bg: "bg-rose-500", text: "text-rose-500", border: "border-rose-500", hoverBg: "hover:bg-rose-50", ring: "ring-rose-500" },
+    "Admin": { primary: "emerald-500", bg: "bg-emerald-500", text: "text-emerald-500", border: "border-emerald-500", hoverBg: "hover:bg-emerald-50", ring: "ring-emerald-500" },
+    "Analytics": { primary: "orange-500", bg: "bg-orange-500", text: "text-orange-500", border: "border-orange-500", hoverBg: "hover:bg-orange-50", ring: "ring-orange-500" }
+  };
+
+  const theme = appThemes[activeApp] || appThemes["Classes"];
+  const popoutRef = useRef(null);
+  const searchRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const appsMenuRef = useRef(null);
+  const isLeft = sidebarSide === 'left';
+
+  // Navigation Items Dynamic Mapping
+  const classesNavItems = [
+    { id: 'classes', name: 'Classes', icon: Layers, type: 'link' },
+    { id: 'archive', name: 'Archive', icon: Archive, type: 'link' }
+  ];
+  const randomizerNavItems = [
+    { id: 'classes-panel', name: 'Classes', icon: Layers, type: 'panel' },
+    { id: 'randomizer', name: 'Randomizer', icon: Shuffle, type: 'link' },
+    { id: 'wheel', name: 'Wheel of Names', icon: CircleDashed, type: 'link' },
+    { id: 'cards', name: 'Pick a Card', icon: SquareStack, type: 'link' },
+    { id: 'pull', name: 'Pull A Name', icon: Inbox, type: 'link' }
+  ];
+  const navigationItems = activeApp === 'Classes' ? classesNavItems : randomizerNavItems;
+
+  const sidebarWidth = isSidebarOpen ? 'w-64' : 'w-20';
+  const navHeight = 'h-16';
+
+  // Global Effects
+  useEffect(() => {
+    const handleResize = () => {
+      setUseOverlaySearch(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (popoutRef.current && !popoutRef.current.contains(event.target)) {
+        setPopoutItem(null);
+      }
+      if (searchRef.current && !searchRef.current.contains(event.target) && !searchQuery) {
+        setIsSearchExpanded(false);
+      }
+      if (appsMenuRef.current && !appsMenuRef.current.contains(event.target)) {
+        setIsAppsMenuOpen(false);
+      }
+      if (activeListRef.current && !activeListRef.current.contains(event.target)) {
+        setShowActiveList(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [searchQuery]);
+
+  // Expose API
+  useEffect(() => {
+    window.EduHubAPI = window.EduHubAPI || {};
+    window.EduHubAPI.getClasses = () => classes;
+    window.EduHubAPI.getSelectedClass = () => selectedClass;
+    window.EduHubAPI.getSelectedStudent = () => selectedClassStudent;
+  }, [classes, selectedClass, selectedClassStudent]);
+
+  // Classes specific Effects
+  useEffect(() => {
+    const closeCardMenu = () => setOpenCardMenu(null);
+    if (openCardMenu !== null) {
+      document.addEventListener('click', closeCardMenu);
+    }
+    return () => document.removeEventListener('click', closeCardMenu);
+  }, [openCardMenu]);
+
+  // Randomizer specific Effects
+  useEffect(() => {
+    if (!randomizerSelectedClass && classes.length > 0) {
+      setRandomizerSelectedClass(classes[0]);
+      setActiveStudents(classes[0].studentList || []);
+    }
+  }, [classes, randomizerSelectedClass]);
+
+  // Keep Randomizer synced with live Class updates (like emoji changes)
+  useEffect(() => {
+    if (randomizerSelectedClass) {
+      const updatedClass = classes.find(c => c.id === randomizerSelectedClass.id);
+      
+      // If the class roster has been modified
+      if (updatedClass && updatedClass.studentList !== randomizerSelectedClass.studentList) {
+        setRandomizerSelectedClass(updatedClass);
+        
+        // Helper to grab fresh data for a specific student without breaking object references if unchanged
+        const syncStudent = (student) => {
+          if (!student) return student;
+          const freshData = updatedClass.studentList?.find(s => s.name === student.name);
+          if (freshData && (freshData.emoji !== student.emoji || freshData.avatar !== student.avatar)) {
+            return { ...student, ...freshData };
+          }
+          return student;
+        };
+
+        // Sync all independent Randomizer states with the new avatars
+        setActiveStudents(prev => {
+          let hasChanges = false;
+          const next = prev.map(s => {
+            const updated = syncStudent(s);
+            if (updated !== s) hasChanges = true;
+            return updated;
+          });
+          return hasChanges ? next : prev;
+        });
+
+        setSelectedRandomStudent(prev => syncStudent(prev));
+        setWheelWinner(prev => syncStudent(prev));
+        setStagedStudent(prev => syncStudent(prev));
+      }
+    }
+  }, [classes, randomizerSelectedClass]);
+
+  useEffect(() => {
+    setShuffledDeck([...activeStudents].sort(() => Math.random() - 0.5));
+    setFlippedCards(new Set());
+  }, [activeStudents]);
+
+  useEffect(() => {
+    if (activeTab === 'Pull A Name' && activeStudents.length > 0 && !stagedStudent && !hasPulledName) {
+      setStagedStudent(activeStudents[Math.floor(Math.random() * activeStudents.length)]);
+    }
+  }, [activeTab, activeStudents, stagedStudent, hasPulledName]);
+
+  // General Handlers
+  const handleItemClick = (item) => {
+    if (item.type === 'app-switch') {
+      setActiveApp(item.targetApp);
+      setExpandedItem(null);
+      setPanelItem(null);
+    } else if (item.type === 'link') {
+      if (activeApp === 'Classes') setClassesTab(item.name);
+      else setRandomizerTab(item.name);
+      
+      setExpandedItem(null);
+      setPanelItem(null);
+    } else if (item.type === 'accordion') {
+      if (!isSidebarOpen) setIsSidebarOpen(true);
+      setExpandedItem(expandedItem === item.id ? null : item.id);
+      setPanelItem(null);
+    } else if (item.type === 'popout') {
+      setPopoutItem(popoutItem === item.id ? null : item.id);
+    } else if (item.type === 'panel') {
+      const isOpening = panelItem !== item.id;
+      setPanelItem(isOpening ? item.id : null);
+      setExpandedItem(null);
+      if (isOpening && item.id !== 'classes-panel') {
+        if (activeApp === 'Classes') setClassesTab(null);
+        else setRandomizerTab(null);
+      }
+    }
+  };
+
+  // Classes App Logic
+  const handleDragStart = (e, id) => {
+    setDraggedClassId(id);
+    e.dataTransfer.setData('text/plain', id);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragEnter = (e, id) => {
+    e.preventDefault();
+    if (draggedClassId !== null && draggedClassId !== id) {
+       setDragOverClassId(id);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDragEnd = () => {
+    if (draggedClassId !== null && dragOverClassId !== null && draggedClassId !== dragOverClassId) {
+      const oldIndex = classes.findIndex(c => c.id === draggedClassId);
+      const newIndex = classes.findIndex(c => c.id === dragOverClassId);
+      
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newClasses = [...classes];
+        const [movedItem] = newClasses.splice(oldIndex, 1);
+        newClasses.splice(newIndex, 0, movedItem);
+        setClasses(newClasses);
+      }
+    }
+    setDraggedClassId(null);
+    setDragOverClassId(null);
+  };
+
+  const handleEmojiSelect = (emoji) => {
+    const updatedStudent = { ...selectedClassStudent, emoji };
+    setSelectedClassStudent(updatedStudent);
+
+    const updatedClasses = classes.map(cls => {
+      if (selectedClass && cls.id === selectedClass.id) {
+        return {
+          ...cls,
+          studentList: cls.studentList.map(s => 
+            (s.name === selectedClassStudent.name && s.id === selectedClassStudent.id) ? updatedStudent : s
+          )
+        };
+      }
+      return cls;
+    });
+    
+    setClasses(updatedClasses);
+    if (selectedClass) {
+      setSelectedClass(updatedClasses.find(c => c.id === selectedClass.id));
+    }
+    setIsEmojiPickerOpen(false);
+  };
+
+  // Randomizer App Logic
+  const pickRandomStudent = () => {
+    if (isAnimating || activeStudents.length === 0) return;
+    setIsAnimating(true);
+    
+    let shuffles = 0;
+    const maxShuffles = 12;
+    const interval = setInterval(() => {
+      const randomIndex = Math.floor(Math.random() * activeStudents.length);
+      setSelectedRandomStudent(activeStudents[randomIndex]);
+      shuffles++;
+      
+      if (shuffles >= maxShuffles) {
+        clearInterval(interval);
+        setIsAnimating(false);
+      }
+    }, 75);
+  };
+
+  const spinWheel = () => {
+    if (isSpinningWheel || activeStudents.length === 0) return;
+    setIsSpinningWheel(true);
+    setWheelWinner(null);
+
+    const spinSpins = 5 + Math.random() * 5; 
+    const extraDegrees = Math.random() * 360;
+    const totalRotation = wheelRotation + (spinSpins * 360) + extraDegrees;
+
+    setWheelRotation(totalRotation);
+
+    const normalizedRotation = totalRotation % 360;
+    const step = 360 / activeStudents.length;
+    const pointerAngle = (360 - normalizedRotation + 90) % 360;
+    const winningIndex = Math.floor(pointerAngle / step);
+
+    setTimeout(() => {
+      setIsSpinningWheel(false);
+      setWheelWinner(activeStudents[winningIndex]);
+    }, 4000);
+  };
+
+  const handleShuffleDeck = () => {
+    setShuffledDeck([...activeStudents].sort(() => Math.random() - 0.5));
+    setFlippedCards(new Set());
+  };
+
+  const onPullDragStart = (e) => {
+    if (hasPulledName) return;
+    setIsPullDragging(true);
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    setPullStartY(clientY - pullDragY);
+  };
+
+  const onPullDragMove = (e) => {
+    if (!isPullDragging || hasPulledName) return;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    let newY = clientY - pullStartY;
+    
+    if (newY > 0) newY = 0; 
+    
+    setPullDragY(newY);
+
+    if (newY < -250) {
+      setHasPulledName(true);
+      setIsPullDragging(false);
+      setPullDragY(-600);
+    }
+  };
+
+  const onPullDragEnd = () => {
+    if (!isPullDragging || hasPulledName) return;
+    setIsPullDragging(false);
+    
+    if (pullDragY > -250) {
+      setPullDragY(0); 
+    }
+  };
+
+  const resetPull = () => {
+    setHasPulledName(false);
+    setPullDragY(0);
+    setStagedStudent(null); 
+  };
+
+  const handlePullRemove = () => {
+    setActiveStudents(prev => prev.filter(s => s.id !== stagedStudent.id));
+    resetPull();
+  };
+
+  const renderActiveStudentsPopout = () => {
+    const baseStudents = randomizerSelectedClass?.studentList || STUDENT_DATABASE;
+    if (activeStudents.length === baseStudents.length) return null;
+
+    return (
+      <div className="absolute top-0 right-0 z-40 flex flex-col items-end" ref={activeListRef}>
+        <button 
+          onClick={() => setShowActiveList(!showActiveList)} 
+          className={`px-4 py-2 flex items-center space-x-1.5 rounded-full font-bold text-xs transition-all shadow-sm ${isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'}`}
+        >
+          <span>{activeStudents.length} / {baseStudents.length} Active</span>
+          <ChevronDown size={14} className={`transition-transform duration-200 ${showActiveList ? 'rotate-180' : ''}`} />
+        </button>
+
+        {showActiveList && (
+          <div className={`mt-2 w-64 max-h-[50vh] overflow-y-auto rounded-xl shadow-2xl border flex flex-col text-left animate-in fade-in slide-in-from-top-2 duration-200 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-200' : 'bg-white border-slate-200 text-slate-800'}`}>
+            <div className={`p-3 border-b flex justify-between items-center sticky top-0 z-10 ${isDarkMode ? 'bg-slate-800/95 border-slate-700 backdrop-blur-sm' : 'bg-white/95 border-slate-100 backdrop-blur-sm'}`}>
+              <span className="font-bold text-sm">Active Students</span>
+              <button 
+                onClick={() => { setActiveStudents(baseStudents); setShowActiveList(false); }} 
+                className={`text-xs font-bold ${theme.text} hover:underline`}
+              >
+                Reset All
+              </button>
+            </div>
+            <div className="p-2 flex flex-col space-y-1">
+              {activeStudents.map((s, i) => (
+                <div key={s.id || `active-student-${i}`} className={`flex items-center space-x-3 p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-50'}`}>
+                  <span className="text-lg leading-none w-8 h-8 flex items-center justify-center bg-slate-100 dark:bg-slate-700 rounded-full text-sm">{getStudentAvatar(s)}</span>
+                  <span className="text-sm font-semibold truncate">{s.name}</span>
+                </div>
+              ))}
+              {activeStudents.length === 0 && (
+                <div className="p-4 text-center text-sm opacity-50 font-medium">All students removed.</div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const contextValue = { 
+    classes, setClasses, 
+    selectedClass, setSelectedClass, 
+    selectedStudent: selectedClassStudent, 
+    setSelectedStudent: setSelectedClassStudent 
+  };
+
+  return (
+    <ClassContext.Provider value={contextValue}>
+      <div className={`flex min-h-screen font-sans transition-all duration-300 ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'} ${isLeft ? 'flex-row' : 'flex-row-reverse'}`}>
+      
+        {/* 1. PRIMARY SIDEBAR */}
+        <aside className={`relative z-50 transition-all duration-300 ease-in-out flex flex-col shadow-sm ${sidebarWidth} ${isLeft ? 'border-r' : 'border-l'} ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+          <div className={`flex items-center justify-center shrink-0 border-b ${navHeight} w-full ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+            <div className="flex items-center justify-center px-4">
+              {isSidebarOpen ? <LogoHorizontal className="h-6 w-auto" /> : <LogoIcon2x2 className="w-8 h-8" />}
+            </div>
+          </div>
+
+        <div className="pt-2 shrink-0"></div>
+
+        <nav className="flex-1 px-2 space-y-1 pt-2 pb-10 relative overflow-x-visible">
+          {navigationItems.map((item) => {
+            const isTabActive = activeTab === item.name || (item.type === 'accordion' && item.subItems?.includes(activeTab));
+            const isPanelOpen = panelItem === item.id;
+            const isVisuallyActive = isTabActive || isPanelOpen;
+            const isExpanded = expandedItem === item.id;
+            const hasPopout = popoutItem === item.id;
+
+            return (
+              <div key={item.id} className="relative">
+                <button
+                  onClick={() => handleItemClick(item)}
+                  className={`flex items-center transition-all group relative rounded-xl h-12
+                    ${isSidebarOpen ? 'w-full px-3' : 'w-16 mx-auto justify-center'}
+                    ${isVisuallyActive ? `${theme.bg} text-white shadow-lg` : `${isDarkMode ? 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}`}
+                >
+                  <div className={`flex items-center justify-center shrink-0`}>
+                    <item.icon size={20} strokeWidth={isVisuallyActive ? 2.5 : 2} />
+                  </div>
+                  {isSidebarOpen && (
+                    <>
+                      <span className="ml-4 font-semibold text-sm flex-1 text-left truncate">{item.name}</span>
+                      {item.type === 'accordion' && (
+                        <ChevronDown size={14} className={`transition-transform duration-200 shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
+                      )}
+                      {item.type === 'panel' && (
+                        <ChevronRight size={14} className={`transition-all duration-200 shrink-0 ${isLeft ? '' : 'rotate-180'} ${isPanelOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-40'}`} />
+                      )}
+                      {item.type === 'popout' && <MoreVertical size={14} className="opacity-40 shrink-0" />}
+                    </>
+                  )}
+                  {!isSidebarOpen && (
+                    <div className={`absolute ${isLeft ? 'left-full ml-4' : 'right-full mr-4'} px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-[60] whitespace-nowrap shadow-xl`}>
+                      {item.name}
+                    </div>
+                  )}
+                </button>
+                {item.type === 'accordion' && isExpanded && isSidebarOpen && item.subItems && (
+                  <div className={`mt-1 space-y-1 ${isDarkMode ? 'border-slate-800' : 'border-slate-100'} ${isLeft ? 'ml-10 border-l-2' : 'mr-10 border-r-2'}`}>
+                    {item.subItems.map(sub => (
+                      <button 
+                        key={sub}
+                        onClick={() => {
+                          if (activeApp === 'Classes') setClassesTab(sub);
+                          else setRandomizerTab(sub);
+                        }}
+                        className={`block w-full text-left py-2 px-4 text-xs font-medium transition-colors
+                          ${isLeft ? 'rounded-r-lg' : 'rounded-l-lg text-right'}
+                          ${activeTab === sub ? `${theme.text} ${isDarkMode ? 'bg-slate-800' : 'bg-slate-50'} font-bold` : `${isDarkMode ? 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/50' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50/50'}`}`}
+                      >
+                        {sub}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {item.type === 'popout' && hasPopout && item.actions && (
+                  <div 
+                    ref={popoutRef} 
+                    className={`absolute z-[100] border rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] py-2 min-w-[200px]
+                      ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}
+                      ${isLeft ? 'left-full ml-4' : 'right-full mr-4'}
+                      top-0`}
+                  >
+                    <div className={`px-3 py-2 mb-1 border-b ${isDarkMode ? 'border-slate-800/50' : 'border-slate-50'}`}>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.name} Options</p>
+                    </div>
+                    {item.actions.map(action => (
+                      <button
+                        key={action.name}
+                        className={`w-full flex items-center px-3 py-2.5 text-xs font-semibold transition-colors ${action.color || (isDarkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-50')}`}
+                        onClick={() => { 
+                          setPopoutItem(null); 
+                          if (activeApp === 'Classes') setClassesTab(`${item.name}: ${action.name}`);
+                          else setRandomizerTab(`${item.name}: ${action.name}`);
+                        }}
+                      >
+                        <div className={`w-6 h-6 rounded flex items-center justify-center mr-3 ${action.color ? 'bg-rose-50' : (isDarkMode ? 'bg-slate-800' : 'bg-slate-50')}`}>
+                           <action.icon size={12} />
+                        </div>
+                        {action.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </nav>
+
+        {/* BOTTOM QUICK SETTINGS SECTION */}
+        <div className={`p-2 border-t ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+           <div className={`flex transition-all duration-300 ${isSidebarOpen ? 'flex-row items-center space-x-2' : 'flex-col items-center space-y-2'}`}>
+              
+              {/* DARK MODE - LEFT / TOP */}
+              <button 
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className={`flex items-center justify-center rounded-xl transition-all h-12 ${isSidebarOpen ? 'flex-1 px-3' : 'w-16'} ${isDarkMode ? 'text-amber-400 bg-slate-800 hover:bg-slate-700' : 'text-slate-400 bg-slate-50 hover:bg-slate-100 hover:text-slate-900'}`}
+                title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              >
+                <div className="shrink-0 flex items-center justify-center">
+                  {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+                </div>
+                {isSidebarOpen && <span className="ml-2 text-[9px] font-black uppercase tracking-tighter whitespace-nowrap">Dark</span>}
+              </button>
+
+              {/* FLIP - MIDDLE */}
+              <button 
+                onClick={() => { setSidebarSide(isLeft ? 'right' : 'left'); setPanelItem(null); }}
+                className={`flex items-center justify-center rounded-xl transition-all h-12 ${isSidebarOpen ? 'flex-1 px-3' : 'w-16'} ${isDarkMode ? 'text-slate-500 hover:bg-slate-800 hover:text-slate-200' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`}
+                title="Flip Sidebar Side"
+              >
+                <div className="shrink-0 flex items-center justify-center">
+                  <ArrowLeftRight size={16} />
+                </div>
+                {isSidebarOpen && <span className="ml-2 text-[9px] font-black uppercase tracking-tighter whitespace-nowrap">Flip</span>}
+              </button>
+
+              {/* COLLAPSE - RIGHT / BOTTOM */}
+              <button
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className={`flex items-center justify-center transition-all rounded-xl h-12 ${isSidebarOpen ? 'flex-1 px-3' : 'mx-auto w-16'} ${isDarkMode ? 'text-slate-400 bg-slate-800/40 hover:bg-slate-700/60 hover:text-slate-200' : 'text-slate-400 bg-slate-50 hover:bg-slate-100 hover:text-slate-900'}`}
+                title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
+              >
+                <div className="shrink-0 flex items-center justify-center">
+                  {isSidebarOpen ? <ChevronLeft size={18} className={!isLeft ? 'rotate-180' : ''} /> : <Menu size={20} />}
+                </div>
+                {isSidebarOpen && <span className="ml-2 text-[9px] font-black uppercase tracking-tighter whitespace-nowrap">Menu</span>}
+              </button>
+           </div>
+        </div>
+      </aside>
+
+      {/* 2. SECONDARY SIDEBAR PANEL */}
+      <div 
+        className={`z-40 transition-all duration-300 ease-in-out overflow-hidden flex flex-col
+          ${panelItem ? 'w-72' : 'w-0'}
+          ${isDarkMode ? 'bg-slate-900' : 'bg-white'}
+          ${isLeft ? `border-r ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}` : `border-l ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}`}
+      >
+        <div className={`w-72 flex flex-col h-full transition-opacity duration-300 ${panelItem ? 'opacity-100' : 'opacity-0'}`}>
+          <div className={`flex items-center justify-between p-6 shrink-0 border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-100'} ${navHeight}`}>
+            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+              {panelItem === 'classes-panel' ? 'Select Class' : 'Resources'}
+            </h2>
+            <button onClick={() => setPanelItem(null)} className={`p-1 rounded-md transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50'}`}>
+              <X size={16} />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {panelItem === 'classes-panel' ? (
+              classes.map((cls) => {
+                const ClassIcon = iconMap[cls.icon] || BookOpen;
+                const isSelected = randomizerSelectedClass?.id === cls.id;
+                return (
+                  <button 
+                    key={cls.id}
+                    onClick={() => {
+                      setRandomizerSelectedClass(cls);
+                      setActiveStudents(cls.studentList || []);
+                      setSelectedRandomStudent(null);
+                      setWheelWinner(null);
+                      setHasPulledName(false);
+                      setStagedStudent(null);
+                      setShuffledDeck([...(cls.studentList || [])].sort(() => Math.random() - 0.5));
+                      setFlippedCards(new Set());
+                      setPanelItem(null); 
+                    }}
+                    className={`w-full flex items-center p-5 text-left group transition-all relative
+                      ${isDarkMode ? 'hover:bg-slate-800/50' : 'hover:bg-slate-50/50'}
+                      ${isSelected ? (isDarkMode ? 'bg-slate-800' : 'bg-slate-100') : ''}
+                      border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}
+                  >
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${isSelected ? 'bg-rose-500 text-white shadow-md' : isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-400 group-hover:text-white group-hover:bg-slate-700' : 'bg-slate-50 border border-slate-100 text-slate-400 group-hover:bg-white group-hover:shadow-sm'}`}>
+                      <ClassIcon size={18} />
+                    </div>
+                    <div className="ml-4 flex-1">
+                      <span className={`block text-sm font-bold transition-colors ${isSelected ? (isDarkMode ? 'text-white' : 'text-slate-900') : (isDarkMode ? 'text-slate-200' : 'text-slate-700')}`}>{cls.name}</span>
+                      <span className="block text-[10px] text-slate-500 font-medium uppercase tracking-tight">{cls.studentList?.length || 0} Students</span>
+                    </div>
+                    {isSelected && <CheckCircle size={16} className="text-rose-500" />}
+                  </button>
+                )
+              })
+            ) : (
+              navigationItems.find(i => i.id === panelItem)?.panelContent?.map((sub, index, arr) => (
+                <button 
+                  key={sub.label}
+                  onClick={() => {
+                    if (activeApp === 'Classes') setClassesTab(`Resource: ${sub.label}`);
+                    else setRandomizerTab(`Resource: ${sub.label}`);
+                  }}
+                  className={`w-full flex items-center p-5 text-left group transition-all relative
+                    ${isDarkMode ? 'hover:bg-slate-800/50' : 'hover:bg-slate-50/50'}
+                    ${index !== arr.length - 1 ? `border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}` : ''}`}
+                >
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-400 group-hover:text-white group-hover:bg-slate-700' : 'bg-slate-50 border border-slate-100 text-slate-400 group-hover:bg-white group-hover:shadow-sm'} group-hover:${theme.text} group-hover:${theme.border}`}>
+                    <sub.icon size={18} />
+                  </div>
+                  <div className="ml-4 flex-1">
+                    <span className={`block text-sm font-bold group-hover:${theme.text} transition-colors ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>{sub.label}</span>
+                    <span className="block text-[10px] text-slate-500 font-medium uppercase tracking-tight">Access files</span>
+                  </div>
+                  <ChevronRight size={14} className={`text-slate-300 opacity-0 group-hover:opacity-100 transition-all transform ${isLeft ? 'group-hover:translate-x-1' : 'rotate-180 group-hover:-translate-x-1'} group-hover:${theme.text}`} />
+                </button>
+              ))
+            )}
+          </div>
+          {panelItem !== 'classes-panel' && (
+            <div className={`p-4 border-t ${isDarkMode ? 'bg-slate-900/50 border-slate-800' : 'bg-slate-50/50 border-slate-100'}`}>
+              <button className={`w-full py-3 px-4 rounded-xl border-2 border-dashed text-xs font-bold transition-all flex items-center justify-center ${isDarkMode ? 'border-slate-800 text-slate-500 hover:border-slate-700 hover:text-slate-300' : 'border-slate-200 text-slate-400 hover:border-slate-300 hover:text-slate-600'} hover:${theme.border} hover:${theme.text}`}>
+                <Plus size={14} className="mr-2" /> Create New
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* MAIN CONTENT AREA */}
+      <div className="flex-1 flex flex-col min-w-0 relative z-10">
+        <header className={`border-b flex items-center px-6 z-20 shrink-0 ${navHeight} sticky top-0 transition-colors duration-300 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+          
+          {/* LEFT: STATIC BRANDING SECTION */}
+          <div 
+            className={`transition-all duration-500 overflow-hidden flex items-center shrink-0 ${isSearchExpanded && !useOverlaySearch ? 'w-0 opacity-0 mr-0' : 'flex-1 opacity-100 mr-4'}`}
+          >
+            <div className="flex items-center text-lg font-bold whitespace-nowrap tracking-tight">
+              <span className={isDarkMode ? 'text-white' : 'text-slate-900'}>Edu.</span>
+              <span className={theme.text}>{activeApp}</span>
+            </div>
+          </div>
+          
+          {/* MOBILE OVERLAY SEARCH */}
+          {useOverlaySearch && isSearchExpanded && (
+            <div className={`absolute inset-x-0 inset-y-0 z-50 flex items-center px-4 animate-in fade-in slide-in-from-top-2 duration-300 ${isDarkMode ? 'bg-slate-900' : 'bg-white'}`}>
+                <Search size={18} className="text-slate-400 mr-3" />
+                <input
+                    type="text"
+                    placeholder="Search..."
+                    autoFocus
+                    className={`flex-1 bg-transparent border-none outline-none text-sm font-medium ${isDarkMode ? 'text-white' : 'text-slate-900'}`}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <button onClick={() => setIsSearchExpanded(false)} className="p-2 text-slate-400 hover:text-slate-900">
+                    <X size={18} />
+                </button>
+            </div>
+          )}
+          
+          {/* NAV ACTIONS */}
+          <div className={`flex items-center justify-end flex-1 h-full relative`}>
+             
+             {!useOverlaySearch && (
+               <div 
+                  ref={searchRef} 
+                  className={`flex items-center relative transition-all duration-500 ease-in-out h-10 justify-end
+                    ${isSearchExpanded ? 'flex-1 max-w-xl mr-4' : 'w-10'}`}
+               >
+                  <div className={`relative h-full transition-all duration-500 overflow-hidden flex items-center ${isSearchExpanded ? 'w-full' : 'w-0'}`}>
+                    <div className={`absolute left-0 flex items-center justify-center w-12 h-10 z-30 ${isSearchExpanded ? theme.text : 'text-slate-400'}`}>
+                        <Search size={18} />
+                    </div>
+
+                    <input
+                      type="text"
+                      placeholder="Search resources..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className={`w-full h-full border rounded-full pl-12 pr-12 text-sm font-medium outline-none focus:outline-none transition-all duration-300 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white focus:bg-slate-700 focus:border-slate-600' : 'bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-slate-300'}`}
+                      autoFocus={isSearchExpanded}
+                    />
+                    
+                    <div className="absolute right-0 flex items-center justify-center w-12 h-10 z-30">
+                        <button 
+                            onClick={(e) => { 
+                                e.stopPropagation();
+                                if (searchQuery) {
+                                    setSearchQuery("");
+                                } else {
+                                    setIsSearchExpanded(false);
+                                }
+                            }}
+                            className={`p-1.5 text-slate-400 hover:text-slate-900 transition-all duration-300 transform
+                            ${isSearchExpanded ? 'opacity-100 scale-100' : 'opacity-0 scale-50 pointer-events-none'}`}
+                        >
+                            <X size={16} strokeWidth={2.5} />
+                        </button>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={() => setIsSearchExpanded(true)}
+                    className={`absolute right-0 p-2 text-slate-400 hover:${theme.text} rounded-full transition-all duration-300 z-20 
+                      ${isSearchExpanded ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                  >
+                    <Search size={18} />
+                  </button>
+               </div>
+             )}
+
+             {useOverlaySearch && !isSearchExpanded && (
+                <button onClick={() => setIsSearchExpanded(true)} className="p-2 text-slate-400 hover:text-slate-900 rounded-full mr-2">
+                    <Search size={18} />
+                </button>
+             )}
+             
+             {/* RIGHT-SIDE FIXED ACTIONS */}
+             <div className={`flex items-center space-x-2 shrink-0 transition-all duration-300 ${isSearchExpanded && useOverlaySearch ? 'opacity-0' : 'opacity-100'}`}>
+                <div className="relative" ref={appsMenuRef}>
+                  <button 
+                    onClick={() => setIsAppsMenuOpen(!isAppsMenuOpen)}
+                    className={`p-2 text-slate-400 hover:${theme.text} rounded-full transition-colors ${isAppsMenuOpen ? (isDarkMode ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-900') : ''}`}
+                  >
+                    <Grid size={18} />
+                  </button>
+
+                  {isAppsMenuOpen && (
+                    <div className={`absolute right-0 top-full mt-2 w-72 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border overflow-hidden animate-in fade-in zoom-in-95 duration-200 z-50 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+                      <div className={`px-4 py-3 border-b flex justify-between items-center ${isDarkMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-slate-50'}`}>
+                        <h3 className={`font-bold text-xs uppercase tracking-wider ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Mini Apps</h3>
+                      </div>
+                      <div className="p-4 grid grid-cols-3 gap-3">
+                        <button 
+                          onClick={() => { setActiveApp('Classes'); setIsAppsMenuOpen(false); }}
+                          className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all hover:-translate-y-0.5 group ${isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-slate-50'}`}
+                        >
+                           <div className={`w-12 h-12 rounded-2xl flex items-center justify-center bg-sky-100 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400 mb-2 shadow-sm transition-transform group-hover:scale-105 group-hover:rotate-3 ${activeApp === 'Classes' ? 'ring-2 ring-sky-500 ring-offset-2 dark:ring-offset-slate-900' : ''}`}>
+                             <Layers size={24} />
+                           </div>
+                           <span className={`text-[10px] font-bold ${activeApp === 'Classes' ? 'text-sky-500' : isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Classes</span>
+                        </button>
+                        <button 
+                          onClick={() => { setActiveApp('Randomizer'); setIsAppsMenuOpen(false); }}
+                          className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all hover:-translate-y-0.5 group ${isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-slate-50'}`}
+                        >
+                           <div className={`w-12 h-12 rounded-2xl flex items-center justify-center bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400 mb-2 shadow-sm transition-transform group-hover:scale-105 group-hover:rotate-3 ${activeApp === 'Randomizer' ? 'ring-2 ring-purple-500 ring-offset-2 dark:ring-offset-slate-900' : ''}`}>
+                             <Shuffle size={24} />
+                           </div>
+                           <span className={`text-[10px] font-bold ${activeApp === 'Randomizer' ? 'text-purple-500' : isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Randomizer</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <button className={`p-2 text-slate-400 hover:${theme.text} rounded-full transition-colors relative`}>
+                  <Bell size={18} />
+                  <span className={`absolute top-2.5 right-2.5 w-1.5 h-1.5 ${theme.bg} rounded-full border border-white`}></span>
+                </button>
+                <div className={`h-6 w-[1px] mx-1 shrink-0 ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`}></div>
+                <button className={`w-9 h-9 rounded-full flex items-center justify-center transition-all shadow-sm ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white hover:border-slate-600' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-white hover:shadow-md'}`}>
+                  <User size={20} strokeWidth={2} />
+                </button>
+             </div>
+          </div>
+        </header>
+
+        {activeApp === 'Classes' ? (
+          <main className="flex-1 overflow-auto p-10 relative">
+            {selectedClassStudent ? (
+              <div className="max-w-7xl mx-auto animate-in slide-in-from-right-4 duration-300">
+                {/* Detail View Header */}
+                <button 
+                  onClick={() => setSelectedClassStudent(null)} 
+                  className={`flex items-center text-sm font-bold mb-8 transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}
+                >
+                    <ArrowLeft size={16} className="mr-2" strokeWidth={2.5} /> Back to {selectedClass?.name || 'Class Roster'}
+                </button>
+
+                <div className="flex items-center mb-10">
+                    <div className="relative mr-6">
+                      <div className={`w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold ${theme.bg} bg-opacity-20 ${theme.text}`}>
+                          {selectedClassStudent.emoji ? (
+                            <span className="text-4xl">{selectedClassStudent.emoji}</span>
+                          ) : (
+                            selectedClassStudent.name ? selectedClassStudent.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'ST'
+                          )}
+                      </div>
+                      <button 
+                          onClick={() => setIsEmojiPickerOpen(true)}
+                          className={`absolute bottom-0 right-0 p-1.5 rounded-full text-white ${theme.bg} shadow-sm border-2 ${isDarkMode ? 'border-slate-900' : 'border-white'} hover:scale-110 transition-transform`}
+                          title="Change Avatar"
+                      >
+                          <Pencil size={12} strokeWidth={3} />
+                      </button>
+                    </div>
+                    <div>
+                      <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{selectedClassStudent.name}</h1>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                          <span className={`px-2.5 py-1 text-xs font-semibold rounded-md ${isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>ID: {selectedClassStudent.id || selectedClassStudent.student_id || selectedClassStudent.id_number || 'N/A'}</span>
+                      </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* LEFT: Info Column */}
+                    <div className="lg:col-span-1 space-y-6">
+                      <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+                          <h3 className={`font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Student Details</h3>
+                          <div className="space-y-4">
+                            {Object.entries(selectedClassStudent).filter(([k]) => !['name', 'id', 'student_id', 'id_number', 'emoji', 'class', 'course'].includes(k.toLowerCase())).map(([k, v]) => (
+                                <div key={k}>
+                                  <p className={`text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>{k.replace(/_/g, ' ')}</p>
+                                  <p className={`text-sm font-medium ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>{v}</p>
+                                </div>
+                            ))}
+                            {Object.keys(selectedClassStudent).filter(k => !['name', 'id', 'student_id', 'id_number', 'emoji', 'class', 'course'].includes(k.toLowerCase())).length === 0 && (
+                                <p className={`text-sm ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>No additional details provided.</p>
+                            )}
+                          </div>
+                      </div>
+                      
+                      <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+                          <h3 className={`font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Registered Classes</h3>
+                          <div className="space-y-3">
+                            {classes.filter(c => c.studentList?.some(s => s.name === selectedClassStudent.name)).length > 0 ? (
+                                classes.filter(c => c.studentList?.some(s => s.name === selectedClassStudent.name)).map(cls => {
+                                  const ClassIcon = iconMap[cls.icon] || BookOpen;
+                                  return (
+                                      <div key={cls.id} className={`flex items-center p-3 rounded-xl border transition-colors cursor-pointer ${isDarkMode ? 'bg-slate-800/30 border-slate-700 hover:bg-slate-800/60' : 'bg-slate-50 border-slate-100 hover:bg-slate-100'}`} onClick={() => { setSelectedClassStudent(null); setSelectedClass(cls); setActiveClassView('overview'); }}>
+                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 mr-3 ${theme.bg} bg-opacity-10`}>
+                                            <ClassIcon size={18} className={theme.text} />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className={`text-sm font-bold truncate ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{cls.name}</h4>
+                                            <p className={`text-xs truncate ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>{cls.subject}</p>
+                                        </div>
+                                      </div>
+                                  )
+                                })
+                            ) : (
+                                <p className={`text-sm ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Not actively enrolled in any classes.</p>
+                            )}
+                          </div>
+                      </div>
+                    </div>
+
+                    {/* RIGHT: Academic Overview */}
+                    <div className="lg:col-span-2 space-y-6">
+                      <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+                          <h3 className={`font-bold mb-4 flex items-center justify-between ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                            Academic Overview
+                          </h3>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-100'} border`}>
+                                <div className="flex items-center text-slate-400 mb-2">
+                                  <CheckCircle size={16} className="mr-2" />
+                                  <span className="text-xs font-bold uppercase tracking-wider">Current Grade</span>
+                                </div>
+                                <p className={`text-3xl font-bold ${theme.text}`}>A-</p>
+                            </div>
+                            <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-100'} border`}>
+                                <div className="flex items-center text-slate-400 mb-2">
+                                  <Activity size={16} className="mr-2" />
+                                  <span className="text-xs font-bold uppercase tracking-wider">Attendance</span>
+                                </div>
+                                <p className={`text-3xl font-bold ${theme.text}`}>98%</p>
+                            </div>
+                            <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-100'} border`}>
+                                <div className="flex items-center text-slate-400 mb-2">
+                                  <FileText size={16} className="mr-2" />
+                                  <span className="text-xs font-bold uppercase tracking-wider">Missing Work</span>
+                                </div>
+                                <p className={`text-3xl font-bold ${theme.text}`}>0</p>
+                            </div>
+                          </div>
+                      </div>
+                      
+                      <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+                          <h3 className={`font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Recent Activity</h3>
+                          <div className="space-y-4">
+                              {[1, 2, 3].map(item => (
+                                <div key={item} className={`flex items-start pb-4 border-b last:border-0 last:pb-0 ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+                                    <div className={`p-2 rounded-lg mr-4 mt-1 ${isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'}`}>
+                                      <FileText size={16} />
+                                    </div>
+                                    <div>
+                                      <h4 className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Submitted Chapter {item} Assignment</h4>
+                                      <p className={`text-xs mt-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>{item} days ago • Graded: 95/100</p>
+                                    </div>
+                                </div>
+                              ))}
+                          </div>
+                      </div>
+                    </div>
+                </div>
+              </div>
+            ) : selectedClass ? (
+              <div className="max-w-7xl mx-auto animate-in slide-in-from-right-4 duration-300">
+                {activeClassView === 'app-access' ? (
+                  <div className="animate-in fade-in duration-300">
+                      <button 
+                        onClick={() => setActiveClassView('overview')} 
+                        className={`flex items-center text-sm font-bold mb-8 transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}
+                      >
+                        <ArrowLeft size={16} className="mr-2" strokeWidth={2.5} /> Back to {selectedClass.name} Settings
+                      </button>
+                      
+                      <div className="mb-8">
+                        <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>App Access</h1>
+                        <p className={`mt-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Manage which apps are available to students in {selectedClass.name} and configure specific settings for each.</p>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {[
+                          { id: 'app1', name: 'Math Mastery', icon: Calculator, color: 'text-blue-500', bg: 'bg-blue-500' },
+                          { id: 'app2', name: 'Science Explorer', icon: FlaskConical, color: 'text-emerald-500', bg: 'bg-emerald-500' },
+                          { id: 'app3', name: 'Global Reader', icon: Globe, color: 'text-purple-500', bg: 'bg-purple-500' },
+                          { id: 'app4', name: 'Creative Canvas', icon: Palette, color: 'text-rose-500', bg: 'bg-rose-500' }
+                        ].map(app => {
+                            const AppIcon = app.icon;
+                            return (
+                            <div key={app.id} className={`p-6 rounded-2xl border transition-all hover:shadow-md ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+                              <div className="flex items-center justify-between mb-4 gap-2">
+                                  <div className="flex items-center min-w-0">
+                                    <div className={`shrink-0 w-12 h-12 rounded-xl flex items-center justify-center ${app.bg} bg-opacity-10 mr-4`}>
+                                        <AppIcon size={24} className={app.color} />
+                                    </div>
+                                    <h3 className={`font-bold text-lg truncate ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{app.name}</h3>
+                                  </div>
+                                  <div className="flex items-center space-x-2 shrink-0">
+                                    {/* Advanced Settings Button */}
+                                    <button 
+                                        onClick={() => { setSelectedAppSetting(app); setIsAppSettingModalOpen(true); }}
+                                        className={`p-1.5 shrink-0 rounded-md transition-colors ${isDarkMode ? 'text-slate-500 hover:bg-slate-800 hover:text-white' : 'text-slate-400 hover:bg-slate-100 hover:text-slate-900'}`}
+                                    >
+                                        <MoreVertical size={20} />
+                                    </button>
+                                  </div>
+                              </div>
+                              
+                              <div className={`pt-4 border-t space-y-3 ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+                                  <div className="flex justify-between items-center">
+                                    <span className={`text-sm font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>App Access</span>
+                                    {/* Toggle Switch */}
+                                    <label className="relative inline-flex items-center cursor-pointer shrink-0" title="Allow or deny access">
+                                        <input type="checkbox" className="sr-only peer" defaultChecked={app.id !== 'app4'} />
+                                        <div className={`w-11 h-6 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all ${isDarkMode ? 'bg-slate-700 peer-checked:bg-sky-500' : 'bg-slate-200 peer-checked:bg-sky-500'}`}></div>
+                                    </label>
+                                  </div>
+                                  <div className="flex justify-between items-center">
+                                    <span className={`text-sm font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Require Teacher Approval</span>
+                                    <input type="checkbox" defaultChecked={app.id === 'app2'} className="rounded border-slate-300 text-sky-500 focus:ring-sky-500 cursor-pointer w-4 h-4" />
+                                  </div>
+                                  <div className="flex justify-between items-center">
+                                    <span className={`text-sm font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Class Access Code</span>
+                                    <input 
+                                        type="text"
+                                        value={selectedClass.appCodes?.[app.id] || ''}
+                                        onChange={(e) => {
+                                          const newCode = e.target.value.toUpperCase();
+                                          const updatedAppCodes = { ...(selectedClass.appCodes || {}), [app.id]: newCode };
+                                          const updatedClass = { ...selectedClass, appCodes: updatedAppCodes };
+                                          setSelectedClass(updatedClass);
+                                          setClasses(classes.map(c => c.id === updatedClass.id ? updatedClass : c));
+                                        }}
+                                        placeholder="CODE"
+                                        maxLength={8}
+                                        className={`w-24 px-2 py-1 text-xs font-mono font-bold tracking-widest text-center rounded-md border outline-none focus:ring-2 focus:ring-opacity-50 transition-all ${theme.ring} ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-300 focus:border-transparent' : 'bg-slate-50 border-slate-200 text-slate-700 focus:border-transparent'}`} 
+                                    />
+                                  </div>
+                                  <div className="flex justify-between items-center">
+                                    <span className={`text-sm font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Daily Time Limit (mins)</span>
+                                    <input type="number" defaultValue="60" className={`w-20 px-2 py-1 text-sm font-semibold text-center rounded-lg border outline-none focus:ring-2 focus:ring-opacity-50 ${theme.ring} ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white focus:border-transparent' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-transparent'}`} />
+                                  </div>
+                              </div>
+                            </div>
+                        )})}
+                      </div>
+                  </div>
+                ) : (
+                  <div className="animate-in fade-in duration-300">
+                  {/* Detail View Header */}
+                  <button 
+                    onClick={() => { setSelectedClass(null); setActiveClassView('overview'); }} 
+                    className={`flex items-center text-sm font-bold mb-8 transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}
+                  >
+                      <ArrowLeft size={16} className="mr-2" strokeWidth={2.5} /> Back to Classes
+                  </button>
+
+                  <div className="flex items-center mb-10">
+                      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${theme.bg} bg-opacity-10 mr-5`}>
+                        {React.createElement(iconMap[selectedClass.icon] || BookOpen, { size: 32, className: theme.text })}
+                      </div>
+                      <div>
+                        <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{selectedClass.name}</h1>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                            {selectedClass.subject && <span className={`px-2.5 py-1 text-xs font-semibold rounded-md ${isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>{selectedClass.subject}</span>}
+                            {selectedClass.grade && <span className={`px-2.5 py-1 text-xs font-semibold rounded-md ${isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>{selectedClass.grade}</span>}
+                        </div>
+                      </div>
+                  </div>
+
+                  {/* Two-Column Layout for Settings & Roster */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                      
+                      {/* LEFT: Settings Column */}
+                      <div className="lg:col-span-1 space-y-4">
+                        <h2 className={`text-lg font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Class Settings</h2>
+                        
+                        <div 
+                            onClick={() => {
+                              setEditClassForm({
+                                  name: selectedClass.name || '',
+                                  subject: selectedClass.subject || '',
+                                  grade: selectedClass.grade || '',
+                                  icon: selectedClass.icon || 'BookOpen'
+                              });
+                              setIsSettingsModalOpen(true);
+                            }}
+                            className={`p-5 rounded-2xl border cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 ${isDarkMode ? 'bg-slate-900 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200 hover:border-slate-300'}`}
+                        >
+                            <div className="flex items-center mb-2">
+                              <div className={`p-2 rounded-lg mr-3 ${isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+                                <Settings size={18} />
+                              </div>
+                              <h3 className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>General Settings</h3>
+                            </div>
+                            <p className={`text-sm ml-11 ${isDarkMode ? 'text-slate-500' : 'text-slate-500'}`}>Update name, icon, and basic details.</p>
+                        </div>
+
+                        <div className={`p-5 rounded-2xl border cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 ${isDarkMode ? 'bg-slate-900 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200 hover:border-slate-300'}`}>
+                            <div className="flex items-center mb-2">
+                              <div className={`p-2 rounded-lg mr-3 ${isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+                                <FileText size={18} />
+                              </div>
+                              <h3 className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Syllabus & Materials</h3>
+                            </div>
+                            <p className={`text-sm ml-11 ${isDarkMode ? 'text-slate-500' : 'text-slate-500'}`}>Manage course outlines and links.</p>
+                        </div>
+
+                        <div className={`p-5 rounded-2xl border cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 ${isDarkMode ? 'bg-slate-900 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200 hover:border-slate-300'}`}>
+                            <div className="flex items-center mb-2">
+                              <div className={`p-2 rounded-lg mr-3 ${isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+                                <Shield size={18} />
+                              </div>
+                              <h3 className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Permissions</h3>
+                            </div>
+                            <p className={`text-sm ml-11 ${isDarkMode ? 'text-slate-500' : 'text-slate-500'}`}>Student posting and comment rules.</p>
+                        </div>
+                        
+                        <div 
+                            onClick={() => setActiveClassView('app-access')}
+                            className={`p-5 rounded-2xl border cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 ${isDarkMode ? 'bg-slate-900 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200 hover:border-slate-300'}`}
+                        >
+                            <div className="flex items-center mb-2">
+                              <div className={`p-2 rounded-lg mr-3 ${isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+                                <Grid size={18} />
+                              </div>
+                              <h3 className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>App Access</h3>
+                            </div>
+                            <p className={`text-sm ml-11 ${isDarkMode ? 'text-slate-500' : 'text-slate-500'}`}>Manage student app permissions and limits.</p>
+                        </div>
+                      </div>
+
+                      {/* RIGHT: Roster Column */}
+                      <div className="lg:col-span-2">
+                        <h2 className={`text-lg font-bold mb-4 flex items-center justify-between ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                            Student Roster
+                            <span className={`text-xs px-2.5 py-1 rounded-full font-bold ${theme.bg} text-white`}>{selectedClass.studentList?.length || 0} Students</span>
+                        </h2>
+                        
+                        <div className={`rounded-2xl border overflow-hidden ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+                            {(!selectedClass.studentList || selectedClass.studentList.length === 0) ? (
+                              <div className={`p-8 text-center text-sm ${isDarkMode ? 'text-slate-500' : 'text-slate-500'}`}>
+                                  No students have been added to this roster yet.
+                              </div>
+                            ) : (
+                              selectedClass.studentList.map((student, i) => (
+                                  <div key={student.id || `roster-${i}`} onClick={() => setSelectedClassStudent(student)} className={`flex items-center p-4 border-b last:border-b-0 transition-colors cursor-pointer ${isDarkMode ? 'border-slate-800 hover:bg-slate-800/50' : 'border-slate-100 hover:bg-slate-50/80'}`}>
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm mr-4 ${theme.bg} bg-opacity-20 ${theme.text}`}>
+                                        {student.emoji ? (
+                                          <span className="text-xl">{student.emoji}</span>
+                                        ) : (
+                                          student.name ? student.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'ST'
+                                        )}
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className={`font-bold text-sm ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{student.name}</h4>
+                                        <div className="flex flex-wrap gap-x-3 gap-y-1 mt-0.5">
+                                          <p className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                                              ID: {student.id || student.student_id || student.id_number || `#902${i}1${i * 3}`}
+                                          </p>
+                                        </div>
+                                    </div>
+                                    <button onClick={(e) => e.stopPropagation()} className={`p-2 rounded-md transition-colors ${isDarkMode ? 'text-slate-500 hover:bg-slate-800 hover:text-white' : 'text-slate-400 hover:bg-slate-100 hover:text-slate-900'}`}>
+                                        <MoreVertical size={16}/>
+                                    </button>
+                                  </div>
+                              ))
+                            )}
+                        </div>
+                      </div>
+                  </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <div className="mb-8 max-w-7xl mx-auto">
+                  <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                      {activeTab === 'Archive' ? 'Archived Classes' : 'My Classes'}
+                  </h1>
+                  <p className={`text-sm mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                      {activeTab === 'Archive' ? 'View and restore your archived classes.' : 'Manage and view all your active classes.'}
+                  </p>
+                </div>
+                
+                <div className="max-w-7xl mx-auto">
+                  {classes.filter(c => activeTab === 'Archive' ? c.isArchived : !c.isArchived).length === 0 ? (
+                    <div className={`flex flex-col items-center justify-center h-64 border-2 border-dashed rounded-2xl ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}>
+                      <p className={`text-slate-500`}>
+                          {activeTab === 'Archive' ? 'No archived classes.' : 'No classes added yet. Click the + button to create one.'}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                      {classes.filter(c => activeTab === 'Archive' ? c.isArchived : !c.isArchived).map(cls => {
+                        const CardIcon = iconMap[cls.icon] || BookOpen;
+                        return (
+                        <div 
+                          key={cls.id} 
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, cls.id)}
+                          onDragEnter={(e) => handleDragEnter(e, cls.id)}
+                          onDragOver={handleDragOver}
+                          onDragEnd={handleDragEnd}
+                          onDrop={(e) => e.preventDefault()}
+                          onClick={() => { setSelectedClass(cls); setActiveClassView('overview'); }}
+                          className={`group relative rounded-2xl p-6 border transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] cursor-pointer ${isDarkMode ? 'bg-slate-900 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200 hover:border-slate-300'} ${draggedClassId === cls.id ? 'opacity-40 scale-95 z-10' : 'hover:-translate-y-1'} ${dragOverClassId === cls.id && draggedClassId !== cls.id ? `ring-2 ring-offset-2 ${theme.ring} scale-105 z-20 ${isDarkMode ? 'ring-offset-slate-950' : 'ring-offset-slate-50'}` : ''}`}
+                        >
+                          <div className="flex justify-between items-start mb-4">
+                              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${theme.bg} bg-opacity-10`}>
+                                <CardIcon size={24} className={theme.text} />
+                              </div>
+                              <div className="relative">
+                                <button 
+                                  onClick={(e) => {
+                                      e.stopPropagation();
+                                      setOpenCardMenu(openCardMenu === cls.id ? null : cls.id);
+                                  }} 
+                                  className={`p-1.5 rounded-md transition-opacity ${isDarkMode ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-500'} ${openCardMenu === cls.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                                >
+                                    <MoreHorizontal size={20} />
+                                </button>
+                                
+                                {openCardMenu === cls.id && (
+                                  <div 
+                                    className={`absolute right-0 top-full mt-1 w-40 z-50 rounded-xl shadow-lg border overflow-hidden animate-in fade-in zoom-in-95 duration-200 ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}
+                                    onClick={e => e.stopPropagation()}
+                                  >
+                                    <div className="p-1">
+                                      <button 
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setClasses(classes.map(c => c.id === cls.id ? { ...c, isArchived: !c.isArchived } : c));
+                                          setOpenCardMenu(null);
+                                        }}
+                                        className={`w-full text-left px-3 py-2 text-sm font-semibold rounded-lg flex items-center transition-colors ${isDarkMode ? 'hover:bg-slate-700 text-slate-300' : 'hover:bg-slate-50 text-slate-700'}`}
+                                      >
+                                        <Archive size={16} className="mr-2" /> 
+                                        {cls.isArchived ? 'Unarchive' : 'Archive'}
+                                      </button>
+                                      <button 
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setClasses(classes.filter(c => c.id !== cls.id));
+                                          setOpenCardMenu(null);
+                                        }}
+                                        className={`w-full text-left px-3 py-2 text-sm font-semibold rounded-lg flex items-center transition-colors mt-1 text-rose-500 ${isDarkMode ? 'hover:bg-rose-500/10' : 'hover:bg-rose-50'}`}
+                                      >
+                                        <Trash2 size={16} className="mr-2" /> 
+                                        Delete
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                          </div>
+                          <h3 className={`font-bold text-lg mb-2 truncate ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{cls.name}</h3>
+                          <div className="flex flex-wrap gap-2 mt-3">
+                              {cls.subject && <span className={`px-2.5 py-1 text-xs font-semibold rounded-md ${isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>{cls.subject}</span>}
+                              {cls.grade && <span className={`px-2.5 py-1 text-xs font-semibold rounded-md ${isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>{cls.grade}</span>}
+                          </div>
+                        </div>
+                      )})}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </main>
+        ) : (
+          <main className="flex-1 overflow-hidden relative flex items-center justify-center p-6 sm:p-10">
+            {/* TAB 1: RANDOMIZER */}
+            {activeTab === 'Randomizer' && (
+              selectedRandomStudent ? (
+                <div className={`flex flex-col items-center justify-center p-12 rounded-3xl transition-all duration-300 ${isDarkMode ? 'bg-slate-900 border-slate-800 shadow-[0_0_40px_rgba(0,0,0,0.3)]' : 'bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-slate-100'} ${isAnimating ? 'scale-95 opacity-50' : 'scale-100 opacity-100'}`}>
+                  <div className="text-[100px] sm:text-[120px] leading-none mb-6 drop-shadow-xl w-48 h-48 sm:w-56 sm:h-56 rounded-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 select-none">
+                     {getStudentAvatar(selectedRandomStudent)}
+                  </div>
+                  <h2 className={`text-4xl sm:text-5xl font-black text-center ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{selectedRandomStudent.name}</h2>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center text-center opacity-60">
+                  <Shuffle size={40} className={isDarkMode ? 'text-slate-600' : 'text-slate-400'} />
+                  <h3 className={`text-2xl font-bold mt-6 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Ready to pick a student</h3>
+                  {randomizerSelectedClass && (
+                    <p className={`mt-2 font-medium ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>from {randomizerSelectedClass.name}</p>
+                  )}
+                </div>
+              )
+            )}
+
+            {/* TAB 2: WHEEL OF NAMES */}
+            {activeTab === 'Wheel of Names' && (
+              <div className="w-full h-full flex flex-col items-center justify-center relative">
+                {renderActiveStudentsPopout()}
+
+                {activeStudents.length > 0 ? (
+                 <div className="relative w-[340px] h-[340px] sm:w-[480px] sm:h-[480px]">
+                    <div className="absolute right-[-15px] top-1/2 transform -translate-y-1/2 w-0 h-0 border-t-[20px] border-t-transparent border-b-[20px] border-b-transparent border-r-slate-800 dark:border-r-white z-20" style={{ borderRightWidth: '40px' }}></div>
+                    <div className="w-full h-full rounded-full overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border-[6px] border-white dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
+                      <svg
+                        viewBox="0 0 400 400"
+                        className="w-full h-full"
+                        style={{
+                          transform: `rotate(${wheelRotation}deg)`,
+                          transition: isSpinningWheel ? 'transform 4s cubic-bezier(0.15, 0.0, 0.0, 1.0)' : 'none'
+                        }}
+                      >
+                        {activeStudents.map((student, i) => {
+                          const step = 360 / activeStudents.length;
+                          const startAngle = i * step;
+                          const endAngle = (i + 1) * step;
+                          const startRad = (startAngle - 90) * (Math.PI / 180);
+                          const endRad = (endAngle - 90) * (Math.PI / 180);
+                          const x1 = 200 + 200 * Math.cos(startRad);
+                          const y1 = 200 + 200 * Math.sin(startRad);
+                          const x2 = 200 + 200 * Math.cos(endRad);
+                          const y2 = 200 + 200 * Math.sin(endRad);
+                          
+                          const pathD = `M 200 200 L ${x1} ${y1} A 200 200 0 ${step > 180 ? 1 : 0} 1 ${x2} ${y2} Z`;
+                          
+                          const colors = ['#f43f5e', '#0ea5e9', '#10b981', '#f97316', '#f59e0b', '#a855f7'];
+                          return (
+                            <g key={student.id || `wheel-student-${i}`}>
+                              <path d={pathD} fill={colors[i % colors.length]} fillOpacity="0.5" stroke={isDarkMode ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.1)"} strokeWidth="1" />
+                              <g transform={`translate(200, 200) rotate(${(startAngle + endAngle) / 2 - 90})`}>
+                                <text x="185" y="0" fill={isDarkMode ? "#fff" : "#0f172a"} fontSize={activeStudents.length > 15 ? "10" : "14"} fontWeight="bold" dominantBaseline="central" textAnchor="end">
+                                  {student.name} {getStudentAvatar(student)}
+                                </text>
+                              </g>
+                            </g>
+                          );
+                        })}
+                      </svg>
+                    </div>
+                    <button onClick={spinWheel} disabled={isSpinningWheel} className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-white dark:bg-slate-900 rounded-full shadow-lg border-[6px] border-slate-100 dark:border-slate-800 flex items-center justify-center z-10 font-black text-xl">SPIN</button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center text-center opacity-60">
+                    <div className={`w-24 h-24 mb-6 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`}>
+                        <CircleDashed size={40} className={isDarkMode ? 'text-slate-600' : 'text-slate-400'} />
+                    </div>
+                    <h3 className={`text-2xl font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>All students removed</h3>
+                  </div>
+                )}
+
+                {wheelWinner && !isSpinningWheel && (
+                  <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/70 dark:bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className={`flex flex-col items-center p-12 rounded-3xl ${isDarkMode ? 'bg-slate-900 shadow-2xl' : 'bg-white shadow-xl'}`}>
+                      <div className="text-[100px] leading-none mb-6 drop-shadow-2xl w-40 h-40 rounded-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 select-none">
+                         {getStudentAvatar(wheelWinner)}
+                      </div>
+                      <h2 className="text-4xl font-black">{wheelWinner.name}</h2>
+                      <div className="mt-10 flex items-center space-x-4">
+                        <button 
+                          onClick={() => {
+                            setActiveStudents(prev => prev.filter(s => s.id !== wheelWinner.id));
+                            setWheelWinner(null);
+                          }}
+                          className={`px-8 py-3 rounded-full font-bold transition-all hover:scale-105 shadow-md border-2 ${isDarkMode ? 'border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white' : 'border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                        >
+                          Remove
+                        </button>
+                        <button 
+                          onClick={() => setWheelWinner(null)} 
+                          className={`px-8 py-3 rounded-full font-bold text-white transition-all hover:scale-105 shadow-lg ${theme.bg}`}
+                        >
+                          Keep & Close
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB 3: PICK A CARD */}
+            {activeTab === 'Pick a Card' && (
+              <div className="w-full h-full flex flex-col items-center relative overflow-y-auto">
+                {renderActiveStudentsPopout()}
+
+                {activeStudents.length > 0 ? (
+                  <div className="w-full max-w-7xl grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 pb-24 mt-12">
+                    {shuffledDeck.map((student, i) => {
+                      const isFlipped = flippedCards.has(student.id);
+                      return (
+                        <div
+                          key={student.id || `card-student-${i}`}
+                          onClick={() => {
+                            if (isFlipped) return;
+                            const newFlipped = new Set(flippedCards);
+                            newFlipped.add(student.id);
+                            setFlippedCards(newFlipped);
+                          }}
+                          className={`aspect-[3/4.2] cursor-pointer transition-all duration-500 [transform-style:preserve-3d] relative rounded-2xl ${isFlipped ? '[transform:rotateY(180deg)]' : 'hover:-translate-y-2 hover:shadow-xl shadow-md'}`}
+                        >
+                          <div className={`absolute inset-0 [backface-visibility:hidden] rounded-2xl border-[6px] flex items-center justify-center shadow-inner ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-300'}`}>
+                          <LogoIcon2x2 className={`w-12 h-12 opacity-100 ${theme.text}`} />
+                        </div>
+                        <div className={`absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-2xl border-[6px] flex flex-col items-center justify-center p-6 ${theme.border} ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-900'}`}>
+                          <div className="text-5xl sm:text-6xl mb-4 drop-shadow-sm w-24 h-24 rounded-full flex items-center justify-center bg-black/5 dark:bg-white/10 text-slate-400 dark:text-slate-300 select-none">
+                             {getStudentAvatar(student)}
+                          </div>
+                          <div className="text-sm font-black text-center leading-tight uppercase tracking-wide">{student.name}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full text-center opacity-60">
+                    <div className={`w-24 h-24 mb-6 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`}>
+                        <SquareStack size={40} className={isDarkMode ? 'text-slate-600' : 'text-slate-400'} />
+                    </div>
+                    <h3 className={`text-2xl font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>All students removed</h3>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB 4: INTERACTIVE PULL A NAME */}
+            {activeTab === 'Pull A Name' && (
+              <div 
+                className="w-full h-full flex flex-col items-center justify-center relative touch-none"
+                onMouseMove={onPullDragMove}
+                onMouseUp={onPullDragEnd}
+                onMouseLeave={onPullDragEnd}
+                onTouchMove={onPullDragMove}
+                onTouchEnd={onPullDragEnd}
+              >
+                {renderActiveStudentsPopout()}
+
+                {activeStudents.length > 0 ? (
+                  <div className="relative w-80 h-[420px] flex flex-col items-center justify-end">
+                     
+                     {/* Revealed Name (Underneath layer) */}
+                     <div className={`absolute inset-0 flex flex-col items-center justify-center p-8 border-4 border-dashed rounded-[2.5rem] z-0 ${isDarkMode ? 'border-slate-700 bg-slate-900/50' : 'border-slate-300 bg-slate-50/50'}`}>
+                        {stagedStudent && (
+                          <>
+                            <div className={`text-[60px] sm:text-[80px] leading-none mb-6 drop-shadow-xl transition-all duration-700 delay-300 w-32 h-32 sm:w-40 sm:h-40 rounded-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 select-none ${hasPulledName ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`}>
+                              {getStudentAvatar(stagedStudent)}
+                            </div>
+                            <h2 className={`text-3xl font-black text-center transition-all duration-700 delay-400 ${hasPulledName ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'} ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                              {stagedStudent.name}
+                            </h2>
+                            
+                            {/* Action Buttons */}
+                            <div className={`mt-8 flex flex-col w-full space-y-3 transition-all duration-500 delay-700 ${hasPulledName ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+                               <button 
+                                 onClick={handlePullRemove} 
+                                 className={`w-full py-3 rounded-full font-bold transition-all shadow-sm border-2 ${isDarkMode ? 'border-slate-700 text-slate-300 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-100'}`}
+                               >
+                                 Remove
+                               </button>
+                               <button 
+                                 onClick={resetPull} 
+                                 className={`w-full py-3 rounded-full font-bold text-white transition-all shadow-md ${theme.bg}`}
+                               >
+                                 Keep & Next
+                               </button>
+                            </div>
+                          </>
+                        )}
+                     </div>
+
+                     {/* Interactive Cover Card (Top Layer) */}
+                     <div 
+                       onMouseDown={onPullDragStart}
+                       onTouchStart={onPullDragStart}
+                       className={`absolute inset-0 w-full h-full rounded-[2.5rem] border-[6px] shadow-2xl flex flex-col items-center justify-center z-10 cursor-grab active:cursor-grabbing ${!isPullDragging && !hasPulledName ? 'transition-transform duration-300' : hasPulledName ? 'transition-all duration-700 ease-in-out' : 'duration-0'} ${theme.bg} ${theme.border}`}
+                       style={{ 
+                         transform: `translateY(${pullDragY}px) ${hasPulledName ? 'rotate(-5deg) scale(0.9)' : ''}`,
+                         opacity: hasPulledName ? 0 : 1,
+                         pointerEvents: hasPulledName ? 'none' : 'auto'
+                       }}
+                     >
+                        <div className="absolute top-6 w-16 h-1.5 bg-white/40 rounded-full"></div>
+                        <LogoIcon2x2 className="w-20 h-20 text-white mb-6 drop-shadow-md" />
+                        <div className="text-white font-black text-2xl tracking-widest uppercase drop-shadow-sm">Pull A Name</div>
+                        
+                        <div className="absolute bottom-10 flex flex-col items-center opacity-80">
+                           <GripHorizontal className="text-white mb-2" size={24} />
+                           <span className="text-white text-xs font-bold uppercase tracking-wider">Drag Up</span>
+                        </div>
+                     </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center text-center opacity-60">
+                    <div className={`w-24 h-24 mb-6 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`}>
+                        <Inbox size={40} className={isDarkMode ? 'text-slate-600' : 'text-slate-400'} />
+                    </div>
+                    <h3 className={`text-2xl font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>All students removed</h3>
+                  </div>
+                )}
+              </div>
+            )}
+          </main>
+        )}
+
+        {/* Global Floating Action Buttons */}
+        {activeApp === 'Classes' && !selectedClass && (
+          <button 
+            onClick={() => setIsAddClassModalOpen(true)}
+            className={`absolute bottom-8 ${isLeft ? 'right-8' : 'left-8'} z-50 w-14 h-14 rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.12)] text-white transition-all duration-300 hover:shadow-xl hover:-translate-y-1 active:translate-y-0 active:scale-95 ${theme.bg}`}
+            title="Add New"
+          >
+            <Plus size={24} strokeWidth={2.5} />
+          </button>
+        )}
+
+        {activeApp === 'Randomizer' && activeTab !== 'Pull A Name' && (
+          <button 
+            onClick={
+              activeTab === 'Randomizer' ? pickRandomStudent : 
+              activeTab === 'Wheel of Names' ? spinWheel :
+              handleShuffleDeck
+            }
+            disabled={(activeTab !== 'Randomizer' && activeStudents.length === 0)}
+            className={`absolute bottom-8 right-8 w-16 h-16 rounded-full flex items-center justify-center text-white shadow-xl transition-all duration-300 z-50 ${theme.bg} ${isAnimating || isSpinningWheel ? 'animate-pulse' : 'hover:scale-110 hover:shadow-2xl'} disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed`}
+            aria-label="Action"
+          >
+            {activeTab === 'Randomizer' ? <Plus size={32} /> : 
+             activeTab === 'Wheel of Names' ? <Play size={28} /> : 
+             <Shuffle size={28} />}
+          </button>
+        )}
+
+      </div>
+
+      {/* ADD CLASS MODAL */}
+      {isAddClassModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div 
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" 
+            onClick={() => {
+              setIsAddClassModalOpen(false);
+              setModalStep(1);
+              setStudentAddMethod(null);
+              setManualStudents('');
+              setCsvFileName('');
+              setParsedCsvStudents([]);
+            }}
+          ></div>
+          
+          <div className={`relative w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 ${isDarkMode ? 'bg-slate-900 border border-slate-800' : 'bg-white'}`}>
+            <div className={`px-6 py-4 border-b flex justify-between items-center ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+              <div className="flex items-center">
+                {modalStep === 2 && (
+                   <button onClick={() => setModalStep(1)} className={`mr-2 p-1 rounded-full transition-colors ${isDarkMode ? 'text-slate-400 hover:bg-slate-800' : 'text-slate-500 hover:bg-slate-100'}`}>
+                      <ArrowLeft size={16} strokeWidth={3} />
+                   </button>
+                )}
+                <h3 className={`font-bold text-lg ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                  {modalStep === 1 ? 'Create New Class' : 'Add Students'}
+                </h3>
+              </div>
+              <button 
+                onClick={() => {
+                  setIsAddClassModalOpen(false);
+                  setModalStep(1);
+                  setStudentAddMethod(null);
+                  setManualStudents('');
+                  setCsvFileName('');
+                  setParsedCsvStudents([]);
+                }} 
+                className={`p-1.5 rounded-full transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            {modalStep === 1 ? (
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className={`block text-sm font-semibold mb-2 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Class Icon</label>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.keys(iconMap).map(iconName => {
+                      const IconComp = iconMap[iconName];
+                      const isSelected = newClassForm.icon === iconName;
+                      return (
+                        <button
+                          key={iconName}
+                          onClick={() => setNewClassForm({...newClassForm, icon: iconName})}
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${isSelected ? `${theme.bg} text-white shadow-md` : isDarkMode ? 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700'}`}
+                          type="button"
+                        >
+                          <IconComp size={20} strokeWidth={isSelected ? 2.5 : 2} />
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+                <div>
+                  <label className={`block text-sm font-semibold mb-1.5 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Class Name</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Advanced Biology"
+                    value={newClassForm.name}
+                    onChange={e => setNewClassForm({...newClassForm, name: e.target.value})}
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm transition-all outline-none focus:ring-2 focus:ring-opacity-50 focus:border-transparent ${theme.ring} ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400'}`}
+                  />
+                </div>
+                <div>
+                  <label className={`block text-sm font-semibold mb-1.5 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Subject</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Science"
+                    value={newClassForm.subject}
+                    onChange={e => setNewClassForm({...newClassForm, subject: e.target.value})}
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm transition-all outline-none focus:ring-2 focus:ring-opacity-50 focus:border-transparent ${theme.ring} ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400'}`}
+                  />
+                </div>
+                <div>
+                  <label className={`block text-sm font-semibold mb-1.5 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Grade Level</label>
+                  <select 
+                    value={newClassForm.grade}
+                    onChange={e => setNewClassForm({...newClassForm, grade: e.target.value})}
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm transition-all outline-none focus:ring-2 focus:ring-opacity-50 focus:border-transparent appearance-none ${theme.ring} ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`}
+                  >
+                    <option value="" disabled>Select a grade level...</option>
+                    <option value="Pre-K">Pre-K</option>
+                    <option value="Kindergarten">Kindergarten</option>
+                    <option value="1st Grade">1st Grade</option>
+                    <option value="2nd Grade">2nd Grade</option>
+                    <option value="3rd Grade">3rd Grade</option>
+                    <option value="4th Grade">4th Grade</option>
+                    <option value="5th Grade">5th Grade</option>
+                    <option value="6th Grade">6th Grade</option>
+                    <option value="7th Grade">7th Grade</option>
+                    <option value="8th Grade">8th Grade</option>
+                    <option value="9th Grade">9th Grade</option>
+                    <option value="10th Grade">10th Grade</option>
+                    <option value="11th Grade">11th Grade</option>
+                    <option value="12th Grade">12th Grade</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+            ) : (
+              <div className="p-6 space-y-4 animate-in slide-in-from-right-4 duration-300">
+                <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>How would you like to import your class roster?</p>
+                
+                <div className="space-y-3">
+                  <button 
+                    onClick={() => setStudentAddMethod('csv')} 
+                    className={`w-full p-4 border rounded-xl flex items-center transition-all ${studentAddMethod === 'csv' ? `${theme.border} ${isDarkMode ? 'bg-slate-800/80' : 'bg-slate-50'} ring-1 ${theme.ring}` : `${isDarkMode ? 'border-slate-800 hover:border-slate-700 hover:bg-slate-800/40' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'}`}`}
+                  >
+                    <div className={`p-2 rounded-lg mr-4 ${studentAddMethod === 'csv' ? `${theme.bg} text-white` : isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'}`}>
+                       <UploadCloud size={20} />
+                    </div>
+                    <div className="text-left flex-1">
+                      <p className={`font-bold text-sm ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Upload CSV</p>
+                      <p className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-500'}`}>Import from a spreadsheet file</p>
+                    </div>
+                  </button>
+
+                  <button 
+                    onClick={() => setStudentAddMethod('google')} 
+                    className={`w-full p-4 border rounded-xl flex items-center transition-all ${studentAddMethod === 'google' ? `${theme.border} ${isDarkMode ? 'bg-slate-800/80' : 'bg-slate-50'} ring-1 ${theme.ring}` : `${isDarkMode ? 'border-slate-800 hover:border-slate-700 hover:bg-slate-800/40' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'}`}`}
+                  >
+                    <div className={`p-2 rounded-lg mr-4 ${studentAddMethod === 'google' ? `${theme.bg} text-white` : isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'}`}>
+                       <Link2 size={20} />
+                    </div>
+                    <div className="text-left flex-1">
+                      <p className={`font-bold text-sm ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Google Classroom</p>
+                      <p className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-500'}`}>Sync with an existing classroom</p>
+                    </div>
+                  </button>
+
+                  <button 
+                    onClick={() => setStudentAddMethod('manual')} 
+                    className={`w-full p-4 border rounded-xl flex items-center transition-all ${studentAddMethod === 'manual' ? `${theme.border} ${isDarkMode ? 'bg-slate-800/80' : 'bg-slate-50'} ring-1 ${theme.ring}` : `${isDarkMode ? 'border-slate-800 hover:border-slate-700 hover:bg-slate-800/40' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'}`}`}
+                  >
+                    <div className={`p-2 rounded-lg mr-4 ${studentAddMethod === 'manual' ? `${theme.bg} text-white` : isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'}`}>
+                       <UserPlus size={20} />
+                    </div>
+                    <div className="text-left flex-1">
+                      <p className={`font-bold text-sm ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Manual Entry</p>
+                      <p className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-500'}`}>Type or paste student names</p>
+                    </div>
+                  </button>
+                </div>
+
+                {/* Dynamic Options Area */}
+                {studentAddMethod === 'csv' && (
+                  <div className={`mt-4 p-6 border-2 border-dashed rounded-xl flex flex-col items-center justify-center animate-in fade-in ${isDarkMode ? 'border-slate-700 bg-slate-800/50 text-slate-400' : 'border-slate-300 bg-slate-50 text-slate-500'}`}>
+                    <input 
+                      type="file" 
+                      accept=".csv" 
+                      className="hidden" 
+                      ref={fileInputRef} 
+                      onChange={(e) => {
+                         if (e.target.files && e.target.files[0]) {
+                            const file = e.target.files[0];
+                            setCsvFileName(file.name);
+                            
+                            // Read and parse the CSV file
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                               const text = event.target.result;
+                               const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
+                               if (lines.length === 0) return;
+
+                               // Helper to properly split CSV rows ignoring commas inside quotes
+                               const parseCSVLine = (line) => {
+                                 const result = [];
+                                 let current = '';
+                                 let inQuotes = false;
+                                 for (let i = 0; i < line.length; i++) {
+                                   const char = line[i];
+                                   if (char === '"') inQuotes = !inQuotes;
+                                   else if (char === ',' && !inQuotes) { result.push(current.trim()); current = ''; }
+                                   else current += char;
+                                 }
+                                 result.push(current.trim());
+                                 return result.map(s => s.replace(/(^"|"$)/g, '')); // Strip surrounding quotes
+                               };
+
+                               const headers = parseCSVLine(lines[0].toLowerCase());
+                               let nameColIdx = headers.findIndex(h => h === 'name' || h === 'student name' || h === 'student');
+                               let firstColIdx = headers.findIndex(h => h.includes('first'));
+                               let lastColIdx = headers.findIndex(h => h.includes('last'));
+
+                               // If we found header matches, we skip the first row (index 0). Otherwise, parse from row 0.
+                               const startIndex = (nameColIdx !== -1 || firstColIdx !== -1 || lastColIdx !== -1 || headers.some(h => h.includes('id') || h.includes('course'))) ? 1 : 0;
+                               
+                               const parsedNames = [];
+
+                               for (let i = startIndex; i < lines.length; i++) {
+                                  const cols = parseCSVLine(lines[i]);
+                                  let studentName = '';
+                                  
+                                  // 1. Try to pull by known header columns
+                                  if (firstColIdx !== -1 && lastColIdx !== -1) {
+                                     studentName = `${cols[firstColIdx]} ${cols[lastColIdx]}`;
+                                  } else if (nameColIdx !== -1) {
+                                     studentName = cols[nameColIdx];
+                                  } else {
+                                     // 2. Fallback: Scan row for something that looks exactly like a name (e.g. "Harper Anderson")
+                                     for (const col of cols) {
+                                        const cleanCol = col.replace(/['"-]/g, '').trim();
+                                        // Looks for 2 or 3 words, alphabet only, no numbers
+                                        if (/^[a-zA-Z]+ [a-zA-Z]+( [a-zA-Z]+)?$/.test(cleanCol) && cleanCol.length < 30) {
+                                           studentName = col;
+                                           break;
+                                        }
+                                     }
+                                  }
+                                  
+                                  if (studentName && studentName.trim() && !studentName.toLowerCase().includes('undefined')) {
+                                     // Build object with all properties
+                                     let studentData = { name: studentName.trim() };
+                                     
+                                     if (startIndex === 1) {
+                                        headers.forEach((h, idx) => {
+                                           if (idx !== nameColIdx && idx !== firstColIdx && idx !== lastColIdx && cols[idx]) {
+                                              const cleanKey = h.trim().replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                                              if (cleanKey) studentData[cleanKey] = cols[idx].trim();
+                                           }
+                                        });
+                                     } else {
+                                        cols.forEach((col, idx) => {
+                                           if (col.trim() !== studentData.name && col.trim() !== '') {
+                                              studentData[`col_${idx}`] = col.trim();
+                                           }
+                                        });
+                                     }
+
+                                     parsedNames.push(studentData);
+                                  }
+                               }
+                               
+                               setParsedCsvStudents(parsedNames);
+                            };
+                            reader.readAsText(file);
+                         }
+                      }} 
+                    />
+                    <UploadCloud size={24} className={`mb-3 transition-colors ${csvFileName ? theme.text : 'opacity-50'}`} />
+                    <p className="text-sm font-semibold mb-3">Drag and drop file here</p>
+                    
+                    {csvFileName ? (
+                       <div className={`px-4 py-2 rounded-lg text-xs font-semibold border flex items-center ${isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}>
+                         <span className="truncate max-w-[150px]">{csvFileName}</span>
+                         <button onClick={(e) => { e.stopPropagation(); setCsvFileName(''); setParsedCsvStudents([]); fileInputRef.current.value = ''; }} className="ml-2 hover:text-rose-500 transition-colors"><X size={14}/></button>
+                       </div>
+                    ) : (
+                       <button 
+                         onClick={() => fileInputRef.current?.click()}
+                         className={`px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-sm text-white hover:shadow-md hover:-translate-y-0.5 ${theme.bg}`}
+                       >
+                         Browse Files
+                       </button>
+                    )}
+                    <p className="text-[10px] mt-3 opacity-60">Supports .csv files only</p>
+                  </div>
+                )}
+                {studentAddMethod === 'google' && (
+                  <div className={`mt-4 p-4 border rounded-xl flex items-center justify-between animate-in fade-in ${isDarkMode ? 'border-slate-800 bg-slate-800/50' : 'border-slate-200 bg-slate-50/50'}`}>
+                     <div className="flex items-center">
+                        <div className="w-8 h-8 rounded bg-emerald-100 text-emerald-600 flex items-center justify-center mr-3"><BookOpen size={16}/></div>
+                        <span className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Connect Google Account</span>
+                     </div>
+                     <button className={`px-4 py-2 rounded-lg text-xs font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 ${theme.bg}`}>Connect</button>
+                  </div>
+                )}
+                {studentAddMethod === 'manual' && (
+                  <div className="mt-4 animate-in fade-in">
+                    <label className={`block text-xs font-semibold mb-1.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Student Names (Comma or line separated)</label>
+                    <textarea 
+                      rows="4" 
+                      placeholder={"e.g.\nEleanor Shellstrop, Chidi Anagonye\nJason Mendoza"}
+                      value={manualStudents}
+                      onChange={(e) => setManualStudents(e.target.value)}
+                      className={`w-full px-4 py-3 rounded-xl border text-sm transition-all outline-none focus:ring-2 focus:ring-opacity-50 focus:border-transparent resize-none ${theme.ring} ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-600' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400'}`}
+                    ></textarea>
+                  </div>
+                )}
+              </div>
+            )}
+            <div className={`px-6 py-4 border-t flex items-center justify-end space-x-3 ${isDarkMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-slate-50/50'}`}>
+              {modalStep === 1 ? (
+                <>
+                  <button 
+                    onClick={() => {
+                      setIsAddClassModalOpen(false);
+                      setModalStep(1);
+                      setStudentAddMethod(null);
+                      setManualStudents('');
+                      setCsvFileName('');
+                      setParsedCsvStudents([]);
+                    }}
+                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors ${isDarkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-200'}`}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={() => {
+                      if (!newClassForm.name.trim()) return; 
+                      setModalStep(2);
+                    }}
+                    className={`px-6 py-2 rounded-xl text-sm font-bold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 ${theme.bg}`}
+                  >
+                    Next Step
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button 
+                    onClick={() => setModalStep(1)}
+                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors ${isDarkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-200'}`}
+                  >
+                    Back
+                  </button>
+                  <button 
+                    onClick={() => {
+                      let newStudentList = [];
+                      if (studentAddMethod === 'manual' && manualStudents.trim()) {
+                         newStudentList = manualStudents.split(/[\n,]/).map(s => s.trim()).filter(s => s !== '').map((name, i) => ({ id: `manual-${Date.now()}-${i}`, name }));
+                      } else if (studentAddMethod === 'csv') {
+                         newStudentList = parsedCsvStudents.map((s, i) => ({ ...s, id: s.id || s.student_id || s.id_number || `csv-${Date.now()}-${i}` }));
+                      } else if (studentAddMethod === 'google') {
+                         newStudentList = Array.from({length: 20}, (_, i) => ({ name: `Google Student ${i+1}`, id: `G${1000 + i}` })); // Mock count for demo purposes
+                      }
+                      
+                      const newAppCodes = {
+                          app1: Math.random().toString(36).substring(2, 8).toUpperCase(),
+                          app2: Math.random().toString(36).substring(2, 8).toUpperCase(),
+                          app3: Math.random().toString(36).substring(2, 8).toUpperCase(),
+                          app4: Math.random().toString(36).substring(2, 8).toUpperCase(),
+                      };
+                      
+                      setClasses([...classes, { id: Date.now(), ...newClassForm, isArchived: false, appCodes: newAppCodes, studentList: newStudentList }]);
+                      
+                      setIsAddClassModalOpen(false);
+                      setModalStep(1);
+                      setStudentAddMethod(null);
+                      setManualStudents('');
+                      setCsvFileName('');
+                      setParsedCsvStudents([]);
+                      setNewClassForm({ name: '', subject: '', grade: '', icon: 'BookOpen' });
+                    }}
+                    className={`px-6 py-2 rounded-xl text-sm font-bold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 ${theme.bg}`}
+                  >
+                    Finish & Create
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* EMOJI PICKER MODAL */}
+      {isEmojiPickerOpen && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 animate-in fade-in duration-200">
+           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={() => setIsEmojiPickerOpen(false)}></div>
+           <div className={`relative w-full max-w-xs rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 ${isDarkMode ? 'bg-slate-900 border border-slate-800' : 'bg-white'}`}>
+              <div className={`px-4 py-3 border-b flex justify-between items-center ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+                 <h3 className={`font-bold text-sm ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Choose Avatar</h3>
+                 <button onClick={() => setIsEmojiPickerOpen(false)} className={`p-1.5 rounded-full transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`}>
+                    <X size={16} />
+                 </button>
+              </div>
+              <div className="p-4 grid grid-cols-6 gap-2 max-h-64 overflow-y-auto">
+                 {EMOJI_LIST.map((emoji, index) => (
+                    <button
+                       key={`${emoji}-${index}`}
+                       onClick={() => handleEmojiSelect(emoji)}
+                       className={`w-10 h-10 flex items-center justify-center text-2xl rounded-xl transition-all hover:scale-125 hover:z-10 ${isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-slate-50'}`}
+                    >
+                       {emoji}
+                    </button>
+                 ))}
+              </div>
+           </div>
+        </div>
+      )}
+
+      {/* GENERAL SETTINGS MODAL */}
+      {isSettingsModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={() => setIsSettingsModalOpen(false)}></div>
+          <div className={`relative w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 ${isDarkMode ? 'bg-slate-900 border border-slate-800' : 'bg-white'}`}>
+            <div className={`px-6 py-4 border-b flex justify-between items-center ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+              <h3 className={`font-bold text-lg ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>General Settings</h3>
+              <button onClick={() => setIsSettingsModalOpen(false)} className={`p-1.5 rounded-full transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`}>
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div>
+                <label className={`block text-sm font-semibold mb-2 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Class Icon</label>
+                <div className="flex flex-wrap gap-2">
+                  {Object.keys(iconMap).map(iconName => {
+                    const IconComp = iconMap[iconName];
+                    const isSelected = editClassForm.icon === iconName;
+                    return (
+                      <button
+                        key={iconName}
+                        onClick={() => setEditClassForm({...editClassForm, icon: iconName})}
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${isSelected ? `${theme.bg} text-white shadow-md` : isDarkMode ? 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700'}`}
+                        type="button"
+                      >
+                        <IconComp size={20} strokeWidth={isSelected ? 2.5 : 2} />
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+              <div>
+                <label className={`block text-sm font-semibold mb-1.5 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Class Name</label>
+                <input 
+                  type="text" 
+                  value={editClassForm.name}
+                  onChange={e => setEditClassForm({...editClassForm, name: e.target.value})}
+                  className={`w-full px-4 py-2.5 rounded-xl border text-sm transition-all outline-none focus:ring-2 focus:ring-opacity-50 focus:border-transparent ${theme.ring} ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400'}`}
+                />
+              </div>
+              <div>
+                <label className={`block text-sm font-semibold mb-1.5 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Subject</label>
+                <input 
+                  type="text" 
+                  value={editClassForm.subject}
+                  onChange={e => setEditClassForm({...editClassForm, subject: e.target.value})}
+                  className={`w-full px-4 py-2.5 rounded-xl border text-sm transition-all outline-none focus:ring-2 focus:ring-opacity-50 focus:border-transparent ${theme.ring} ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400'}`}
+                />
+              </div>
+              <div>
+                <label className={`block text-sm font-semibold mb-1.5 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Grade Level</label>
+                <select 
+                  value={editClassForm.grade}
+                  onChange={e => setEditClassForm({...editClassForm, grade: e.target.value})}
+                  className={`w-full px-4 py-2.5 rounded-xl border text-sm transition-all outline-none focus:ring-2 focus:ring-opacity-50 focus:border-transparent appearance-none ${theme.ring} ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`}
+                >
+                  <option value="" disabled>Select a grade level...</option>
+                  <option value="Pre-K">Pre-K</option>
+                  <option value="Kindergarten">Kindergarten</option>
+                  <option value="1st Grade">1st Grade</option>
+                  <option value="2nd Grade">2nd Grade</option>
+                  <option value="3rd Grade">3rd Grade</option>
+                  <option value="4th Grade">4th Grade</option>
+                  <option value="5th Grade">5th Grade</option>
+                  <option value="6th Grade">6th Grade</option>
+                  <option value="7th Grade">7th Grade</option>
+                  <option value="8th Grade">8th Grade</option>
+                  <option value="9th Grade">9th Grade</option>
+                  <option value="10th Grade">10th Grade</option>
+                  <option value="11th Grade">11th Grade</option>
+                  <option value="12th Grade">12th Grade</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className={`px-6 py-4 border-t flex items-center justify-end space-x-3 ${isDarkMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-slate-50/50'}`}>
+              <button 
+                onClick={() => setIsSettingsModalOpen(false)}
+                className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors ${isDarkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-200'}`}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => {
+                  if (!editClassForm.name.trim()) return;
+                  const updatedClass = { ...selectedClass, ...editClassForm };
+                  setSelectedClass(updatedClass);
+                  setClasses(classes.map(c => c.id === updatedClass.id ? updatedClass : c));
+                  setIsSettingsModalOpen(false);
+                }}
+                className={`px-6 py-2 rounded-xl text-sm font-bold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 ${theme.bg}`}
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* IN-DEPTH APP SETTINGS MODAL */}
+      {isAppSettingModalOpen && selectedAppSetting && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={() => setIsAppSettingModalOpen(false)}></div>
+          <div className={`relative w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 ${isDarkMode ? 'bg-slate-900 border border-slate-800' : 'bg-white'}`}>
+            <div className={`px-6 py-4 border-b flex justify-between items-center ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+              <div className="flex items-center">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${selectedAppSetting.bg} bg-opacity-10 mr-3`}>
+                      <selectedAppSetting.icon size={16} className={selectedAppSetting.color} />
+                  </div>
+                  <h3 className={`font-bold text-lg ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{selectedAppSetting.name} Advanced Settings</h3>
+              </div>
+              <button onClick={() => setIsAppSettingModalOpen(false)} className={`p-1.5 rounded-full transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`}>
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+               <div>
+                  <h4 className={`text-sm font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Access Controls</h4>
+                  <div className="space-y-3">
+                      <label className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition-colors ${isDarkMode ? 'border-slate-800 bg-slate-800/30 hover:bg-slate-800/50' : 'border-slate-200 bg-slate-50 hover:bg-slate-100'}`}>
+                          <span className={`text-sm font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Allow off-hours access</span>
+                          <input type="checkbox" className={`rounded border-slate-300 focus:ring-2 focus:ring-opacity-50 cursor-pointer w-4 h-4 ${theme.text} ${theme.ring}`} />
+                      </label>
+                      <label className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition-colors ${isDarkMode ? 'border-slate-800 bg-slate-800/30 hover:bg-slate-800/50' : 'border-slate-200 bg-slate-50 hover:bg-slate-100'}`}>
+                          <span className={`text-sm font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Require School Network IP</span>
+                          <input type="checkbox" defaultChecked className={`rounded border-slate-300 focus:ring-2 focus:ring-opacity-50 cursor-pointer w-4 h-4 ${theme.text} ${theme.ring}`} />
+                      </label>
+                  </div>
+               </div>
+               
+               <div>
+                  <h4 className={`text-sm font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Data & Syncing</h4>
+                  <div className="space-y-3">
+                      <label className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition-colors ${isDarkMode ? 'border-slate-800 bg-slate-800/30 hover:bg-slate-800/50' : 'border-slate-200 bg-slate-50 hover:bg-slate-100'}`}>
+                          <span className={`text-sm font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Sync grades automatically</span>
+                          <input type="checkbox" defaultChecked className={`rounded border-slate-300 focus:ring-2 focus:ring-opacity-50 cursor-pointer w-4 h-4 ${theme.text} ${theme.ring}`} />
+                      </label>
+                  </div>
+               </div>
+            </div>
+            
+            <div className={`px-6 py-4 border-t flex items-center justify-end space-x-3 ${isDarkMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-slate-50/50'}`}>
+              <button 
+                onClick={() => setIsAppSettingModalOpen(false)}
+                className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors ${isDarkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-200'}`}
+              >
+                Close
+              </button>
+              <button 
+                onClick={() => setIsAppSettingModalOpen(false)}
+                className={`px-6 py-2 rounded-xl text-sm font-bold text-white shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 ${theme.bg}`}
+              >
+                Save Settings
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      </div>
+    </ClassContext.Provider>
+  );
+};
+
+export default App;

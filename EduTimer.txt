@@ -1,0 +1,2548 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { 
+  Menu, 
+  ChevronLeft, 
+  ChevronDown,
+  Home, 
+  BarChart2, 
+  Users, 
+  Settings, 
+  HelpCircle, 
+  Layers,
+  ArrowLeftRight,
+  Bell,
+  Search,
+  MoreVertical,
+  Plus,
+  Edit,
+  Trash2,
+  ExternalLink,
+  Library,
+  ChevronRight,
+  Inbox,
+  Send,
+  Archive,
+  Grid,
+  User,
+  X,
+  Sun,
+  Moon,
+  Play,
+  Pause,
+  RotateCcw,
+  Clock,
+  Timer as TimerIcon,
+  Globe,
+  Loader2,
+  Maximize,
+  Minimize,
+  Keyboard,
+  Delete,
+  Check
+} from 'lucide-react';
+
+/**
+ * Replace this with your actual Google Maps API Key to enable global small-town search.
+ * It requires the "Geocoding API" and "Time Zone API" to be enabled in your Google Cloud Console.
+ */
+const GOOGLE_MAPS_API_KEY = "YOUR_API_KEY_HERE"; 
+
+/**
+ * EduHub Primary Logo Components
+ */
+const LogoHorizontal = ({ className = "h-8 w-auto" }) => (
+  <svg viewBox="0 0 100 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <circle cx="12" cy="12" r="9.5" className="text-rose-500" />
+    <path d="M37 3 L46 19 H28 L37 3 Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" className="text-orange-500" />
+    <rect x="53" y="2.5" width="19" height="19" rx="3" className="text-emerald-500" />
+    <path d="M88 4 C 96 4, 98 12, 94 18 C 88 24, 78 18, 80 10 C 82 4, 94 8, 92 14 C 90 20, 82 18, 84 12 C 86 6, 92 10, 88 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky-500" />
+  </svg>
+);
+
+const LogoIcon2x2 = ({ className = "w-16 h-16" }) => (
+  <svg viewBox="0 0 44 44" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <circle cx="10" cy="10" r="8" className="text-rose-500" />
+    <path d="M34 2 L42 18 H26 L34 2 Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" className="text-orange-500" />
+    <rect x="2" y="26" width="16" height="16" rx="3" className="text-emerald-500" />
+    <path d="M34 26 C 40 26, 42 32, 39 36 C 34 41, 27 37, 28 31 C 29 27, 38 30, 37 34 C 36 38, 30 37, 31 32 C 32 28, 37 31, 34 35" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky-500" />
+  </svg>
+);
+
+/**
+ * MOCK DATABASE: 23 Students
+ */
+const CLASS_LIST = [
+  { id: 1, name: "Aiden Thompson", avatar: "🦁", group: "Red" },
+  { id: 2, name: "Bella Rodriguez", avatar: "🦋", group: "Blue" },
+  { id: 3, name: "Caleb Wright", avatar: "🦊", group: "Green" },
+  { id: 4, name: "Dakota Smith", avatar: "🎨", group: "Yellow" },
+  { id: 5, name: "Elena Gilbert", avatar: "⭐", group: "Purple" },
+  { id: 6, name: "Finn O'Shea", avatar: "🐳", group: "Red" },
+  { id: 7, name: "Grace Miller", avatar: "🌻", group: "Blue" },
+  { id: 8, name: "Hunter Reed", avatar: "🏹", group: "Green" },
+  { id: 9, name: "Isla Brown", avatar: "🦄", group: "Yellow" },
+  { id: 10, name: "Julian Vance", avatar: "🚀", group: "Purple" },
+  { id: 11, name: "Kai Nguyen", avatar: "🌊", group: "Red" },
+  { id: 12, name: "Lily Chen", avatar: "🌸", group: "Blue" },
+  { id: 13, name: "Mason Davis", avatar: "🧱", group: "Green" },
+  { id: 14, name: "Nora Quinn", avatar: "🌙", group: "Yellow" },
+  { id: 15, name: "Owen Taylor", avatar: "🦉", group: "Purple" },
+  { id: 16, name: "Piper Hall", avatar: "🍭", group: "Red" },
+  { id: 17, name: "Quinn Adams", avatar: "🐧", group: "Blue" },
+  { id: 18, name: "Riley Cooper", avatar: "🐶", group: "Green" },
+  { id: 19, name: "Sofia Lopez", avatar: "☀️", group: "Yellow" },
+  { id: 20, name: "Toby Wilson", avatar: "🐯", group: "Purple" },
+  { id: 21, name: "Ursula King", avatar: "🐚", group: "Red" },
+  { id: 22, name: "Victor Hugo", avatar: "🎩", group: "Blue" },
+  { id: 23, name: "Willow Brooks", avatar: "🌿", group: "Green" }
+];
+
+const SMALL_GROUPS = ["Red Group", "Blue Group", "Green Group", "Yellow Group", "Purple Group"];
+
+// Fallback database if no API key is provided
+const WORLD_CITIES = [
+  { name: 'Los Angeles', tz: 'America/Los_Angeles', country: 'USA' },
+  { name: 'New York', tz: 'America/New_York', country: 'USA' },
+  { name: 'London', tz: 'Europe/London', country: 'UK' },
+  { name: 'Dubai', tz: 'Asia/Dubai', country: 'UAE' },
+  { name: 'Tokyo', tz: 'Asia/Tokyo', country: 'Japan' },
+  { name: 'Sydney', tz: 'Australia/Sydney', country: 'Australia' },
+  { name: 'Paris', tz: 'Europe/Paris', country: 'France' },
+  { name: 'Berlin', tz: 'Europe/Berlin', country: 'Germany' },
+  { name: 'Mumbai', tz: 'Asia/Kolkata', country: 'India' },
+  { name: 'Beijing', tz: 'Asia/Shanghai', country: 'China' },
+  { name: 'Mexico City', tz: 'America/Mexico_City', country: 'Mexico' },
+  { name: 'Sao Paulo', tz: 'America/Sao_Paulo', country: 'Brazil' },
+  { name: 'Cairo', tz: 'Africa/Cairo', country: 'Egypt' },
+  { name: 'Johannesburg', tz: 'Africa/Johannesburg', country: 'South Africa' },
+  { name: 'Moscow', tz: 'Europe/Moscow', country: 'Russia' },
+  { name: 'Toronto', tz: 'America/Toronto', country: 'Canada' },
+  { name: 'Singapore', tz: 'Asia/Singapore', country: 'Singapore' },
+  { name: 'Seoul', tz: 'Asia/Seoul', country: 'South Korea' },
+  { name: 'Istanbul', tz: 'Europe/Istanbul', country: 'Turkey' },
+  { name: 'Buenos Aires', tz: 'America/Argentina/Buenos_Aires', country: 'Argentina' },
+  { name: 'Rome', tz: 'Europe/Rome', country: 'Italy' },
+  { name: 'Bangkok', tz: 'Asia/Bangkok', country: 'Thailand' },
+  { name: 'Chicago', tz: 'America/Chicago', country: 'USA' },
+  { name: 'Denver', tz: 'America/Denver', country: 'USA' },
+];
+
+/**
+ * Reusable Timer Setup Modal (Used for Whole Class & Individual)
+ */
+const TimerSetupModal = ({ isOpen, onClose, onSave, onStart, isDarkMode, theme, title, icon: Icon, showSavePreset, startLabel = "Start" }) => {
+  const [min, setMin] = useState("");
+  const [sec, setSec] = useState("");
+  const [showKeypad, setShowKeypad] = useState(false);
+  const [activeInput, setActiveInput] = useState('min');
+
+  useEffect(() => {
+    if (isOpen) {
+      setMin("");
+      setSec("");
+      setShowKeypad(false);
+      setActiveInput('min');
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  const handleKeypress = (val) => {
+    if (val === 'del') {
+      if (activeInput === 'min') {
+        setMin(prev => prev.slice(0, -1));
+      } else {
+        setSec(prev => prev.slice(0, -1));
+      }
+    } else {
+      if (activeInput === 'min') {
+        setMin(prev => {
+          const newVal = prev === "0" ? val : prev + val;
+          return newVal.slice(0, 3); // Max 3 digits for minutes
+        });
+      } else {
+        setSec(prev => {
+          const newVal = prev === "0" ? val : prev + val;
+          if (parseInt(newVal) > 59) return "59"; // Max 59 seconds
+          return newVal.slice(0, 2);
+        });
+      }
+    }
+  };
+
+  return (
+    <div 
+      className="absolute inset-0 z-[200] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className={`w-full max-w-sm max-h-[90vh] overflow-y-auto p-5 sm:p-6 rounded-2xl shadow-2xl relative animate-in zoom-in-95 duration-200 ${isDarkMode ? 'bg-slate-900 border border-slate-800' : 'bg-white'}`}>
+        <button 
+          onClick={onClose}
+          className={`absolute top-4 right-4 p-1.5 rounded-full transition-colors ${isDarkMode ? 'text-slate-400 hover:bg-slate-800' : 'text-slate-500 hover:bg-slate-100'}`}
+        >
+          <X size={18} />
+        </button>
+        
+        <div className="flex items-center mb-4 sm:mb-6">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center mr-3 shrink-0 ${isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+             <Icon size={20} />
+          </div>
+          <h3 className={`text-xl font-bold truncate pr-6 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{title}</h3>
+        </div>
+
+        <div className={`flex space-x-4 ${showKeypad ? 'mb-4' : 'mb-6 sm:mb-8'}`}>
+          <div className="flex-1">
+            <label className={`block text-xs font-bold uppercase tracking-wider mb-2 transition-colors ${activeInput === 'min' && showKeypad ? theme.text : (isDarkMode ? 'text-slate-400' : 'text-slate-500')}`}>Minutes</label>
+            <input 
+              type="number" 
+              min="0"
+              value={min}
+              onFocus={() => setActiveInput('min')}
+              onChange={(e) => setMin(e.target.value)}
+              placeholder="0"
+              className={`w-full px-4 py-3 rounded-xl border text-xl font-black outline-none transition-all shadow-sm
+                ${activeInput === 'min' && showKeypad ? `ring-2 ${theme.ring} border-transparent` : ''}
+                ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white focus:border-slate-500' : 'bg-white border-slate-200 text-slate-900 focus:border-slate-400'}
+              `}
+            />
+          </div>
+          <div className="flex-1">
+            <label className={`block text-xs font-bold uppercase tracking-wider mb-2 transition-colors ${activeInput === 'sec' && showKeypad ? theme.text : (isDarkMode ? 'text-slate-400' : 'text-slate-500')}`}>Seconds</label>
+            <input 
+              type="number" 
+              min="0"
+              max="59"
+              value={sec}
+              onFocus={() => setActiveInput('sec')}
+              onChange={(e) => setSec(e.target.value)}
+              placeholder="0"
+              className={`w-full px-4 py-3 rounded-xl border text-xl font-black outline-none transition-all shadow-sm
+                ${activeInput === 'sec' && showKeypad ? `ring-2 ${theme.ring} border-transparent` : ''}
+                ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white focus:border-slate-500' : 'bg-white border-slate-200 text-slate-900 focus:border-slate-400'}
+              `}
+            />
+          </div>
+        </div>
+
+        {/* On-Screen Keypad */}
+        {showKeypad && (
+          <div className="grid grid-cols-3 gap-2 mb-4 sm:mb-6 animate-in fade-in slide-in-from-top-2 duration-200">
+            {['1', '2', '3', '4', '5', '6', '7', '8', '9', '00', '0'].map(num => (
+               <button
+                 key={num}
+                 onClick={() => handleKeypress(num)}
+                 className={`p-3 rounded-xl text-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-sm border
+                   ${isDarkMode ? 'bg-slate-800 text-white border-slate-700 hover:bg-slate-700' : 'bg-slate-50 text-slate-900 border-slate-200 hover:bg-slate-100'}`}
+               >
+                 {num}
+               </button>
+            ))}
+            <button
+              onClick={() => handleKeypress('del')}
+              className={`p-3 flex items-center justify-center rounded-xl text-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-sm border
+                   ${isDarkMode ? 'bg-slate-800 text-rose-400 border-slate-700 hover:bg-slate-700' : 'bg-rose-50 text-rose-500 border-rose-200 hover:bg-rose-100'}`}
+            >
+              <Delete size={24} />
+            </button>
+          </div>
+        )}
+        
+        <div className="flex justify-between items-center mt-auto">
+          <button 
+            onClick={() => setShowKeypad(!showKeypad)}
+            className={`px-4 py-2.5 rounded-xl transition-colors flex items-center justify-center ${showKeypad ? (isDarkMode ? 'bg-slate-800 text-white' : 'bg-slate-200 text-slate-900') : (isDarkMode ? 'bg-slate-800 text-slate-400 hover:text-slate-200' : 'bg-slate-100 text-slate-500 hover:bg-slate-200')}`}
+            title="Toggle On-Screen Keypad"
+          >
+            <Keyboard size={20} />
+          </button>
+          <div className="flex space-x-2 sm:space-x-3">
+            {showSavePreset && onSave && (
+              <button 
+                onClick={() => onSave(min, sec)}
+                disabled={!min && !sec}
+                className={`px-4 sm:px-5 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none ${isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+              >
+                Save
+              </button>
+            )}
+            <button 
+              onClick={() => onStart(min, sec)}
+              disabled={!min && !sec}
+              className={`px-4 sm:px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none flex items-center ${theme.bg}`}
+            >
+              {startLabel === "Start" ? <Play size={16} fill="currentColor" className="mr-1.5 sm:mr-2" /> : <Plus size={16} strokeWidth={2.5} className="mr-1.5 sm:mr-2" />} {startLabel}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Reusable Timer Component
+ */
+const TimerCard = ({ title, subtitle, initialMinutes = 5, isDarkMode, theme, onClose, large = false, isFullscreen = false, onToggleFullscreen, autoStart = false, digitalOnly = false }) => {
+  const [timeLeft, setTimeLeft] = useState(initialMinutes * 60);
+  const [isRunning, setIsRunning] = useState(autoStart);
+  const [displayMode, setDisplayMode] = useState('digital');
+  const [hasRung, setHasRung] = useState(false);
+  const audioRef = useRef(null);
+
+  // Initialize and cleanup the audio object
+  useEffect(() => {
+    audioRef.current = new Audio('https://actions.google.com/sounds/v1/cartoon/magic_chime.ogg');
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    };
+  }, []);
+
+  // Handle playing and stopping the alarm
+  useEffect(() => {
+    if (timeLeft === 0 && !hasRung && audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(e => console.log('Audio playback blocked by browser:', e));
+      setHasRung(true);
+    } else if (timeLeft > 0) {
+      setHasRung(false);
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    }
+  }, [timeLeft, hasRung]);
+
+  useEffect(() => {
+    let interval;
+    if (isRunning && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
+      }, 1000);
+    } else if (timeLeft === 0) {
+      setIsRunning(false);
+    }
+    return () => clearInterval(interval);
+  }, [isRunning, timeLeft]);
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const adjustTime = (secondsAmount) => {
+    setTimeLeft((prev) => Math.max(0, prev + secondsAmount));
+  };
+
+  const resetTime = () => {
+    setIsRunning(false);
+    setTimeLeft(initialMinutes * 60);
+  };
+
+  // Dynamic text color logic for the final 30 seconds
+  let timerColor = isDarkMode ? 'text-slate-100' : 'text-slate-800';
+  if (timeLeft <= 15) timerColor = 'text-rose-500';
+  else if (timeLeft <= 30) timerColor = 'text-amber-500';
+
+  return (
+    <div className={`transition-all duration-300
+      ${isFullscreen ? 'fixed inset-0 z-[100] rounded-none border-none flex flex-col items-center justify-center p-8' : `relative flex flex-col p-6 rounded-2xl border shadow-sm ${large ? 'flex-1 items-center justify-center text-center w-full min-h-[300px] max-h-[650px] my-auto' : ''}`}
+      ${isDarkMode ? (isFullscreen ? 'bg-slate-950' : 'bg-slate-900 border-slate-800') : (isFullscreen ? 'bg-slate-50' : 'bg-white border-slate-200')}
+    `}>
+      
+      {/* Top Right Controls */}
+      <div className={`absolute ${isFullscreen ? 'top-8 right-8' : 'top-4 right-4'} flex items-center ${isFullscreen ? 'gap-4' : 'gap-2'}`}>
+        {onToggleFullscreen && (
+          <button 
+            onClick={onToggleFullscreen}
+            className={`p-2 rounded-full transition-colors ${isDarkMode ? 'text-slate-400 hover:bg-slate-800 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}
+            title={isFullscreen ? "Minimize Timer" : "Fullscreen Timer"}
+          >
+            {isFullscreen ? <Minimize size={32} /> : <Maximize size={large ? 20 : 16} />}
+          </button>
+        )}
+        {onClose && (
+          <button 
+            onClick={onClose}
+            className={`p-2 rounded-full transition-colors ${isDarkMode ? 'text-slate-400 hover:bg-slate-800 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}
+          >
+            <X size={isFullscreen ? 32 : (large ? 20 : 16)} />
+          </button>
+        )}
+      </div>
+
+      {(title || subtitle) && (
+        <div className={`w-full ${large || isFullscreen ? 'mb-4 md:mb-8 text-center mt-6' : 'mb-4 text-left'}`}>
+          {title && (
+            <h3 className={`font-bold ${isFullscreen ? 'text-4xl md:text-5xl mb-2' : large ? 'text-3xl md:text-4xl mb-2' : 'text-lg'} ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+              {title}
+            </h3>
+          )}
+          {subtitle && (
+            <p className={`font-medium ${isFullscreen ? 'text-xl md:text-2xl' : 'text-sm'} ${isDarkMode ? 'text-slate-500' : 'text-slate-500'}`}>
+              {subtitle}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Timer Display Area */}
+      {displayMode === 'digital' && (
+        <div className={`relative flex items-center justify-center font-mono font-black tracking-tighter ${timerColor} ${isFullscreen ? 'min-h-[25vw] my-8' : large ? 'min-h-[10rem] sm:min-h-[12rem] lg:min-h-[16rem] my-4 md:my-6' : 'min-h-[4rem] my-2'}`}>
+          {timeLeft === 0 ? (
+            <div className="flex flex-col items-center justify-center animate-in zoom-in duration-300">
+              <h2 className={`font-sans font-black uppercase tracking-widest text-rose-500 ${isFullscreen ? 'text-5xl md:text-7xl mb-6' : large ? 'text-3xl md:text-4xl mb-4' : 'text-base mb-1'}`}>
+                Time's Up!
+              </h2>
+              <Bell fill="currentColor" className={`text-rose-500 animate-swing ${isFullscreen ? 'w-56 h-56' : large ? 'w-32 h-32 md:w-40 md:h-40' : 'w-12 h-12'}`} />
+            </div>
+          ) : (
+            <span className={`z-10 ${isFullscreen ? 'text-[20vw] leading-none' : large ? 'text-7xl sm:text-8xl md:text-[8rem] lg:text-[10rem] leading-none' : 'text-5xl'}`}>
+              {formatTime(timeLeft)}
+            </span>
+          )}
+        </div>
+      )}
+      
+      {displayMode === 'analog' && (
+        <div className={`relative flex items-center justify-center ${isFullscreen ? 'w-[45vw] h-[45vw] min-w-[300px] min-h-[300px] max-w-[60vh] max-h-[60vh] my-8' : large ? 'w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 lg:w-80 lg:h-80 my-4 md:my-6' : 'w-32 h-32 my-2'}`}>
+          <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-sm overflow-visible">
+            {timeLeft === 0 ? (
+              <>
+                {/* Time's Up Header inside SVG */}
+                <text x="50" y="30" fontSize="12" fontWeight="900" textAnchor="middle" fill="currentColor" className="text-rose-500 uppercase tracking-widest font-sans animate-in fade-in">
+                  TIME'S UP!
+                </text>
+                {/* Ringing Bell Animation (Expanded bounding box to prevent clipping during swing) */}
+                <foreignObject x="10" y="35" width="80" height="60" className="overflow-visible">
+                  <div className="w-full h-full flex items-center justify-center overflow-visible">
+                    <Bell fill="currentColor" className="w-[50%] h-[50%] text-rose-500 animate-swing" />
+                  </div>
+                </foreignObject>
+              </>
+            ) : (
+              <>
+                {/* Background Clock Face */}
+                <circle cx="50" cy="50" r="48" className={`${isDarkMode ? 'fill-slate-900 stroke-slate-700' : 'fill-white stroke-slate-200'}`} strokeWidth="2" />
+
+                {/* Dynamic Time Overlay Wedge (30s & 15s warnings) */}
+                {timeLeft <= 30 && timeLeft > 0 && (
+                  <path 
+                    d={`M 50 50 L 50 2 A 48 48 0 0 1 ${50 + 48 * Math.cos(((timeLeft % 60) * 6 - 90) * (Math.PI / 180))} ${50 + 48 * Math.sin(((timeLeft % 60) * 6 - 90) * (Math.PI / 180))} Z`} 
+                    className={`${timeLeft <= 15 ? 'fill-rose-500' : 'fill-amber-400'} opacity-25`} 
+                  />
+                )}
+
+                {/* Tick Marks (60 per circle) */}
+                {Array.from({ length: 60 }).map((_, i) => (
+                  <line 
+                    key={i}
+                    x1="50" y1={i % 5 === 0 ? "4" : "6"} 
+                    x2="50" y2="2" 
+                    transform={`rotate(${i * 6} 50 50)`}
+                    className={`${i % 5 === 0 ? (isDarkMode ? 'stroke-slate-400' : 'stroke-slate-500') : (isDarkMode ? 'stroke-slate-700' : 'stroke-slate-300')}`}
+                    strokeWidth={i % 5 === 0 ? "1.5" : "0.5"}
+                  />
+                ))}
+
+                {/* Clock Numbers (1-12) */}
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(num => {
+                  const angle = (num * 30 * Math.PI) / 180;
+                  const radius = 35; // Positioned perfectly inside the tick marks
+                  const x = 50 + radius * Math.sin(angle);
+                  const y = 50 - radius * Math.cos(angle);
+                  return (
+                    <text
+                      key={num}
+                      x={x}
+                      y={y}
+                      fontSize="8"
+                      fontWeight="bold"
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      className={`font-sans ${isDarkMode ? 'fill-slate-400' : 'fill-slate-500'}`}
+                    >
+                      {num}
+                    </text>
+                  );
+                })}
+
+                {/* Minute Hand (Slower, Thicker) */}
+                <line 
+                  x1="50" y1="50" 
+                  x2="50" y2="15" 
+                  transform={`rotate(${((Math.floor(timeLeft / 60) + (timeLeft % 60) / 60) * 6)} 50 50)`} 
+                  className={`${isDarkMode ? 'text-slate-300' : 'text-slate-800'}`}
+                  stroke="currentColor"
+                  strokeWidth="2.5" 
+                  strokeLinecap="round" 
+                />
+
+                {/* Second Hand (Faster, Thinner, Red) */}
+                <line 
+                  x1="50" y1="60" 
+                  x2="50" y2="10" 
+                  transform={`rotate(${(timeLeft % 60) * 6} 50 50)`} 
+                  className="text-rose-500"
+                  stroke="currentColor"
+                  strokeWidth="1.25" 
+                  strokeLinecap="round" 
+                />
+
+                {/* Center Pivot Dots */}
+                <circle cx="50" cy="50" r="3" className={`${isDarkMode ? 'text-slate-300' : 'text-slate-800'}`} fill="currentColor" />
+                <circle cx="50" cy="50" r="1.5" className="text-rose-500" fill="currentColor" />
+              </>
+            )}
+          </svg>
+        </div>
+      )}
+
+      {/* Bottom Controls (Play/Pause) */}
+      <div className={`flex items-center justify-center w-full space-x-3 mt-4 md:mt-8 ${isFullscreen ? 'scale-125 md:scale-150' : large ? 'scale-110 md:scale-125' : ''}`}>
+        <button 
+          onClick={() => adjustTime(-15)}
+          className={`px-3 h-10 flex items-center justify-center rounded-xl font-bold text-sm transition-colors ${isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+        >
+          - 15s
+        </button>
+        
+        <button 
+          onClick={() => setIsRunning(!isRunning)}
+          className={`w-14 h-14 flex items-center justify-center rounded-full text-white transition-all shadow-md transform hover:scale-105 active:scale-95 ${theme.bg}`}
+        >
+          {isRunning ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-1" />}
+        </button>
+
+        <button 
+          onClick={() => adjustTime(15)}
+          className={`px-3 h-10 flex items-center justify-center rounded-xl font-bold text-sm transition-colors ${isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+        >
+          + 15s
+        </button>
+      </div>
+
+      {/* Timer Display Modes & Extra Controls */}
+      <div className={`flex items-center justify-center w-full space-x-2 md:space-x-3 mt-4 md:mt-6 z-10 relative ${isFullscreen || large ? 'scale-110 mt-8 mb-2' : ''}`}>
+        <button 
+          onClick={resetTime}
+          className={`flex items-center px-3 py-2 md:px-4 md:py-2.5 rounded-xl text-xs md:text-sm font-bold transition-colors shadow-sm border ${isDarkMode ? 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 hover:text-white' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900'}`}
+        >
+          <RotateCcw size={16} className="mr-2" /> Restart
+        </button>
+        
+        {!digitalOnly && (
+          <div className={`flex p-1 rounded-xl shadow-sm border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-slate-100 border-slate-200'}`}>
+            <button 
+              onClick={() => setDisplayMode('digital')}
+              className={`flex items-center px-3 py-1.5 md:px-4 md:py-2 rounded-lg text-xs md:text-sm font-bold transition-all ${displayMode === 'digital' ? (isDarkMode ? 'bg-slate-800 text-white shadow' : 'bg-white text-slate-900 shadow') : (isDarkMode ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-700')}`}
+            >
+              <TimerIcon size={16} className="mr-1.5 md:mr-2" /> <span className="hidden sm:inline">Digital</span>
+            </button>
+            <button 
+              onClick={() => setDisplayMode('analog')}
+              className={`flex items-center px-3 py-1.5 md:px-4 md:py-2 rounded-lg text-xs md:text-sm font-bold transition-all ${displayMode === 'analog' ? (isDarkMode ? 'bg-slate-800 text-white shadow' : 'bg-white text-slate-900 shadow') : (isDarkMode ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-700')}`}
+            >
+              <Clock size={16} className="mr-1.5 md:mr-2" /> <span className="hidden sm:inline">Analog</span>
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Saved Rotation Card Component (For grouped timers)
+ */
+const SavedRotationCard = ({ title, groups, isDarkMode, theme, onClick, onRemove }) => (
+  <div 
+    onClick={onClick}
+    className={`p-5 rounded-2xl shadow-sm border transition-all relative overflow-hidden h-48 flex flex-col items-center justify-center cursor-pointer group
+    ${isDarkMode ? 'bg-slate-800 border-slate-700 hover:border-slate-500' : 'bg-white border-slate-100 hover:border-slate-300'}`}
+  >
+    <button 
+      onClick={(e) => { e.stopPropagation(); onRemove(); }}
+      className={`absolute top-4 right-4 p-1.5 rounded-full hover:bg-red-50 hover:text-red-500 transition-colors z-10 ${isDarkMode ? 'text-slate-600 hover:bg-slate-700' : 'text-slate-300'}`}
+    >
+      <X size={14} />
+    </button>
+
+    <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110 shadow-sm
+      ${isDarkMode ? 'bg-slate-700 text-slate-300 group-hover:bg-slate-600 group-hover:text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-white group-hover:text-slate-900 group-hover:shadow-md'}`}
+    >
+      <Layers size={28} />
+    </div>
+    
+    <h3 className={`text-lg font-bold truncate max-w-full px-2 transition-colors ${isDarkMode ? 'text-slate-200 group-hover:text-white' : 'text-slate-700 group-hover:text-slate-900'}`}>{title}</h3>
+    <p className={`text-xs mt-1 truncate max-w-full px-4 ${isDarkMode ? 'text-slate-500 group-hover:text-slate-400' : 'text-slate-400 group-hover:text-slate-500'}`}>
+      {groups.join(', ')}
+    </p>
+  </div>
+);
+
+/**
+ * Individual Student Horizontal Timer Card
+ */
+const StudentTimerRow = ({ student, isDarkMode, theme, onOpenSetup, config, isSelectionMode, isSelected, onToggleSelect }) => {
+  const [isTimerActive, setIsTimerActive] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [initialTime, setInitialTime] = useState(0);
+  const [isRunning, setIsRunning] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  useEffect(() => {
+    if (config?.triggerId) {
+      setTimeLeft(config.totalSeconds);
+      setInitialTime(config.totalSeconds);
+      setIsTimerActive(true);
+      setIsRunning(config.autoStart ?? true);
+      setIsExpanded(false); 
+    }
+  }, [config?.triggerId]);
+
+  useEffect(() => {
+    let interval;
+    if (isRunning && timeLeft > 0) {
+      interval = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
+    } else if (timeLeft === 0) {
+      setIsRunning(false);
+    }
+    return () => clearInterval(interval);
+  }, [isRunning, timeLeft]);
+
+  const adjustTime = (amount) => setTimeLeft(prev => Math.max(0, prev + amount));
+  const resetTime = () => setTimeLeft(initialTime);
+
+  const formatTime = (sec) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const initials = student.name.split(' ').map(n => n[0]).join('');
+  
+  // Avatar colors
+  let avatarBg = isDarkMode ? 'bg-slate-800' : 'bg-slate-100';
+  let avatarText = isDarkMode ? 'text-slate-300' : 'text-slate-600';
+  if (student.group === 'Red') { avatarBg = isDarkMode ? 'bg-rose-900/30' : 'bg-rose-100'; avatarText = isDarkMode ? 'text-rose-400' : 'text-rose-600'; }
+  else if (student.group === 'Blue') { avatarBg = isDarkMode ? 'bg-blue-900/30' : 'bg-blue-100'; avatarText = isDarkMode ? 'text-blue-400' : 'text-blue-600'; }
+  else if (student.group === 'Green') { avatarBg = isDarkMode ? 'bg-emerald-900/30' : 'bg-emerald-100'; avatarText = isDarkMode ? 'text-emerald-400' : 'text-emerald-600'; }
+  else if (student.group === 'Yellow') { avatarBg = isDarkMode ? 'bg-amber-900/30' : 'bg-amber-100'; avatarText = isDarkMode ? 'text-amber-400' : 'text-amber-600'; }
+  else if (student.group === 'Purple') { avatarBg = isDarkMode ? 'bg-purple-900/30' : 'bg-purple-100'; avatarText = isDarkMode ? 'text-purple-400' : 'text-purple-600'; }
+
+  // Timer colors
+  let timerColor = isDarkMode ? 'text-slate-100' : 'text-slate-800';
+  if (timeLeft === 0 && isTimerActive) timerColor = 'text-rose-500 animate-pulse';
+  else if (timeLeft <= 60 && isTimerActive) timerColor = 'text-rose-500';
+  else if (timeLeft <= 120 && isTimerActive) timerColor = 'text-amber-500';
+
+  return (
+    <div className={`relative flex flex-col p-3 rounded-2xl border shadow-sm transition-all hover:shadow-md overflow-hidden
+      ${isSelected 
+        ? `ring-2 ${theme.ring} ${isDarkMode ? 'bg-slate-800 border-transparent' : 'bg-slate-50 border-transparent'}` 
+        : (isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200')}
+    `}>
+       
+       {/* Color Overlays for Time Warnings (Hidden in Selection Mode) */}
+       {!isSelectionMode && isTimerActive && timeLeft <= 120 && timeLeft > 60 && (
+         <div className={`absolute inset-0 z-0 pointer-events-none transition-opacity duration-500 ${isDarkMode ? 'bg-amber-500/10' : 'bg-amber-500/15'}`}></div>
+       )}
+       {!isSelectionMode && isTimerActive && timeLeft <= 60 && timeLeft > 0 && (
+         <div className={`absolute inset-0 z-0 pointer-events-none transition-opacity duration-500 ${isDarkMode ? 'bg-rose-500/15' : 'bg-rose-500/15'}`}></div>
+       )}
+
+       {/* Main Row */}
+       <div className="relative z-10 flex items-center justify-between w-full">
+         <button 
+           onClick={() => {
+             if (isSelectionMode) {
+               onToggleSelect(student.id);
+             } else {
+               isTimerActive ? setIsExpanded(!isExpanded) : onOpenSetup(student);
+             }
+           }}
+           className="flex items-center min-w-0 flex-1 text-left cursor-pointer group outline-none"
+           title={isSelectionMode ? "Select Student" : (isTimerActive ? "Click to expand timer controls" : "Click to set timer")}
+         >
+           <div className={`w-10 h-10 rounded-full flex shrink-0 items-center justify-center ${student.avatar ? 'text-xl' : 'text-sm font-black'} mr-3 transition-transform group-hover:scale-105 ${avatarBg} ${avatarText}`}>
+             {student.avatar || initials}
+           </div>
+           <span className={`text-sm font-bold truncate pr-2 transition-colors ${isDarkMode ? 'text-slate-200 group-hover:text-white' : 'text-slate-700 group-hover:text-slate-900'}`}>
+             {student.name}
+           </span>
+         </button>
+         
+         <div className="shrink-0 flex items-center ml-2">
+           {isSelectionMode ? (
+             <div className={`w-6 h-6 rounded-md border flex items-center justify-center transition-colors shadow-sm
+               ${isSelected ? `${theme.bg} border-transparent text-white` : (isDarkMode ? 'border-slate-600 bg-slate-800' : 'border-slate-300 bg-white')}
+             `}>
+               {isSelected && <Check size={14} strokeWidth={3} />}
+             </div>
+           ) : !isTimerActive ? (
+             <button 
+               onClick={() => onOpenSetup(student)}
+               className={`relative z-10 w-8 h-8 flex items-center justify-center rounded-lg transition-all hover:scale-105 active:scale-95 ${theme.bg} text-white shadow-sm`}
+               title="Add Timer"
+             >
+               <Plus size={18} strokeWidth={2.5} />
+             </button>
+           ) : (
+             <div className="relative z-10 flex items-center space-x-2 shrink-0 animate-in fade-in slide-in-from-right-4 duration-300">
+               <div className={`flex items-center justify-center min-w-[3.5rem] ${timerColor}`}>
+                 {timeLeft === 0 ? (
+                   <div className="flex flex-col items-center justify-center mr-1">
+                     <span className="text-[8px] font-sans font-black uppercase tracking-wider text-rose-500 leading-none mb-1">Time's Up!</span>
+                     <Bell size={20} fill="currentColor" className="animate-swing shrink-0 text-rose-500" />
+                   </div>
+                 ) : (
+                   <span className="font-mono font-black text-lg tracking-tighter">
+                     {formatTime(timeLeft)}
+                   </span>
+                 )}
+               </div>
+               <button 
+                 onClick={() => setIsRunning(!isRunning)} 
+                 className={`p-1.5 rounded-md transition-colors ${isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+               >
+                 {isRunning ? <Pause size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" />}
+               </button>
+               <button 
+                 onClick={() => { setIsTimerActive(false); setTimeLeft(0); setIsRunning(false); setIsExpanded(false); }} 
+                 className={`p-1.5 rounded-md transition-colors ${isDarkMode ? 'hover:bg-slate-800 text-slate-500 hover:text-rose-400' : 'hover:bg-slate-100 text-slate-400 hover:text-rose-500'}`}
+               >
+                 <X size={14} />
+               </button>
+             </div>
+           )}
+         </div>
+       </div>
+
+       {/* Expanded Controls Row (Hidden in Selection Mode) */}
+       {!isSelectionMode && isTimerActive && isExpanded && (
+         <div className={`relative z-10 flex items-center justify-between mt-3 pt-3 border-t animate-in fade-in slide-in-from-top-2 duration-200 ${isDarkMode ? 'border-slate-800/60' : 'border-slate-200'}`}>
+           <button 
+             onClick={resetTime}
+             className={`flex items-center px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm ${isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
+           >
+             <RotateCcw size={14} className="mr-1.5" /> Restart
+           </button>
+           <div className="flex space-x-2">
+             <button 
+               onClick={() => adjustTime(-15)}
+               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm ${isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
+             >
+               - 15s
+             </button>
+             <button 
+               onClick={() => adjustTime(15)}
+               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm ${isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
+             >
+               + 15s
+             </button>
+           </div>
+         </div>
+       )}
+    </div>
+  );
+};
+
+/**
+ * Stopwatch Component
+ */
+const StopwatchCard = ({ isDarkMode, theme, isFullscreen, setIsFullscreen }) => {
+  const [time, setTime] = useState(0);
+  const [isRunning, setIsRunning] = useState(false);
+  const startTimeRef = useRef(0);
+  const elapsedTimeRef = useRef(0);
+
+  useEffect(() => {
+    let intervalId;
+    if (isRunning) {
+      startTimeRef.current = Date.now() - elapsedTimeRef.current;
+      intervalId = setInterval(() => {
+        elapsedTimeRef.current = Date.now() - startTimeRef.current;
+        setTime(elapsedTimeRef.current);
+      }, 10);
+    }
+    return () => clearInterval(intervalId);
+  }, [isRunning]);
+
+  const formatTime = (ms) => {
+    const minutes = Math.floor(ms / 60000);
+    const seconds = Math.floor((ms % 60000) / 1000);
+    const centiseconds = Math.floor((ms % 1000) / 10);
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${centiseconds.toString().padStart(2, '0')}`;
+  };
+
+  const handleReset = () => {
+    setIsRunning(false);
+    setTime(0);
+    elapsedTimeRef.current = 0;
+  };
+
+  return (
+    <div className={`
+      ${isFullscreen ? 'fixed inset-0 z-[100] rounded-none border-none flex flex-col items-center justify-center p-8' : 'relative p-12 rounded-2xl border flex flex-col items-center justify-center'}
+      text-center shadow-sm transition-all duration-300 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}
+    `}>
+      
+      {/* Fullscreen Toggle Button */}
+      <button 
+        onClick={() => setIsFullscreen(!isFullscreen)}
+        className={`absolute ${isFullscreen ? 'top-8 right-8 p-3' : 'top-4 right-4 p-2'} rounded-full transition-colors ${isDarkMode ? 'text-slate-400 hover:bg-slate-800 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}
+        title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+      >
+        {isFullscreen ? <Minimize size={32} /> : <Maximize size={24} />}
+      </button>
+
+      <TimerIcon className={`mb-4 ${theme.text}`} size={isFullscreen ? 80 : 48} />
+      <h3 className={`font-bold ${isFullscreen ? 'text-4xl mb-2' : 'text-2xl'} ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Stopwatch</h3>
+      
+      <p className={`font-mono font-black tracking-tighter whitespace-nowrap ${isFullscreen ? 'text-[15vw] leading-none my-6' : 'text-5xl sm:text-6xl md:text-7xl lg:text-8xl mt-4 mb-8'} ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>
+        {formatTime(time)}
+      </p>
+
+      <div className={`flex items-center space-x-4 ${isFullscreen ? 'scale-125' : ''}`}>
+        <button 
+          onClick={handleReset}
+          className={`flex items-center px-4 py-3 rounded-xl font-bold transition-colors shadow-sm ${isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+        >
+          <RotateCcw size={20} className="mr-2" /> Reset
+        </button>
+        
+        <button 
+          onClick={() => setIsRunning(!isRunning)}
+          className={`flex items-center px-6 py-3 rounded-xl font-bold text-white transition-all shadow-md transform hover:scale-105 active:scale-95 ${theme.bg}`}
+        >
+          {isRunning ? (
+            <><Pause size={20} className="mr-2" fill="currentColor" /> Pause</>
+          ) : (
+            <><Play size={20} className="mr-2" fill="currentColor" /> Start</>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Individual Student Horizontal Stopwatch Card
+ */
+const StudentStopwatchRow = ({ student, isDarkMode, theme, config }) => {
+  const [isStopwatchActive, setIsStopwatchActive] = useState(false);
+  const [time, setTime] = useState(0);
+  const [isRunning, setIsRunning] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  const startTimeRef = useRef(0);
+  const elapsedTimeRef = useRef(0);
+
+  // React to configuration changes dispatched from the App (Start All / Pause All / Resume All / Clear All)
+  useEffect(() => {
+    if (!config) return;
+    
+    if (config.type === 'START_ALL') {
+      setIsStopwatchActive(true);
+      setIsRunning(true);
+      setTime(0);
+      elapsedTimeRef.current = 0;
+      setIsExpanded(false);
+    } else if (config.type === 'PAUSE_ALL') {
+      setIsRunning(false);
+    } else if (config.type === 'RESUME_ALL') {
+      setIsRunning(true);
+    } else if (config.type === 'CLEAR_ALL') {
+      setIsStopwatchActive(false);
+      setIsRunning(false);
+      setTime(0);
+      elapsedTimeRef.current = 0;
+      setIsExpanded(false);
+    } else if (config.triggerId) { // Fallback for previous trigger logic
+      setIsStopwatchActive(true);
+      setIsRunning(config.autoStart || false);
+      setTime(0);
+      elapsedTimeRef.current = 0;
+      setIsExpanded(false);
+    }
+  }, [config?.actionId, config?.triggerId]);
+
+  useEffect(() => {
+    let intervalId;
+    if (isRunning) {
+      startTimeRef.current = Date.now() - elapsedTimeRef.current;
+      intervalId = setInterval(() => {
+        elapsedTimeRef.current = Date.now() - startTimeRef.current;
+        setTime(elapsedTimeRef.current);
+      }, 10);
+    }
+    return () => clearInterval(intervalId);
+  }, [isRunning]);
+
+  const adjustTime = (seconds) => {
+    const msAmount = seconds * 1000;
+    const newElapsed = Math.max(0, elapsedTimeRef.current + msAmount);
+    elapsedTimeRef.current = newElapsed;
+    startTimeRef.current = Date.now() - newElapsed;
+    setTime(newElapsed);
+  };
+
+  const resetTime = () => {
+    setIsRunning(false);
+    setTime(0);
+    elapsedTimeRef.current = 0;
+  };
+
+  const formatTime = (ms) => {
+    const m = Math.floor(ms / 60000);
+    const s = Math.floor((ms % 60000) / 1000);
+    const cs = Math.floor((ms % 1000) / 10);
+    return `${m}:${s.toString().padStart(2, '0')}.${cs.toString().padStart(2, '0')}`;
+  };
+
+  const initials = student.name.split(' ').map(n => n[0]).join('');
+  
+  // Avatar colors
+  let avatarBg = isDarkMode ? 'bg-slate-800' : 'bg-slate-100';
+  let avatarText = isDarkMode ? 'text-slate-300' : 'text-slate-600';
+  if (student.group === 'Red') { avatarBg = isDarkMode ? 'bg-rose-900/30' : 'bg-rose-100'; avatarText = isDarkMode ? 'text-rose-400' : 'text-rose-600'; }
+  else if (student.group === 'Blue') { avatarBg = isDarkMode ? 'bg-blue-900/30' : 'bg-blue-100'; avatarText = isDarkMode ? 'text-blue-400' : 'text-blue-600'; }
+  else if (student.group === 'Green') { avatarBg = isDarkMode ? 'bg-emerald-900/30' : 'bg-emerald-100'; avatarText = isDarkMode ? 'text-emerald-400' : 'text-emerald-600'; }
+  else if (student.group === 'Yellow') { avatarBg = isDarkMode ? 'bg-amber-900/30' : 'bg-amber-100'; avatarText = isDarkMode ? 'text-amber-400' : 'text-amber-600'; }
+  else if (student.group === 'Purple') { avatarBg = isDarkMode ? 'bg-purple-900/30' : 'bg-purple-100'; avatarText = isDarkMode ? 'text-purple-400' : 'text-purple-600'; }
+
+  // Color logic
+  let timerColor = isDarkMode ? 'text-slate-100' : 'text-slate-800';
+  if (isRunning) timerColor = theme.text;
+
+  return (
+    <div className={`relative flex flex-col p-3 rounded-2xl border shadow-sm transition-all hover:shadow-md overflow-hidden ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+       
+       {/* Main Row */}
+       <div className="relative z-10 flex items-center justify-between w-full">
+         <button 
+           onClick={() => isStopwatchActive && setIsExpanded(!isExpanded)}
+           className={`flex items-center min-w-0 flex-1 text-left ${isStopwatchActive ? 'cursor-pointer group' : ''} outline-none`}
+           title={isStopwatchActive ? "Click to expand controls" : ""}
+         >
+           <div className={`w-10 h-10 rounded-full flex shrink-0 items-center justify-center ${student.avatar ? 'text-xl' : 'text-sm font-black'} mr-3 transition-transform ${isStopwatchActive ? 'group-hover:scale-105' : ''} ${avatarBg} ${avatarText}`}>
+             {student.avatar || initials}
+           </div>
+           <span className={`text-sm font-bold truncate pr-2 transition-colors ${isDarkMode ? (isStopwatchActive ? 'text-slate-200 group-hover:text-white' : 'text-slate-200') : (isStopwatchActive ? 'text-slate-700 group-hover:text-slate-900' : 'text-slate-700')}`}>
+             {student.name}
+           </span>
+         </button>
+         
+         <div className="shrink-0 flex items-center ml-2">
+           {!isStopwatchActive ? (
+             <button 
+               onClick={() => { setIsStopwatchActive(true); setIsRunning(true); }}
+               className={`relative z-10 w-8 h-8 flex items-center justify-center rounded-lg transition-all hover:scale-105 active:scale-95 ${theme.bg} text-white shadow-sm`}
+               title="Start Stopwatch"
+             >
+               <Play size={16} fill="currentColor" className="ml-0.5" />
+             </button>
+           ) : (
+             <div className="relative z-10 flex items-center space-x-2 shrink-0 animate-in fade-in slide-in-from-right-4 duration-300">
+               <div className={`flex items-center justify-center min-w-[4.5rem] transition-colors ${timerColor}`}>
+                 <span className="font-mono font-black text-lg tracking-tighter w-20 text-center">
+                   {formatTime(time)}
+                 </span>
+               </div>
+               <button 
+                 onClick={() => setIsRunning(!isRunning)} 
+                 className={`p-1.5 rounded-md transition-colors ${isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+               >
+                 {isRunning ? <Pause size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" />}
+               </button>
+               <button 
+                 onClick={() => { setIsStopwatchActive(false); resetTime(); setIsExpanded(false); }} 
+                 className={`p-1.5 rounded-md transition-colors ${isDarkMode ? 'hover:bg-slate-800 text-slate-500 hover:text-rose-400' : 'hover:bg-slate-100 text-slate-400 hover:text-rose-500'}`}
+               >
+                 <X size={14} />
+               </button>
+             </div>
+           )}
+         </div>
+       </div>
+
+       {/* Expanded Controls Row */}
+       {isStopwatchActive && isExpanded && (
+         <div className={`relative z-10 flex items-center justify-between mt-3 pt-3 border-t animate-in fade-in slide-in-from-top-2 duration-200 ${isDarkMode ? 'border-slate-800/60' : 'border-slate-200'}`}>
+           <button 
+             onClick={resetTime}
+             className={`flex items-center px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm ${isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
+           >
+             <RotateCcw size={14} className="mr-1.5" /> Reset
+           </button>
+           <div className="flex space-x-2">
+             <button 
+               onClick={() => adjustTime(-15)}
+               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm ${isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
+             >
+               - 15s
+             </button>
+             <button 
+               onClick={() => adjustTime(15)}
+               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm ${isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
+             >
+               + 15s
+             </button>
+           </div>
+         </div>
+       )}
+    </div>
+  );
+};
+
+/**
+ * Local Clock Component (Large for whole class)
+ */
+const LocalClockCard = ({ isDarkMode, theme, isFullscreen, setIsFullscreen }) => {
+  const [time, setTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className={`
+      ${isFullscreen ? 'fixed inset-0 z-[100] rounded-none border-none flex flex-col items-center justify-center p-8' : 'relative p-12 rounded-2xl border flex flex-col items-center justify-center'}
+      text-center shadow-sm transition-all duration-300 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}
+    `}>
+      <button 
+        onClick={() => setIsFullscreen(!isFullscreen)}
+        className={`absolute ${isFullscreen ? 'top-8 right-8 p-3' : 'top-4 right-4 p-2'} rounded-full transition-colors ${isDarkMode ? 'text-slate-400 hover:bg-slate-800 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}
+        title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+      >
+        {isFullscreen ? <Minimize size={32} /> : <Maximize size={24} />}
+      </button>
+
+      <Clock className={`mb-4 ${theme.text}`} size={isFullscreen ? 80 : 48} />
+      <h3 className={`font-bold ${isFullscreen ? 'text-4xl mb-2' : 'text-2xl'} ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Local Time</h3>
+      <p className={`font-mono font-black tracking-tighter whitespace-nowrap ${isFullscreen ? 'text-[15vw] leading-none my-6' : 'text-5xl sm:text-6xl md:text-7xl lg:text-8xl mt-4 mb-2'} ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>
+        {time.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+      </p>
+      <p className={`font-bold uppercase tracking-wider ${isFullscreen ? 'text-2xl md:text-4xl mt-4' : 'text-sm mt-2'} ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+        {time.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+      </p>
+    </div>
+  );
+};
+
+/**
+ * World Clock Component
+ */
+const WorldClockCard = ({ city, tz, isDarkMode, theme, onClose }) => {
+  const [time, setTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  let formattedTime = "";
+  try {
+    formattedTime = time.toLocaleTimeString('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit' });
+  } catch (e) {
+    formattedTime = "Invalid TZ";
+  }
+
+  return (
+    <div className={`relative flex flex-col items-center justify-center p-6 rounded-2xl border shadow-sm transition-all hover:scale-105 active:scale-95 group ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+       <button 
+         onClick={onClose}
+         className={`absolute top-2 right-2 p-1.5 rounded-full transition-colors opacity-0 group-hover:opacity-100 ${isDarkMode ? 'text-slate-500 hover:bg-slate-800 hover:text-rose-400' : 'text-slate-400 hover:bg-slate-100 hover:text-rose-500'}`}
+       >
+         <X size={16} />
+       </button>
+       <Globe className={`mb-3 ${theme.text}`} size={24} />
+       <h3 className={`text-lg font-bold mb-1 truncate w-full text-center ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{city}</h3>
+       <p className={`font-mono font-black text-3xl tracking-tighter ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>
+         {formattedTime}
+       </p>
+       <p className={`text-xs font-bold uppercase mt-2 tracking-wider ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+         {time.toLocaleDateString('en-US', { timeZone: tz, weekday: 'short', month: 'short', day: 'numeric' })}
+       </p>
+    </div>
+  );
+};
+
+/**
+ * Group Setup Modal
+ */
+const GroupSetupModal = ({ isOpen, onClose, onSave, isDarkMode, theme, initialGroups }) => {
+  const [count, setCount] = useState(initialGroups.length);
+  const [names, setNames] = useState(initialGroups);
+
+  useEffect(() => {
+    if (isOpen) {
+      setCount(initialGroups.length || 4);
+      setNames(initialGroups.length ? initialGroups : ["Group 1", "Group 2", "Group 3", "Group 4"]);
+    }
+  }, [isOpen, initialGroups]);
+
+  const handleCountChange = (e) => {
+    let val = parseInt(e.target.value) || 1;
+    if (val > 12) val = 12;
+    setCount(val);
+    setNames(prev => {
+      const newNames = [...prev];
+      while (newNames.length < val) newNames.push(`Group ${newNames.length + 1}`);
+      return newNames.slice(0, val);
+    });
+  };
+
+  const handleNameChange = (index, val) => {
+    setNames(prev => {
+      const newNames = [...prev];
+      newNames[index] = val;
+      return newNames;
+    });
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div 
+      className="absolute inset-0 z-[200] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className={`w-full max-w-sm max-h-[90vh] flex flex-col p-5 sm:p-6 rounded-2xl shadow-2xl relative animate-in zoom-in-95 duration-200 ${isDarkMode ? 'bg-slate-900 border border-slate-800' : 'bg-white'}`}>
+        <button 
+          onClick={onClose}
+          className={`absolute top-4 right-4 p-1.5 rounded-full transition-colors ${isDarkMode ? 'text-slate-400 hover:bg-slate-800' : 'text-slate-500 hover:bg-slate-100'}`}
+        >
+          <X size={18} />
+        </button>
+        
+        <div className="flex items-center mb-6 shrink-0">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center mr-3 ${isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+             <Layers size={20} />
+          </div>
+          <h3 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Setup Small Groups</h3>
+        </div>
+
+        <div className="mb-4 shrink-0">
+          <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Number of Groups (Max 12)</label>
+          <input 
+            type="number" 
+            min="1"
+            max="12"
+            value={count}
+            onChange={handleCountChange}
+            className={`w-full px-4 py-3 rounded-xl border text-lg font-bold outline-none transition-all shadow-sm
+              ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white focus:border-slate-500' : 'bg-white border-slate-200 text-slate-900 focus:border-slate-400'}
+            `}
+          />
+        </div>
+
+        <div className="flex-1 overflow-y-auto pr-1 min-h-[150px] mb-4 space-y-3">
+           <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Group Names</label>
+           {names.map((name, index) => (
+              <input
+                key={index}
+                type="text"
+                value={name}
+                onChange={(e) => handleNameChange(index, e.target.value)}
+                placeholder={`Group ${index + 1}`}
+                className={`w-full px-4 py-2.5 rounded-lg border text-sm font-medium outline-none transition-all shadow-sm
+                  ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white focus:border-slate-500' : 'bg-white border-slate-200 text-slate-900 focus:border-slate-400'}
+                `}
+              />
+           ))}
+        </div>
+        
+        <div className="shrink-0 pt-2 border-t mt-auto flex justify-end">
+           <button 
+             onClick={() => onSave(names)}
+             className={`w-full py-3 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 shadow-md flex items-center justify-center ${theme.bg}`}
+           >
+             <Layers size={16} className="mr-2" /> Save Groups
+           </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Saved Timer Setup Modal
+ */
+const SavedTimerSetupModal = ({ isOpen, onClose, onSave, isDarkMode, theme }) => {
+  const [name, setName] = useState("");
+  const [min, setMin] = useState("");
+  const [sec, setSec] = useState("");
+
+  useEffect(() => {
+    if (isOpen) {
+      setName("");
+      setMin("");
+      setSec("");
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div 
+      className="absolute inset-0 z-[200] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className={`w-full max-w-sm flex flex-col p-5 sm:p-6 rounded-2xl shadow-2xl relative animate-in zoom-in-95 duration-200 ${isDarkMode ? 'bg-slate-900 border border-slate-800' : 'bg-white'}`}>
+        <button 
+          onClick={onClose}
+          className={`absolute top-4 right-4 p-1.5 rounded-full transition-colors ${isDarkMode ? 'text-slate-400 hover:bg-slate-800' : 'text-slate-500 hover:bg-slate-100'}`}
+        >
+          <X size={18} />
+        </button>
+        
+        <div className="flex items-center mb-6 shrink-0">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center mr-3 ${isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+             <Archive size={20} />
+          </div>
+          <h3 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>New Saved Timer</h3>
+        </div>
+
+        <div className="mb-4">
+          <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Timer Name</label>
+          <input 
+            type="text" 
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g., Reading Time"
+            className={`w-full px-4 py-3 rounded-xl border text-sm font-bold outline-none transition-all shadow-sm
+              ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white focus:border-slate-500' : 'bg-white border-slate-200 text-slate-900 focus:border-slate-400'}
+            `}
+          />
+        </div>
+
+        <div className="flex space-x-4 mb-6">
+          <div className="flex-1">
+            <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Minutes</label>
+            <input 
+              type="number" 
+              min="0"
+              value={min}
+              onChange={(e) => setMin(e.target.value)}
+              placeholder="0"
+              className={`w-full px-4 py-3 rounded-xl border text-xl font-black outline-none transition-all shadow-sm
+                ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white focus:border-slate-500' : 'bg-white border-slate-200 text-slate-900 focus:border-slate-400'}
+              `}
+            />
+          </div>
+          <div className="flex-1">
+            <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Seconds</label>
+            <input 
+              type="number" 
+              min="0"
+              max="59"
+              value={sec}
+              onChange={(e) => setSec(e.target.value)}
+              placeholder="0"
+              className={`w-full px-4 py-3 rounded-xl border text-xl font-black outline-none transition-all shadow-sm
+                ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white focus:border-slate-500' : 'bg-white border-slate-200 text-slate-900 focus:border-slate-400'}
+              `}
+            />
+          </div>
+        </div>
+        
+        <button 
+          onClick={() => onSave(name, min, sec)}
+          disabled={!name || (!min && !sec)}
+          className={`w-full py-3 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 shadow-md flex items-center justify-center disabled:opacity-50 disabled:pointer-events-none ${theme.bg}`}
+        >
+          Save Timer
+        </button>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Main Application
+ */
+const App = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [sidebarSide, setSidebarSide] = useState('left');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [useOverlaySearch, setUseOverlaySearch] = useState(false);
+  
+  // Secondary Sidebar & Navigation States
+  const [activeTab, setActiveTab] = useState(null);
+  const [expandedItem, setExpandedItem] = useState(null); 
+  const [popoutItem, setPopoutItem] = useState(null); 
+  const [panelItem, setPanelItem] = useState(null);
+
+  // Timer Specific State
+  const [activeTimerMode, setActiveTimerMode] = useState('whole');
+  const [activeWholeTimer, setActiveWholeTimer] = useState(null); // Used for fullscreen whole class quick selects
+  const [isWholeTimerFullscreen, setIsWholeTimerFullscreen] = useState(false);
+  const [isLocalFullscreen, setIsLocalFullscreen] = useState(false);
+  
+  // Small Group Specific State
+  const [smallGroups, setSmallGroups] = useState(["Red Group", "Blue Group", "Green Group", "Yellow Group", "Purple Group"]);
+  const [smallGroupTime, setSmallGroupTime] = useState(10);
+  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
+  const [isEditGroupTimeModalOpen, setIsEditGroupTimeModalOpen] = useState(false);
+
+  // Stopwatch Specific State
+  const [isStopwatchFullscreen, setIsStopwatchFullscreen] = useState(false);
+  const [stopwatchMode, setStopwatchMode] = useState('whole'); // 'whole' or 'individual'
+  const [studentStopwatchConfigs, setStudentStopwatchConfigs] = useState({});
+  const [isAllStopwatchesRunning, setIsAllStopwatchesRunning] = useState(false);
+  const [hasStartedStopwatches, setHasStartedStopwatches] = useState(false);
+  
+  // Whole Class Timer Specific State
+  const [wholeClassPresets, setWholeClassPresets] = useState([
+    { id: 'p1', label: '30 sec', min: 0.5 },
+    { id: 'p2', label: '1 min', min: 1 },
+    { id: 'p3', label: '2 min', min: 2 },
+    { id: 'p4', label: '5 min', min: 5 },
+    { id: 'p5', label: '10 min', min: 10 },
+    { id: 'p6', label: '15 min', min: 15 },
+  ]);
+  const [isCustomTimerModalOpen, setIsCustomTimerModalOpen] = useState(false);
+
+  // Individual Timer Specific State
+  const [activeStudentSetup, setActiveStudentSetup] = useState(null);
+  const [studentTimerConfigs, setStudentTimerConfigs] = useState({});
+  const [isAssignAllModalOpen, setIsAssignAllModalOpen] = useState(false);
+  
+  // Selection Mode State (for Individual Timers)
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedStudents, setSelectedStudents] = useState([]);
+  const [isSelectTimerModalOpen, setIsSelectTimerModalOpen] = useState(false);
+
+  // Saved Timers Specific State
+  const [savedTimers, setSavedTimers] = useState([]);
+  const [isSavedTimerModalOpen, setIsSavedTimerModalOpen] = useState(false);
+
+  // World Clock Specific State
+  const [worldClocks, setWorldClocks] = useState([
+    { name: 'Los Angeles', tz: 'America/Los_Angeles' },
+    { name: 'New York', tz: 'America/New_York' },
+    { name: 'London', tz: 'Europe/London' },
+    { name: 'Dubai', tz: 'Asia/Dubai' },
+    { name: 'Tokyo', tz: 'Asia/Tokyo' },
+    { name: 'Sydney', tz: 'Australia/Sydney' },
+  ]);
+  const [citySearch, setCitySearch] = useState("");
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const [citySearchResults, setCitySearchResults] = useState([]);
+  const [isSearchingCity, setIsSearchingCity] = useState(false);
+  const [isAddingCity, setIsAddingCity] = useState(false); // Used when fetching Timezone API after click
+  const [isAddCityModalOpen, setIsAddCityModalOpen] = useState(false);
+  const [showStudentDropdown, setShowStudentDropdown] = useState(false);
+
+  const currentAppName = "Timer"; 
+  
+  const appThemes = {
+    "Hub": { primary: "sky-500", bg: "bg-sky-500", text: "text-sky-500", border: "border-sky-500", hoverBg: "hover:bg-sky-50", ring: "ring-sky-500" },
+    "District": { primary: "rose-500", bg: "bg-rose-500", text: "text-rose-500", border: "border-rose-500", hoverBg: "hover:bg-rose-50", ring: "ring-rose-500" },
+    "Admin": { primary: "emerald-500", bg: "bg-emerald-500", text: "text-emerald-500", border: "border-emerald-500", hoverBg: "hover:bg-emerald-50", ring: "ring-emerald-500" },
+    "Analytics": { primary: "orange-500", bg: "bg-orange-500", text: "text-orange-500", border: "border-orange-500", hoverBg: "hover:bg-orange-50", ring: "ring-orange-500" },
+    "Timer": { primary: "emerald-500", bg: "bg-emerald-500", text: "text-emerald-500", border: "border-emerald-500", hoverBg: "hover:bg-emerald-50", ring: "ring-emerald-500" }
+  };
+
+  const theme = appThemes[currentAppName] || appThemes["Hub"];
+  const searchRef = useRef(null);
+  const popoutRef = useRef(null);
+  const studentSearchContainerRef = useRef(null);
+  const citySearchContainerRef = useRef(null);
+  const isLeft = sidebarSide === 'left';
+
+  useEffect(() => {
+    const handleResize = () => setUseOverlaySearch(window.innerWidth < 768);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // General Navbar clicks
+      if (popoutRef.current && !popoutRef.current.contains(event.target)) setPopoutItem(null);
+      if (searchRef.current && !searchRef.current.contains(event.target) && !searchQuery) setIsSearchExpanded(false);
+      
+      // Close dropdowns if clicked outside their containers
+      if (studentSearchContainerRef.current && !studentSearchContainerRef.current.contains(event.target)) setShowStudentDropdown(false);
+      if (citySearchContainerRef.current && !citySearchContainerRef.current.contains(event.target)) setShowCityDropdown(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [searchQuery]);
+
+  // --- GOOGLE MAPS GEOCODING SEARCH EFFECT ---
+  useEffect(() => {
+    if (!citySearch.trim()) {
+      setCitySearchResults([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearchingCity(true);
+      
+      // Fallback: If no API key is provided, search our local mock database.
+      if (GOOGLE_MAPS_API_KEY === "YOUR_API_KEY_HERE" || !GOOGLE_MAPS_API_KEY) {
+        const fallbackResults = WORLD_CITIES.filter(c => 
+          c.name.toLowerCase().includes(citySearch.toLowerCase()) && 
+          !worldClocks.find(wc => wc.name === c.name)
+        ).map(c => ({
+           name: c.name,
+           country: c.country,
+           tz: c.tz, // Pass the known timezone explicitly
+           isFallback: true
+        }));
+        setCitySearchResults(fallbackResults);
+        setIsSearchingCity(false);
+        return;
+      }
+
+      // Live Google Maps Geocoding API Branch
+      try {
+        const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(citySearch)}&key=${GOOGLE_MAPS_API_KEY}`);
+        const data = await response.json();
+        
+        if (data.status === "OK") {
+          const formattedResults = data.results.map(r => {
+            // Extract the country name for a cleaner UI display
+            const countryComponent = r.address_components.find(c => c.types.includes("country"));
+            return {
+              name: r.formatted_address,
+              lat: r.geometry.location.lat,
+              lng: r.geometry.location.lng,
+              country: countryComponent ? countryComponent.short_name : 'Global',
+              isFallback: false
+            };
+          });
+          setCitySearchResults(formattedResults);
+        } else {
+          setCitySearchResults([]);
+        }
+      } catch (error) {
+        console.error("Geocoding Error:", error);
+        setCitySearchResults([]);
+      }
+      setIsSearchingCity(false);
+    }, 600); // 600ms debounce to prevent API spam while typing
+
+    return () => clearTimeout(timer);
+  }, [citySearch, worldClocks]);
+
+  const navigationItems = [
+    { id: 'whole', name: 'Whole Class', icon: Users, type: 'timer' },
+    { id: 'small', name: 'Small Group', icon: Layers, type: 'timer' },
+    { id: 'individual', name: 'Individual', icon: User, type: 'timer' },
+    { id: 'stopwatch', name: 'Stopwatch', icon: TimerIcon, type: 'timer' },
+    { id: 'learning', name: 'Learning', icon: Library, type: 'timer' },
+    { id: 'saved', name: 'Saved Timers', icon: Archive, type: 'timer' },
+    { id: 'local', name: 'Local Time', icon: Clock, type: 'timer' },
+    { id: 'world', name: 'World Clock', icon: Globe, type: 'timer' },
+  ];
+
+  const sidebarWidth = isSidebarOpen ? 'w-64' : 'w-20';
+  const navHeight = 'h-16';
+
+  const handleItemClick = (item) => {
+    if (item.type === 'timer') {
+      setActiveTimerMode(item.id);
+      setActiveTab(null);
+      setExpandedItem(null);
+      setPanelItem(null);
+      // Reset Selection Mode if navigating away
+      if (isSelectionMode) {
+        setIsSelectionMode(false);
+        setSelectedStudents([]);
+      }
+    } else if (item.type === 'link') {
+      setActiveTab(item.name);
+      setExpandedItem(null);
+      setPanelItem(null);
+    } else if (item.type === 'accordion') {
+      if (!isSidebarOpen) setIsSidebarOpen(true);
+      setExpandedItem(expandedItem === item.id ? null : item.id);
+      setPanelItem(null);
+    } else if (item.type === 'popout') {
+      setPopoutItem(popoutItem === item.id ? null : item.id);
+    } else if (item.type === 'panel') {
+      const isOpening = panelItem !== item.id;
+      setPanelItem(isOpening ? item.id : null);
+      setExpandedItem(null);
+      if (isOpening) setActiveTab(null);
+    }
+  };
+
+  // --- GOOGLE MAPS TIMEZONE SEARCH ON CLICK ---
+  const addCityClock = async (cityObj) => {
+    // If it came from the fallback database, we already have the TZ.
+    if (cityObj.isFallback && cityObj.tz) {
+      setWorldClocks([...worldClocks, { name: cityObj.name, tz: cityObj.tz }]);
+      setCitySearch("");
+      setShowCityDropdown(false);
+      return;
+    }
+
+    // If it's a real live Google Maps location, we must ask Google for the Timezone based on its Lat/Lng.
+    setIsAddingCity(true);
+    try {
+      const timestamp = Math.floor(Date.now() / 1000); // Current UNIX timestamp required by API
+      const response = await fetch(`https://maps.googleapis.com/maps/api/timezone/json?location=${cityObj.lat},${cityObj.lng}&timestamp=${timestamp}&key=${GOOGLE_MAPS_API_KEY}`);
+      const data = await response.json();
+      
+      if (data.status === "OK") {
+        // Clean up the name a bit if it's very long
+        const shortName = cityObj.name.split(',')[0]; 
+        setWorldClocks([...worldClocks, { name: shortName, tz: data.timeZoneId }]);
+      } else {
+        alert("Could not fetch timezone for this location.");
+      }
+    } catch (error) {
+      console.error("Timezone fetch error:", error);
+    }
+    
+    setIsAddingCity(false);
+    setCitySearch("");
+    setShowCityDropdown(false);
+    setIsAddCityModalOpen(false); // Close the modal on success
+  };
+
+  const handleWholeClassSave = (min, sec) => {
+    const m = parseInt(min) || 0;
+    const s = parseInt(sec) || 0;
+    if (m === 0 && s === 0) return;
+    
+    let label = (m > 0 && s > 0) ? `${m}m ${s}s` : (m > 0 ? `${m} min` : `${s} sec`);
+    const newPreset = { id: `custom-${Date.now()}`, label, min: m + (s / 60), isCustom: true };
+    
+    setWholeClassPresets([...wholeClassPresets, newPreset]);
+    setIsCustomTimerModalOpen(false);
+  };
+
+  const handleWholeClassStart = (min, sec) => {
+    const m = parseInt(min) || 0;
+    const s = parseInt(sec) || 0;
+    if (m === 0 && s === 0) return;
+    
+    let label = (m > 0 && s > 0) ? `${m}m ${s}s` : (m > 0 ? `${m} min` : `${s} sec`);
+    const newPreset = { id: `custom-${Date.now()}`, label, min: m + (s / 60), isCustom: true, autoStart: true };
+    
+    setIsCustomTimerModalOpen(false);
+    setActiveWholeTimer(newPreset);
+  };
+
+  const handleStudentStart = (min, sec) => {
+    const m = parseInt(min) || 0;
+    const s = parseInt(sec) || 0;
+    const totalSeconds = (m * 60) + s;
+    if (totalSeconds === 0) return;
+
+    setStudentTimerConfigs(prev => ({
+      ...prev,
+      [activeStudentSetup.id]: {
+        totalSeconds,
+        triggerId: Date.now(),
+        autoStart: true
+      }
+    }));
+    setActiveStudentSetup(null);
+  };
+
+  const handleAssignAll = (min, sec) => {
+    const m = parseInt(min) || 0;
+    const s = parseInt(sec) || 0;
+    const totalSeconds = (m * 60) + s;
+    if (totalSeconds === 0) return;
+
+    const newConfigs = {};
+    const triggerId = Date.now();
+    CLASS_LIST.forEach(student => {
+      newConfigs[student.id] = {
+        totalSeconds,
+        triggerId,
+        autoStart: false // Kids initiate their own timers
+      };
+    });
+    setStudentTimerConfigs(prev => ({ ...prev, ...newConfigs }));
+    setIsAssignAllModalOpen(false);
+  };
+
+  const handleToggleSelection = (studentId) => {
+    setSelectedStudents(prev => 
+      prev.includes(studentId) ? prev.filter(id => id !== studentId) : [...prev, studentId]
+    );
+  };
+
+  const handleAssignSelected = (min, sec) => {
+    const m = parseInt(min) || 0;
+    const s = parseInt(sec) || 0;
+    const totalSeconds = (m * 60) + s;
+    if (totalSeconds === 0) return;
+
+    const newConfigs = {};
+    const triggerId = Date.now();
+    selectedStudents.forEach(id => {
+      newConfigs[id] = {
+        totalSeconds,
+        triggerId,
+        autoStart: false 
+      };
+    });
+    
+    setStudentTimerConfigs(prev => ({ ...prev, ...newConfigs }));
+    setIsSelectTimerModalOpen(false);
+    setIsSelectionMode(false);
+    setSelectedStudents([]);
+  };
+
+  const handleStartAllStopwatches = () => {
+    const newConfigs = {};
+    const actionId = Date.now();
+    CLASS_LIST.forEach(student => {
+      newConfigs[student.id] = { type: 'START_ALL', actionId };
+    });
+    setStudentStopwatchConfigs(prev => ({ ...prev, ...newConfigs }));
+    setIsAllStopwatchesRunning(true);
+    setHasStartedStopwatches(true);
+  };
+
+  const handlePauseAllStopwatches = () => {
+    const newConfigs = {};
+    const actionId = Date.now();
+    CLASS_LIST.forEach(student => {
+      newConfigs[student.id] = { type: 'PAUSE_ALL', actionId };
+    });
+    setStudentStopwatchConfigs(prev => ({ ...prev, ...newConfigs }));
+    setIsAllStopwatchesRunning(false);
+  };
+
+  const handleResumeAllStopwatches = () => {
+    const newConfigs = {};
+    const actionId = Date.now();
+    CLASS_LIST.forEach(student => {
+      newConfigs[student.id] = { type: 'RESUME_ALL', actionId };
+    });
+    setStudentStopwatchConfigs(prev => ({ ...prev, ...newConfigs }));
+    setIsAllStopwatchesRunning(true);
+  };
+
+  const handleClearAllStopwatches = () => {
+    const newConfigs = {};
+    const actionId = Date.now();
+    CLASS_LIST.forEach(student => {
+      newConfigs[student.id] = { type: 'CLEAR_ALL', actionId };
+    });
+    setStudentStopwatchConfigs(prev => ({ ...prev, ...newConfigs }));
+    setIsAllStopwatchesRunning(false);
+    setHasStartedStopwatches(false);
+  };
+
+  const removeWholeClassPreset = (id) => {
+    setWholeClassPresets(wholeClassPresets.filter(p => p.id !== id));
+  };
+
+  const handleSaveSmallGroups = () => {
+    const newRotation = {
+      id: `st-rotation-${Date.now()}`,
+      type: 'rotation',
+      label: `${smallGroups.length} Group Rotation`,
+      groups: [...smallGroups],
+      min: smallGroupTime
+    };
+    setSavedTimers(prev => [...prev, newRotation]);
+    setActiveTimerMode('saved');
+  };
+
+  const handleCreateSavedTimer = (name, min, sec) => {
+    const m = parseInt(min) || 0;
+    const s = parseInt(sec) || 0;
+    const totalMin = m + (s / 60);
+    
+    setSavedTimers([...savedTimers, { id: `st-${Date.now()}`, label: name, min: totalMin }]);
+    setIsSavedTimerModalOpen(false);
+  };
+
+  const handleRemoveSavedTimer = (id) => {
+    setSavedTimers(savedTimers.filter(t => t.id !== id));
+  };
+
+  return (
+    <>
+      {/* Global Style for Custom Animations */}
+      <style>{`
+        @keyframes swing {
+          0%, 100% { transform: rotate(0deg); }
+          25% { transform: rotate(20deg); }
+          75% { transform: rotate(-20deg); }
+        }
+        .animate-swing {
+          animation: swing 1.2s ease-in-out infinite;
+          transform-origin: top center;
+        }
+      `}</style>
+
+      <div className={`flex min-h-screen font-sans transition-all duration-300 ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'} ${isLeft ? 'flex-row' : 'flex-row-reverse'}`}>
+        
+        {/* 1. PRIMARY SIDEBAR */}
+        <aside className={`relative z-50 transition-all duration-300 ease-in-out flex flex-col shadow-sm ${sidebarWidth} ${isLeft ? 'border-r' : 'border-l'} ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+          <div className={`flex items-center justify-center shrink-0 border-b ${navHeight} w-full ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+            <div className="flex items-center justify-center px-4">
+              {isSidebarOpen ? <LogoHorizontal className="h-6 w-auto" /> : <LogoIcon2x2 className="w-8 h-8" />}
+            </div>
+          </div>
+
+          <div className={`pt-3 px-3 shrink-0 flex ${isSidebarOpen ? 'justify-end' : 'justify-center'}`}>
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className={`flex items-center justify-center transition-all rounded-lg ${isSidebarOpen ? 'p-1.5' : 'w-12 h-12'} ${isDarkMode ? 'text-slate-500 hover:bg-slate-800 hover:text-slate-200' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-900'}`}
+            >
+              {isSidebarOpen ? <ChevronLeft size={18} className={!isLeft ? 'rotate-180' : ''} /> : <Menu size={20} />}
+            </button>
+          </div>
+
+          <nav className="flex-1 px-2 space-y-1 pt-2 pb-10 relative overflow-x-visible">
+            {navigationItems.map((item) => {
+              const isTabActive = activeTab === item.name || (item.type === 'accordion' && item.subItems?.includes(activeTab));
+              const isPanelOpen = panelItem === item.id;
+              const isTimerActive = item.type === 'timer' && activeTimerMode === item.id;
+              const isVisuallyActive = isTabActive || isPanelOpen || isTimerActive;
+              const isExpanded = expandedItem === item.id;
+              const hasPopout = popoutItem === item.id;
+
+              return (
+                <div key={item.id} className="relative">
+                  <button
+                    onClick={() => handleItemClick(item)}
+                    className={`flex items-center transition-all group relative rounded-xl w-full
+                      ${isSidebarOpen ? 'p-3' : 'w-16 h-16 mx-auto justify-center'}
+                      ${isVisuallyActive ? `${theme.bg} text-white shadow-lg` : `${isDarkMode ? 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}`}
+                  >
+                    <div className={`flex items-center justify-center shrink-0`}>
+                      <item.icon size={20} strokeWidth={isVisuallyActive ? 2.5 : 2} />
+                    </div>
+                    {isSidebarOpen && (
+                      <>
+                        <span className="ml-4 font-semibold text-sm flex-1 text-left">{item.name}</span>
+                        {item.type === 'accordion' && (
+                          <ChevronDown size={14} className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                        )}
+                        {item.type === 'panel' && (
+                          <ChevronRight size={14} className={`transition-all duration-200 ${isLeft ? '' : 'rotate-180'} ${isPanelOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-40'}`} />
+                        )}
+                        {item.type === 'popout' && <MoreVertical size={14} className="opacity-40" />}
+                      </>
+                    )}
+                    {!isSidebarOpen && (
+                      <div className={`absolute ${isLeft ? 'left-full ml-4' : 'right-full mr-4'} px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-[60] whitespace-nowrap shadow-xl`}>
+                        {item.name}
+                      </div>
+                    )}
+                  </button>
+                  {item.type === 'accordion' && isExpanded && isSidebarOpen && (
+                    <div className={`mt-1 space-y-1 ${isDarkMode ? 'border-slate-800' : 'border-slate-100'} ${isLeft ? 'ml-10 border-l-2' : 'mr-10 border-r-2'}`}>
+                      {item.subItems?.map(sub => (
+                        <button 
+                          key={sub}
+                          onClick={() => setActiveTab(sub)}
+                          className={`block w-full text-left py-2 px-4 text-xs font-medium transition-colors
+                            ${isLeft ? 'rounded-r-lg' : 'rounded-l-lg text-right'}
+                            ${activeTab === sub ? `${theme.text} ${isDarkMode ? 'bg-slate-800' : 'bg-slate-50'} font-bold` : `${isDarkMode ? 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/50' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50/50'}`}`}
+                        >
+                          {sub}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {item.type === 'popout' && hasPopout && (
+                    <div 
+                      ref={popoutRef} 
+                      className={`absolute z-[100] border rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] py-2 min-w-[200px]
+                        ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}
+                        ${isLeft ? 'left-full ml-4' : 'right-full mr-4'}
+                        top-0`}
+                    >
+                      <div className={`px-3 py-2 mb-1 border-b ${isDarkMode ? 'border-slate-800/50' : 'border-slate-50'}`}>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.name} Options</p>
+                      </div>
+                      {item.actions?.map(action => (
+                        <button
+                          key={action.name}
+                          className={`w-full flex items-center px-3 py-2.5 text-xs font-semibold transition-colors ${action.color || (isDarkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-50')}`}
+                          onClick={() => { setPopoutItem(null); setActiveTab(`${item.name}: ${action.name}`); }}
+                        >
+                          <div className={`w-6 h-6 rounded flex items-center justify-center mr-3 ${action.color ? 'bg-rose-50' : (isDarkMode ? 'bg-slate-800' : 'bg-slate-50')}`}>
+                             <action.icon size={12} />
+                          </div>
+                          {action.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </nav>
+
+          {/* BOTTOM CONTROLS (Dark Mode & Flip Side) */}
+          <div className={`p-2 border-t ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+             <div className={`flex transition-all duration-300 ${isSidebarOpen ? 'flex-row items-center space-x-2' : 'flex-col items-center space-y-2'}`}>
+                <button 
+                  onClick={() => setIsDarkMode(!isDarkMode)}
+                  className={`flex items-center justify-center rounded-xl transition-all ${isSidebarOpen ? 'flex-1 p-3' : 'w-16 h-12'} ${isDarkMode ? 'text-amber-400 bg-slate-800 hover:bg-slate-700' : 'text-slate-400 bg-slate-50 hover:bg-slate-100 hover:text-slate-900'}`}
+                  title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                >
+                  {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+                  {isSidebarOpen && <span className="ml-4 text-[10px] font-bold uppercase tracking-tighter">{isDarkMode ? 'Light' : 'Dark'}</span>}
+                </button>
+
+                <button 
+                  onClick={() => { setSidebarSide(isLeft ? 'right' : 'left'); }}
+                  className={`flex items-center justify-center rounded-xl transition-all ${isSidebarOpen ? 'flex-1 p-3' : 'w-16 h-12'} ${isDarkMode ? 'text-slate-500 hover:bg-slate-800 hover:text-slate-200' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`}
+                  title="Flip Sidebar Side"
+                >
+                  <ArrowLeftRight size={16} />
+                  {isSidebarOpen && <span className="ml-4 text-[10px] font-bold uppercase tracking-tighter">Flip</span>}
+                </button>
+             </div>
+          </div>
+        </aside>
+
+        {/* 2. SECONDARY SIDEBAR PANEL */}
+        <div 
+          className={`z-40 transition-all duration-300 ease-in-out overflow-hidden flex flex-col
+            ${panelItem ? 'w-72' : 'w-0'}
+            ${isDarkMode ? 'bg-slate-900' : 'bg-white'}
+            ${isLeft ? `border-r ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}` : `border-l ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}`}
+        >
+          <div className={`w-72 flex flex-col h-full transition-opacity duration-300 ${panelItem ? 'opacity-100' : 'opacity-0'}`}>
+            <div className={`flex items-center justify-between p-6 shrink-0 border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-100'} ${navHeight}`}>
+              <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Resources</h2>
+              <button onClick={() => setPanelItem(null)} className={`p-1 rounded-md transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50'}`}>
+                <X size={16} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              {navigationItems.find(i => i.id === panelItem)?.panelContent?.map((sub, index, arr) => (
+                <button 
+                  key={sub.label}
+                  onClick={() => setActiveTab(`Resource: ${sub.label}`)}
+                  className={`w-full flex items-center p-5 text-left group transition-all relative
+                    ${isDarkMode ? 'hover:bg-slate-800/50' : 'hover:bg-slate-50/50'}
+                    ${index !== arr.length - 1 ? `border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}` : ''}`}
+                >
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-400 group-hover:text-white group-hover:bg-slate-700' : 'bg-slate-50 border border-slate-100 text-slate-400 group-hover:bg-white group-hover:shadow-sm'} group-hover:${theme.text} group-hover:${theme.border}`}>
+                    <sub.icon size={18} />
+                  </div>
+                  <div className="ml-4 flex-1">
+                    <span className={`block text-sm font-bold group-hover:${theme.text} transition-colors ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>{sub.label}</span>
+                    <span className="block text-[10px] text-slate-500 font-medium uppercase tracking-tight">Access files</span>
+                  </div>
+                  <ChevronRight size={14} className={`text-slate-300 opacity-0 group-hover:opacity-100 transition-all transform ${isLeft ? 'group-hover:translate-x-1' : 'rotate-180 group-hover:-translate-x-1'} group-hover:${theme.text}`} />
+                </button>
+              ))}
+            </div>
+            <div className={`p-4 border-t ${isDarkMode ? 'bg-slate-900/50 border-slate-800' : 'bg-slate-50/50 border-slate-100'}`}>
+              <button className={`w-full py-3 px-4 rounded-xl border-2 border-dashed text-xs font-bold transition-all flex items-center justify-center ${isDarkMode ? 'border-slate-800 text-slate-500 hover:border-slate-700 hover:text-slate-300' : 'border-slate-200 text-slate-400 hover:border-slate-300 hover:text-slate-600'} hover:${theme.border} hover:${theme.text}`}>
+                 <Plus size={14} className="mr-2" /> Create New
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* MAIN CONTENT AREA */}
+        <div className={`flex-1 flex flex-col min-w-0 relative ${isLocalFullscreen || isWholeTimerFullscreen || isStopwatchFullscreen ? 'z-[200]' : 'z-10'}`}>
+          <header className={`border-b flex items-center px-6 z-20 shrink-0 ${navHeight} sticky top-0 transition-colors duration-300 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+            
+            {/* LEFT: STATIC BRANDING SECTION */}
+            <div 
+              className={`transition-all duration-500 overflow-hidden flex items-center shrink-0 ${isSearchExpanded && !useOverlaySearch ? 'w-0 opacity-0 mr-0' : 'flex-1 opacity-100 mr-4'}`}
+            >
+              <div className="flex items-center text-lg font-bold whitespace-nowrap tracking-tight">
+                <span className={isDarkMode ? 'text-white' : 'text-slate-900'}>Edu.</span>
+                <span className={theme.text}>{currentAppName}</span>
+              </div>
+            </div>
+            
+            {/* MOBILE OVERLAY SEARCH */}
+            {useOverlaySearch && isSearchExpanded && (
+              <div className={`absolute inset-x-0 inset-y-0 z-50 flex items-center px-4 animate-in fade-in slide-in-from-top-2 duration-300 ${isDarkMode ? 'bg-slate-900' : 'bg-white'}`}>
+                  <Search size={18} className="text-slate-400 mr-3" />
+                  <input
+                      type="text"
+                      placeholder="Search..."
+                      autoFocus
+                      className={`flex-1 bg-transparent border-none outline-none text-sm font-medium ${isDarkMode ? 'text-white' : 'text-slate-900'}`}
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <button onClick={() => setIsSearchExpanded(false)} className="p-2 text-slate-400 hover:text-slate-900">
+                      <X size={18} />
+                  </button>
+              </div>
+            )}
+            
+            {/* NAV ACTIONS */}
+            <div className={`flex items-center justify-end flex-1 h-full relative`}>
+               
+               {!useOverlaySearch && (
+                 <div 
+                    ref={searchRef} 
+                    className={`flex items-center relative transition-all duration-500 ease-in-out h-10 justify-end
+                      ${isSearchExpanded ? 'flex-1 max-w-xl mr-4' : 'w-10'}`}
+                 >
+                    <div className={`relative h-full transition-all duration-500 overflow-hidden flex items-center ${isSearchExpanded ? 'w-full' : 'w-0'}`}>
+                      <div className={`absolute left-0 flex items-center justify-center w-12 h-10 z-30 ${isSearchExpanded ? theme.text : 'text-slate-400'}`}>
+                          <Search size={18} />
+                      </div>
+
+                      <input
+                        type="text"
+                        placeholder="Search resources..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className={`w-full h-full border rounded-full pl-12 pr-12 text-sm font-medium outline-none focus:outline-none transition-all duration-300 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white focus:bg-slate-700 focus:border-slate-600' : 'bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-slate-300'}`}
+                        autoFocus={isSearchExpanded}
+                      />
+                      
+                      <div className="absolute right-0 flex items-center justify-center w-12 h-10 z-30">
+                          <button 
+                              onClick={(e) => { 
+                                  e.stopPropagation();
+                                  if (searchQuery) {
+                                      setSearchQuery("");
+                                  } else {
+                                      setIsSearchExpanded(false);
+                                  }
+                              }}
+                              className={`p-1.5 text-slate-400 hover:text-slate-900 transition-all duration-300 transform
+                              ${isSearchExpanded ? 'opacity-100 scale-100' : 'opacity-0 scale-50 pointer-events-none'}`}
+                          >
+                              <X size={16} strokeWidth={2.5} />
+                          </button>
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={() => setIsSearchExpanded(true)}
+                      className={`absolute right-0 p-2 text-slate-400 hover:${theme.text} rounded-full transition-all duration-300 z-20 
+                        ${isSearchExpanded ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                    >
+                      <Search size={18} />
+                    </button>
+                 </div>
+               )}
+
+               {useOverlaySearch && !isSearchExpanded && (
+                  <button onClick={() => setIsSearchExpanded(true)} className="p-2 text-slate-400 hover:text-slate-900 rounded-full mr-2">
+                      <Search size={18} />
+                  </button>
+               )}
+               
+               {/* RIGHT-SIDE FIXED ACTIONS */}
+               <div className={`flex items-center space-x-2 shrink-0 transition-all duration-300 ${isSearchExpanded && useOverlaySearch ? 'opacity-0' : 'opacity-100'}`}>
+                  <button className={`p-2 text-slate-400 hover:${theme.text} rounded-full transition-colors`}>
+                    <Grid size={18} />
+                  </button>
+                  <button className={`p-2 text-slate-400 hover:${theme.text} rounded-full transition-colors relative`}>
+                    <Bell size={18} />
+                    <span className={`absolute top-2.5 right-2.5 w-1.5 h-1.5 ${theme.bg} rounded-full border border-white`}></span>
+                  </button>
+                  <div className={`h-6 w-[1px] mx-1 shrink-0 ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`}></div>
+                  <button className={`w-9 h-9 rounded-full flex items-center justify-center transition-all shadow-sm ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white hover:border-slate-600' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-white hover:shadow-md'}`}>
+                    <User size={20} strokeWidth={2} />
+                  </button>
+               </div>
+            </div>
+          </header>
+
+          <main className="flex-1 overflow-auto p-8 lg:p-10 relative flex flex-col">
+            
+            <div className="max-w-6xl mx-auto w-full flex-1 flex flex-col">
+              
+              {/* 0. LOCAL TIME VIEW */}
+              {activeTimerMode === 'local' && (
+                <div className={`flex justify-center flex-1 ${isLocalFullscreen ? '' : 'animate-in fade-in slide-in-from-bottom-4 duration-500'}`}>
+                  <div className="w-full max-w-4xl pt-12">
+                    <LocalClockCard 
+                      isDarkMode={isDarkMode} 
+                      theme={theme}
+                      isFullscreen={isLocalFullscreen}
+                      setIsFullscreen={setIsLocalFullscreen}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* 0.5 STOPWATCH VIEW */}
+              {activeTimerMode === 'stopwatch' && (
+                <div className={`flex flex-col flex-1 min-h-0 ${isStopwatchFullscreen ? '' : 'animate-in fade-in slide-in-from-bottom-4 duration-500'}`}>
+                  
+                  {/* Toggle Controls */}
+                  {!isStopwatchFullscreen && (
+                    <div className="flex justify-center mt-2 mb-6 shrink-0">
+                      <div className={`flex p-1 rounded-xl shadow-sm border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-slate-100 border-slate-200'}`}>
+                        <button 
+                          onClick={() => setStopwatchMode('whole')}
+                          className={`flex items-center px-4 py-2 rounded-lg text-sm font-bold transition-all ${stopwatchMode === 'whole' ? (isDarkMode ? 'bg-slate-800 text-white shadow' : 'bg-white text-slate-900 shadow') : (isDarkMode ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-700')}`}
+                        >
+                          <Users size={16} className="mr-2" /> Whole Class
+                        </button>
+                        <button 
+                          onClick={() => setStopwatchMode('individual')}
+                          className={`flex items-center px-4 py-2 rounded-lg text-sm font-bold transition-all ${stopwatchMode === 'individual' ? (isDarkMode ? 'bg-slate-800 text-white shadow' : 'bg-white text-slate-900 shadow') : (isDarkMode ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-700')}`}
+                        >
+                          <User size={16} className="mr-2" /> Individual
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Stopwatch Content */}
+                  {stopwatchMode === 'whole' ? (
+                    <div className="flex justify-center flex-1">
+                      <div className="w-full max-w-4xl pt-4">
+                        <StopwatchCard 
+                          isDarkMode={isDarkMode} 
+                          theme={theme}
+                          isFullscreen={isStopwatchFullscreen}
+                          setIsFullscreen={setIsStopwatchFullscreen}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex-1 flex flex-col min-h-0">
+                      <div className="flex items-center justify-end mb-4 pr-2 shrink-0 space-x-2">
+                        {!hasStartedStopwatches ? (
+                          <button
+                            onClick={handleStartAllStopwatches}
+                            className={`flex items-center px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm ${theme.bg} text-white hover:scale-105 active:scale-95`}
+                          >
+                            <Play size={16} fill="currentColor" className="mr-2" /> Start All
+                          </button>
+                        ) : (
+                          <>
+                            {isAllStopwatchesRunning ? (
+                              <button
+                                onClick={handlePauseAllStopwatches}
+                                className={`flex items-center px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm ${isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'} hover:scale-105 active:scale-95`}
+                              >
+                                <Pause size={16} fill="currentColor" className="mr-2" /> Pause All
+                              </button>
+                            ) : (
+                              <button
+                                onClick={handleResumeAllStopwatches}
+                                className={`flex items-center px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm ${theme.bg} text-white hover:scale-105 active:scale-95`}
+                              >
+                                <Play size={16} fill="currentColor" className="mr-2" /> Resume All
+                              </button>
+                            )}
+                            <button
+                              onClick={handleStartAllStopwatches}
+                              className={`flex items-center px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm border ${isDarkMode ? 'border-slate-700 text-slate-300 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-50'} hover:scale-105 active:scale-95`}
+                              title="Restart All Stopwatches"
+                            >
+                              <RotateCcw size={16} className="mr-2" /> Restart All
+                            </button>
+                            <button
+                              onClick={handleClearAllStopwatches}
+                              className={`flex items-center px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm border ${isDarkMode ? 'border-rose-900/50 text-rose-400 hover:bg-rose-900/30' : 'border-rose-200 text-rose-500 hover:bg-rose-50'} hover:scale-105 active:scale-95`}
+                              title="Clear All Stopwatches"
+                            >
+                              <X size={16} className="mr-2" /> Clear All
+                            </button>
+                          </>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 pb-8 overflow-y-auto pr-2">
+                        {CLASS_LIST.map((student) => (
+                          <StudentStopwatchRow 
+                            key={student.id} 
+                            student={student} 
+                            isDarkMode={isDarkMode} 
+                            theme={theme}
+                            config={studentStopwatchConfigs[student.id]}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 1. WHOLE CLASS TIMER VIEW */}
+              {activeTimerMode === 'whole' && (
+                <div className={`flex-1 flex flex-col min-h-0 ${isWholeTimerFullscreen ? '' : 'animate-in fade-in slide-in-from-bottom-4 duration-500'}`}>
+                  {!activeWholeTimer ? (
+                    <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-4 pt-2 pb-6 px-2 overflow-y-auto">
+                      {wholeClassPresets.map((preset) => (
+                        <button
+                          key={preset.id}
+                          onClick={() => {
+                            setActiveWholeTimer(preset);
+                          }}
+                          className={`relative py-4 pl-5 ${preset.isCustom ? 'pr-10' : 'pr-5'} rounded-2xl border flex items-center justify-start shadow-sm transition-all hover:scale-105 hover:z-10 active:scale-95 group
+                            ${isDarkMode ? 'bg-slate-900 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200 hover:border-slate-300'}
+                          `}
+                        >
+                          <TimerIcon size={24} className={`mr-3 transition-colors opacity-80 shrink-0 ${isDarkMode ? 'text-slate-500 group-hover:text-slate-300' : 'text-slate-400 group-hover:text-slate-600'}`} />
+                          <p className={`text-xl md:text-2xl font-mono font-black transition-colors whitespace-nowrap ${isDarkMode ? 'text-slate-300 group-hover:text-white' : 'text-slate-700 group-hover:text-slate-900'}`}>
+                            {preset.label}
+                          </p>
+                          {preset.isCustom && (
+                            <div 
+                              onClick={(e) => { e.stopPropagation(); removeWholeClassPreset(preset.id); }}
+                              className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-colors z-20 shrink-0 ${isDarkMode ? 'text-slate-500 hover:bg-slate-800 hover:text-rose-400' : 'text-slate-400 hover:bg-slate-100 hover:text-rose-500'}`}
+                            >
+                              <X size={18} />
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex-1 flex flex-col w-full pb-2 min-h-0">
+                      <TimerCard 
+                        key={activeWholeTimer.label}
+                        initialMinutes={activeWholeTimer.min} 
+                        isDarkMode={isDarkMode} 
+                        theme={theme}
+                        isFullscreen={isWholeTimerFullscreen}
+                        onToggleFullscreen={() => setIsWholeTimerFullscreen(!isWholeTimerFullscreen)}
+                        onClose={() => { setActiveWholeTimer(null); setIsWholeTimerFullscreen(false); }}
+                        large={true}
+                        autoStart={activeWholeTimer.autoStart}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 2. SMALL GROUPS TIMER VIEW */}
+              {activeTimerMode === 'small' && (
+                <div className="relative animate-in fade-in slide-in-from-bottom-4 duration-500 mt-6 flex-1 flex flex-col min-h-0">
+                  <div className="flex items-center justify-end mb-4 pr-2 space-x-2">
+                    <button
+                      onClick={handleSaveSmallGroups}
+                      className={`flex items-center px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm ${theme.bg} text-white hover:scale-105 active:scale-95`}
+                    >
+                      <Archive size={16} className="mr-2" /> Save to Saved Timers
+                    </button>
+                    <button
+                      onClick={() => setIsEditGroupTimeModalOpen(true)}
+                      className={`flex items-center px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm border ${isDarkMode ? 'border-slate-700 text-slate-300 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-50'} hover:scale-105 active:scale-95`}
+                    >
+                      <Edit size={16} className="mr-2" /> Edit Time
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-24 overflow-y-auto">
+                    {smallGroups.map((groupName, index) => (
+                      <TimerCard 
+                        key={index + groupName + smallGroupTime}
+                        title={groupName} 
+                        initialMinutes={smallGroupTime} 
+                        isDarkMode={isDarkMode} 
+                        theme={theme}
+                        digitalOnly={true}
+                      />
+                    ))}
+                  </div>
+                  <button 
+                    onClick={() => setIsGroupModalOpen(true)}
+                    className={`absolute bottom-4 right-4 md:bottom-8 md:right-8 w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-all z-50 ${theme.bg}`}
+                    title="Setup Small Groups"
+                  >
+                    <Plus size={28} strokeWidth={2.5} />
+                  </button>
+                </div>
+              )}
+
+              {/* 3. INDIVIDUAL STUDENT TIMER VIEW */}
+              {activeTimerMode === 'individual' && (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 mt-6 flex-1 flex flex-col min-h-0">
+                  <div className="flex items-center justify-end mb-4 pr-2 space-x-2">
+                    {isSelectionMode ? (
+                      <>
+                        <button
+                          onClick={() => { setIsSelectionMode(false); setSelectedStudents([]); }}
+                          className={`flex items-center px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm ${isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'} hover:scale-105 active:scale-95`}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => setIsSelectTimerModalOpen(true)}
+                          disabled={selectedStudents.length === 0}
+                          className={`flex items-center px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm ${theme.bg} text-white hover:scale-105 active:scale-95 disabled:opacity-50`}
+                        >
+                          <Clock size={16} className="mr-2" /> Assign Selected ({selectedStudents.length})
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => setIsSelectionMode(true)}
+                          className={`flex items-center px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm border ${isDarkMode ? 'border-slate-700 text-slate-300 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-50'} hover:scale-105 active:scale-95`}
+                        >
+                          <Check size={16} className="mr-2" /> Select
+                        </button>
+                        <button
+                          onClick={() => setIsAssignAllModalOpen(true)}
+                          className={`flex items-center px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm ${theme.bg} text-white hover:scale-105 active:scale-95`}
+                        >
+                          <Users size={16} className="mr-2" /> Assign All
+                        </button>
+                      </>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 pb-8 overflow-y-auto pr-2">
+                    {CLASS_LIST.map((student) => (
+                      <StudentTimerRow 
+                        key={student.id} 
+                        student={student} 
+                        isDarkMode={isDarkMode} 
+                        theme={theme} 
+                        onOpenSetup={setActiveStudentSetup}
+                        config={studentTimerConfigs[student.id]}
+                        isSelectionMode={isSelectionMode}
+                        isSelected={selectedStudents.includes(student.id)}
+                        onToggleSelect={handleToggleSelection}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* LEARNING MODE (PLACEHOLDER) */}
+              {activeTimerMode === 'learning' && (
+                <div className={`flex flex-col items-center justify-center text-center py-20 border-2 border-dashed rounded-2xl animate-in fade-in slide-in-from-bottom-4 duration-500 mt-6 ${isDarkMode ? 'border-slate-800 text-slate-500' : 'border-slate-200 text-slate-400'}`}>
+                  <Library size={48} className="mx-auto mb-4 opacity-50" />
+                  <h3 className={`text-xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Learning Clock</h3>
+                  <p className="font-medium max-w-md">The interactive teaching clock will go here!</p>
+                </div>
+              )}
+
+              {/* 4. SAVED TIMERS VIEW */}
+              {activeTimerMode === 'saved' && (
+                <div className="relative animate-in fade-in slide-in-from-bottom-4 duration-500 mt-6 flex-1 flex flex-col min-h-0">
+                  {savedTimers.length > 0 ? (
+                    <div className="flex-1 overflow-y-auto pb-24 space-y-10 pr-2 custom-scrollbar">
+                      
+                      {/* Section: Group Rotations */}
+                      {savedTimers.filter(t => t.type === 'rotation').length > 0 && (
+                        <section>
+                          <div className="flex items-center space-x-3 mb-4">
+                            <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'}`}>
+                              <Layers size={18} />
+                            </div>
+                            <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Saved Group Rotations</h3>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {savedTimers.filter(t => t.type === 'rotation').map((timer) => (
+                              <SavedRotationCard
+                                key={timer.id}
+                                title={timer.label}
+                                groups={timer.groups}
+                                isDarkMode={isDarkMode}
+                                theme={theme}
+                                onClick={() => {
+                                  setSmallGroups(timer.groups);
+                                  if (timer.min) setSmallGroupTime(timer.min);
+                                  setActiveTimerMode('small');
+                                }}
+                                onRemove={() => handleRemoveSavedTimer(timer.id)}
+                              />
+                            ))}
+                          </div>
+                        </section>
+                      )}
+
+                      {/* Section: Whole Class Timers */}
+                      {savedTimers.filter(t => t.type !== 'rotation').length > 0 && (
+                        <section>
+                          <div className="flex items-center space-x-3 mb-4">
+                            <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'}`}>
+                              <Users size={18} />
+                            </div>
+                            <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Saved Whole Class Timers</h3>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {savedTimers.filter(t => t.type !== 'rotation').map((timer) => (
+                              <TimerCard 
+                                key={timer.id}
+                                title={timer.label}
+                                initialMinutes={timer.min}
+                                isDarkMode={isDarkMode}
+                                theme={theme}
+                                onClose={() => handleRemoveSavedTimer(timer.id)}
+                                digitalOnly={true}
+                              />
+                            ))}
+                          </div>
+                        </section>
+                      )}
+
+                    </div>
+                  ) : (
+                    <div className={`flex flex-col items-center justify-center text-center py-20 border-2 border-dashed rounded-2xl ${isDarkMode ? 'border-slate-800 text-slate-500' : 'border-slate-200 text-slate-400'}`}>
+                      <Archive size={48} className="mx-auto mb-4 opacity-50" />
+                      <h3 className={`text-xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>No Saved Timers</h3>
+                      <p className="font-medium max-w-md">Create your first saved timer using the + button below, or save a group rotation from the Small Groups tab.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 5. WORLD CLOCK VIEW */}
+              {activeTimerMode === 'world' && (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 -mt-4 lg:-mt-6">
+                  
+                  {worldClocks.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-8">
+                      {worldClocks.map((city, index) => (
+                        <WorldClockCard 
+                          key={city.name + index} 
+                          city={city.name} 
+                          tz={city.tz} 
+                          isDarkMode={isDarkMode} 
+                          theme={theme} 
+                          onClose={() => setWorldClocks(worldClocks.filter((_, i) => i !== index))}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className={`text-center py-16 mt-8 border-2 border-dashed rounded-2xl ${isDarkMode ? 'border-slate-800 text-slate-500' : 'border-slate-200 text-slate-400'}`}>
+                      <Globe size={48} className="mx-auto mb-4 opacity-50" />
+                      <p className="font-medium">No world clocks active.</p>
+                      <p className="text-sm mt-1">Click the + button below to add a city to your board.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+            </div>
+          </main>
+          
+          {/* Modals & Overlays (Relative to Main Container, avoiding the Sidebar) */}
+          
+          {/* Whole Class Custom Timer Overlay */}
+          {activeTimerMode === 'whole' && !activeWholeTimer && (
+            <button 
+              onClick={() => setIsCustomTimerModalOpen(true)}
+              className={`absolute bottom-8 right-8 md:bottom-12 md:right-12 w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-all z-50 ${theme.bg}`}
+              title="Create Custom Timer"
+            >
+              <Plus size={28} strokeWidth={2.5} />
+            </button>
+          )}
+
+          <TimerSetupModal
+            isOpen={isCustomTimerModalOpen}
+            onClose={() => setIsCustomTimerModalOpen(false)}
+            onSave={handleWholeClassSave}
+            onStart={handleWholeClassStart}
+            isDarkMode={isDarkMode}
+            theme={theme}
+            title="Custom Timer"
+            icon={TimerIcon}
+            showSavePreset={true}
+          />
+
+          <TimerSetupModal
+            isOpen={!!activeStudentSetup}
+            onClose={() => setActiveStudentSetup(null)}
+            onStart={handleStudentStart}
+            isDarkMode={isDarkMode}
+            theme={theme}
+            title={`${activeStudentSetup?.name}'s Timer`}
+            icon={User}
+            showSavePreset={false}
+          />
+
+          <TimerSetupModal
+            isOpen={isAssignAllModalOpen}
+            onClose={() => setIsAssignAllModalOpen(false)}
+            onStart={handleAssignAll}
+            isDarkMode={isDarkMode}
+            theme={theme}
+            title="Assign Timer to All"
+            icon={Users}
+            showSavePreset={false}
+            startLabel="Assign"
+          />
+
+          <TimerSetupModal
+            isOpen={isSelectTimerModalOpen}
+            onClose={() => setIsSelectTimerModalOpen(false)}
+            onStart={handleAssignSelected}
+            isDarkMode={isDarkMode}
+            theme={theme}
+            title={`Assign to ${selectedStudents.length} Students`}
+            icon={Users}
+            showSavePreset={false}
+            startLabel="Assign"
+          />
+
+          <GroupSetupModal
+            isOpen={isGroupModalOpen}
+            onClose={() => setIsGroupModalOpen(false)}
+            onSave={(newGroups) => {
+              setSmallGroups(newGroups);
+              setIsGroupModalOpen(false);
+            }}
+            isDarkMode={isDarkMode}
+            theme={theme}
+            initialGroups={smallGroups}
+          />
+
+          <TimerSetupModal
+            isOpen={isEditGroupTimeModalOpen}
+            onClose={() => setIsEditGroupTimeModalOpen(false)}
+            onStart={(min, sec) => {
+              const m = parseInt(min) || 0;
+              const s = parseInt(sec) || 0;
+              const totalMins = m + (s / 60);
+              if (totalMins > 0) {
+                setSmallGroupTime(totalMins);
+              }
+              setIsEditGroupTimeModalOpen(false);
+            }}
+            isDarkMode={isDarkMode}
+            theme={theme}
+            title="Edit Group Time"
+            icon={TimerIcon}
+            showSavePreset={false}
+            startLabel="Update Time"
+          />
+
+          <SavedTimerSetupModal
+            isOpen={isSavedTimerModalOpen}
+            onClose={() => setIsSavedTimerModalOpen(false)}
+            onSave={handleCreateSavedTimer}
+            isDarkMode={isDarkMode}
+            theme={theme}
+          />
+
+          {/* Saved Timers Overlays */}
+          {activeTimerMode === 'saved' && (
+            <button 
+              onClick={() => setIsSavedTimerModalOpen(true)}
+              className={`absolute bottom-8 right-8 md:bottom-12 md:right-12 w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-all z-50 ${theme.bg}`}
+              title="Create New Saved Timer"
+            >
+              <Plus size={28} strokeWidth={2.5} />
+            </button>
+          )}
+
+          {/* World Clock Overlays */}
+          {activeTimerMode === 'world' && (
+            <>
+              <button 
+                onClick={() => setIsAddCityModalOpen(true)}
+                className={`absolute bottom-8 right-8 md:bottom-12 md:right-12 w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-all z-50 ${theme.bg}`}
+                title="Add World Clock"
+              >
+                <Plus size={28} strokeWidth={2.5} />
+              </button>
+
+              {/* Add City Modal */}
+              {isAddCityModalOpen && (
+                <div 
+                  className="absolute inset-0 z-[200] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+                  onClick={(e) => {
+                    if (e.target === e.currentTarget) setIsAddCityModalOpen(false);
+                  }}
+                >
+                  <div className={`w-full max-w-md p-6 rounded-2xl shadow-2xl relative animate-in zoom-in-95 duration-200 ${isDarkMode ? 'bg-slate-900 border border-slate-800' : 'bg-white'}`}>
+                    <button 
+                      onClick={() => setIsAddCityModalOpen(false)}
+                      className={`absolute top-4 right-4 p-1.5 rounded-full transition-colors ${isDarkMode ? 'text-slate-400 hover:bg-slate-800' : 'text-slate-500 hover:bg-slate-100'}`}
+                    >
+                      <X size={18} />
+                    </button>
+                    
+                    <div className="flex items-center mb-6">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center mr-3 ${isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+                         <Globe size={20} />
+                      </div>
+                      <h3 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Add World Clock</h3>
+                    </div>
+                    
+                    {/* Search & Add City */}
+                    <div className="relative w-full pb-2" ref={citySearchContainerRef}>
+                      {isSearchingCity ? (
+                        <Loader2 size={18} className={`absolute left-3.5 top-3.5 animate-spin ${theme.text}`} />
+                      ) : (
+                        <Search size={18} className={`absolute left-3.5 top-3.5 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`} />
+                      )}
+                      <input 
+                        type="text" 
+                        placeholder="Search any town or city worldwide..." 
+                        value={citySearch}
+                        onFocus={() => setShowCityDropdown(true)}
+                        onChange={(e) => { setCitySearch(e.target.value); setShowCityDropdown(true); }}
+                        autoFocus
+                        className={`w-full pl-11 pr-4 py-3 rounded-xl border text-sm font-medium outline-none transition-all shadow-sm
+                          ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white focus:border-slate-500' : 'bg-white border-slate-200 text-slate-900 focus:border-slate-400'}
+                        `}
+                      />
+                      
+                      {/* Google API Fallback Notice (Only shows if no key is set) */}
+                      {GOOGLE_MAPS_API_KEY === "YOUR_API_KEY_HERE" && (
+                         <p className={`text-[10px] uppercase font-bold mt-2 ml-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                           Demo Mode Active — Add Google Maps API Key to search globally.
+                         </p>
+                      )}
+                      
+                      {/* City Search Results Dropdown */}
+                      {showCityDropdown && citySearch.length > 0 && !isSearchingCity && (
+                        <div className={`absolute top-[48px] left-0 w-full mt-2 rounded-xl border shadow-xl z-50 max-h-64 overflow-y-auto
+                          ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}
+                        >
+                          {citySearchResults.length > 0 ? (
+                            citySearchResults.map((city, index) => (
+                              <button
+                                key={index}
+                                onClick={() => addCityClock(city)}
+                                disabled={isAddingCity}
+                                className={`w-full text-left px-4 py-3 text-sm font-medium flex items-center justify-between border-b last:border-b-0
+                                  ${isDarkMode ? 'border-slate-700 hover:bg-slate-700 text-slate-200' : 'border-slate-100 hover:bg-slate-50 text-slate-700'}`}
+                              >
+                                <span className="truncate pr-4">{city.name}</span>
+                                <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-md shrink-0 ${isDarkMode ? 'bg-slate-900 text-slate-400' : 'bg-slate-100 text-slate-500'}`}>
+                                  {city.country}
+                                </span>
+                              </button>
+                            ))
+                          ) : (
+                            <div className={`px-4 py-4 text-sm text-center ${isDarkMode ? 'text-slate-500' : 'text-slate-500'}`}>
+                              No matching locations found.
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+          
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default App;

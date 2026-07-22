@@ -1,0 +1,329 @@
+@import "tailwindcss";
+
+@theme {
+  --animate-edu-jiggle: edu-jiggle 0.2s linear infinite;
+  --animate-coin-toss: coin-toss 1.15s cubic-bezier(0.22, 0.8, 0.28, 1) both;
+
+  @keyframes edu-jiggle {
+    0% {
+      transform: rotate(-4deg);
+    }
+    50% {
+      transform: rotate(4deg);
+    }
+    100% {
+      transform: rotate(-4deg);
+    }
+  }
+
+  /* Vertical flick: jump up, peak mid-air, settle with a light land. */
+  @keyframes coin-toss {
+    0% {
+      transform: translateY(0) scale(1);
+    }
+    18% {
+      transform: translateY(-18%) scale(1.05);
+    }
+    48% {
+      transform: translateY(-78%) scale(1.14);
+    }
+    78% {
+      transform: translateY(-10%) scale(1.02);
+    }
+    90% {
+      transform: translateY(3%) scale(0.97);
+    }
+    100% {
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  --animate-timer-swing: timer-swing 1.2s ease-in-out infinite;
+
+  @keyframes timer-swing {
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(20deg);
+    }
+    75% {
+      transform: rotate(-20deg);
+    }
+  }
+
+  --animate-card-deal-left: card-deal-left 0.45s cubic-bezier(0.22, 0.9, 0.3, 1) forwards;
+  --animate-card-deal-right: card-deal-right 0.45s cubic-bezier(0.22, 0.9, 0.3, 1) forwards;
+
+  @keyframes card-deal-left {
+    0% {
+      transform: translateX(0) translateY(0) scale(1) rotate(-2deg);
+      opacity: 1;
+    }
+    75% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(calc(-155% - 1.25rem)) translateY(0) scale(0.94) rotate(-5deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes card-deal-right {
+    0% {
+      transform: translateX(0) translateY(0) scale(1) rotate(2deg);
+      opacity: 1;
+    }
+    75% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(calc(155% + 1.25rem)) translateY(0) scale(0.94) rotate(5deg);
+      opacity: 0;
+    }
+  }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+/**
+ * Accessibility — optional readable font from Settings.
+ * When unset, Tailwind font-sans (system UI) applies via the shell.
+ */
+html[data-edu-font] body,
+html[data-edu-font] #root {
+  font-family: var(--edu-font-family);
+}
+
+/* —— Non-negotiable shell a11y ———————————————— */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.edu-skip-link {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+  /* Keep in tab order; visually gone until focused */
+}
+
+.edu-skip-link:focus,
+.edu-skip-link:focus-visible {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 9999;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0.625rem 1rem;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  background: #0f172a;
+  color: #f8fafc;
+  text-decoration: none;
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+}
+
+/* Visible keyboard focus — always on */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid #0ea5e9;
+  outline-offset: 2px;
+}
+
+/* Reduced motion — OS preference and/or Settings switch.
+ * Decorative loops only (jiggle, timer swing, pulse). Teaching motion stays:
+ * card flips/deals, coin toss flight+spin, wheel spins (CSS transitions / teach keyframes). */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  .animate-edu-jiggle,
+  .animate-timer-swing,
+  .animate-pulse {
+    animation: none !important;
+  }
+}
+
+html[data-edu-reduce-motion='true'] {
+  scroll-behavior: auto !important;
+}
+
+html[data-edu-reduce-motion='true'] .animate-edu-jiggle,
+html[data-edu-reduce-motion='true'] .animate-timer-swing,
+html[data-edu-reduce-motion='true'] .animate-pulse {
+  animation: none !important;
+}
+
+/**
+ * Live View — Space debug: color-coded padding / content / gap.
+ * Padding = emerald, content = sky, margin/gap = orange outline.
+ */
+.edu-live-space-debug [data-edu-space] {
+  background-image:
+    linear-gradient(rgba(56, 189, 248, 0.42), rgba(56, 189, 248, 0.42)),
+    linear-gradient(rgba(52, 211, 153, 0.38), rgba(52, 211, 153, 0.38)) !important;
+  background-clip: content-box, padding-box !important;
+  outline: 2px solid rgb(251 146 60 / 0.85);
+  outline-offset: 0;
+}
+
+.edu-live-space-debug [data-edu-space-stack] {
+  outline: 2px dashed rgb(251 146 60 / 0.55);
+  outline-offset: 2px;
+  border-radius: 0.75rem;
+}
+
+.edu-live-space-debug [data-edu-space='fab'] {
+  outline-offset: 4px;
+}
+
+/**
+ * Live View — Fonts debug: dashed probe outline; tip is rendered fixed by LiveViewPage
+ * so scroll/truncate parents cannot clip it.
+ */
+.edu-live-fonts-debug .edu-type-probe {
+  position: relative;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  cursor: help;
+  outline: 1.5px dashed rgb(139 92 246 / 0.55);
+  outline-offset: 2px;
+  border-radius: 0.2rem;
+}
+
+.edu-live-fonts-debug .edu-type-tip {
+  display: none;
+}
+
+/* Higher contrast — stronger chrome + darker muted text */
+html[data-edu-high-contrast='true'] aside,
+html[data-edu-high-contrast='true'] header {
+  box-shadow: inset 0 0 0 1px rgb(15 23 42 / 0.45);
+}
+
+html[data-edu-high-contrast='true'] .text-slate-400,
+html[data-edu-high-contrast='true'] .text-slate-500 {
+  color: #334155 !important; /* slate-700 */
+}
+
+html[data-edu-high-contrast='true'][data-edu-scheme='dark'] aside,
+html[data-edu-high-contrast='true'][data-edu-scheme='dark'] header {
+  box-shadow: inset 0 0 0 1px rgb(248 250 252 / 0.35);
+}
+
+html[data-edu-high-contrast='true'][data-edu-scheme='dark'] .text-slate-400,
+html[data-edu-high-contrast='true'][data-edu-scheme='dark'] .text-slate-500 {
+  color: #cbd5e1 !important; /* slate-300 */
+}
+
+/* Larger controls — bump interactive chrome hit targets */
+html[data-edu-large-controls='true'] .edu-control,
+html[data-edu-large-controls='true'] [data-button-row] button,
+html[data-edu-large-controls='true'] aside button,
+html[data-edu-large-controls='true'] header button {
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+}
+
+html[data-edu-large-controls='true'] [role='switch'] {
+  min-width: 2.75rem;
+  min-height: 1.75rem;
+  width: 3rem;
+  height: 1.75rem;
+}
+
+/* Underline links — color is never the only cue */
+html[data-edu-underline-links='true'] a:not(.edu-skip-link) {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+
+/**
+ * Letter print sheets (Groups, etc.) — hide app chrome, show only .edu-print-sheet.
+ */
+@media print {
+  @page {
+    size: 8.5in 11in;
+    /* Zero margins so browsers omit URL / page / date chrome */
+    margin: 0;
+  }
+
+  html,
+  body,
+  #root {
+    height: auto !important;
+    overflow: visible !important;
+    background: white !important;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body:has(.edu-print-sheet) * {
+    visibility: hidden;
+  }
+
+  body:has(.edu-print-sheet) .edu-print-sheet,
+  body:has(.edu-print-sheet) .edu-print-sheet * {
+    visibility: visible !important;
+  }
+
+  body:has(.edu-print-sheet) .edu-print-sheet {
+    display: block !important;
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    right: auto !important;
+    bottom: auto !important;
+    margin: 0 !important;
+    transform: none !important;
+    width: 8.5in !important;
+    max-width: 8.5in !important;
+    min-height: 11in;
+    box-sizing: border-box;
+    padding: 0.5in !important;
+    background: white;
+    text-align: left !important;
+  }
+
+  .edu-print-group {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
