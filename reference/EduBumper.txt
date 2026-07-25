@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edu.Hub Animated Bumper</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+
+        body {
+            background-color: white; 
+            color: #0f172a; /* slate-900 */
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            70% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .shape {
+            opacity: 0;
+            animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        /* Exact transform origins for perfect mathematically-centered scaling */
+        .shape-1 { animation-delay: 0.2s; transform-origin: 10px 10px; }
+        .shape-2 { animation-delay: 0.4s; transform-origin: 34px 10px; }
+        .shape-3 { animation-delay: 0.6s; transform-origin: 10px 34px; }
+        .shape-4 { animation-delay: 0.8s; transform-origin: 34px 34px; }
+
+        @keyframes slideInRight {
+            0% { transform: translateX(-20px); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+
+        .prefix-text {
+            opacity: 0;
+            animation: slideInRight 0.8s ease-out 1.2s forwards;
+        }
+
+        /* Rotating Words Animation Styles */
+        .word-slider-container {
+            position: relative;
+            height: 1.1em; /* match text height with tight leading */
+            width: 5.8em; 
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            opacity: 0;
+            animation: slideInRight 0.8s ease-out 1.4s forwards;
+        }
+
+        .word {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(100%);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+        }
+
+        .word.active {
+            transform: translateY(-50%);
+            opacity: 1;
+        }
+
+        .word.exit {
+            transform: translateY(-200%);
+            opacity: 0;
+        }
+
+        #logo-wrapper {
+            transition: margin 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        #brand-text {
+            max-width: 1000px;
+            transition: all 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform-origin: left center;
+        }
+
+        /* Shrinks the text and pulls it into the logo */
+        .outro-text {
+            max-width: 0px !important;
+            opacity: 0 !important;
+            transform: translateX(-30px) scale(0.8);
+        }
+
+        /* Removes the logo margin so it can center smoothly */
+        .outro-wrapper {
+            margin-right: 0 !important;
+        }
+
+        /* Morphs the 2x2 grid perfectly into the horizontal layout */
+        .outro-logo .shape {
+            animation: none !important; /* clear entrance animation */
+            opacity: 1 !important; 
+            transition: transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        /* Calculated precise shifts to achieve horizontal layout centered in the same container */
+        .outro-logo .shape-1 { transform: translate(-25.5px, 12px) scale(1.1875); }
+        .outro-logo .shape-2 { transform: translate(-24.5px, 12px) scale(1.125); }
+        .outro-logo .shape-3 { transform: translate(24.5px, -12px) scale(1.1875); }
+        .outro-logo .shape-4 { transform: translate(25.5px, -12px) scale(1.1); }
+
+        .hidden-limb {
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .outro-logo .hidden-limb {
+            opacity: 1;
+        }
+
+        @keyframes walkLegLeft {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(35deg); }
+            75% { transform: rotate(-35deg); }
+        }
+        @keyframes walkLegRight {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-35deg); }
+            75% { transform: rotate(35deg); }
+        }
+        @keyframes walkArmLeft {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-25deg); }
+            75% { transform: rotate(25deg); }
+        }
+        @keyframes walkArmRight {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(25deg); }
+            75% { transform: rotate(-25deg); }
+        }
+        @keyframes hop {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-2px); }
+        }
+
+        /* 4 full strides total during the 1.2s transition */
+        .walking .bouncer { animation: hop 0.15s ease-in-out 8; }
+        .walking .leg-left { transform-box: fill-box; transform-origin: top center; animation: walkLegLeft 0.3s linear 4; }
+        .walking .leg-right { transform-box: fill-box; transform-origin: top center; animation: walkLegRight 0.3s linear 4; }
+        .walking .arm-left { transform-box: fill-box; transform-origin: top right; animation: walkArmLeft 0.3s linear 4; }
+        .walking .arm-right { transform-box: fill-box; transform-origin: top left; animation: walkArmRight 0.3s linear 4; }
+
+        @keyframes waveHigh {
+            0%, 100% { transform: rotate(0deg); }
+            10% { transform: rotate(-130deg); }
+            25% { transform: rotate(-90deg); }
+            40% { transform: rotate(-130deg); }
+            55% { transform: rotate(-90deg); }
+            70% { transform: rotate(-130deg); }
+            85% { transform: rotate(0deg); }
+        }
+
+        .waving .shape-4 .arm-right {
+            transform-box: fill-box;
+            transform-origin: top left;
+            animation: waveHigh 2s ease-in-out infinite;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="flex flex-row items-center justify-center w-full px-4">
+        
+        <!-- Animated Logo Container -->
+        <div id="logo-wrapper" class="mr-3 md:mr-6 flex-shrink-0 z-10">
+            <svg id="logo-svg" viewBox="0 0 44 44" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 overflow-visible">
+                
+                <g class="text-rose-500 shape shape-1">
+                    <g class="bouncer">
+                        <g class="limbs hidden-limb">
+                            <path d="M 2 10 Q -2 10 -2 15" stroke="#0f172a" fill="none" stroke-width="1.5" stroke-linecap="round" class="arm-left" />
+                            <path d="M 18 10 Q 22 10 22 15" stroke="#0f172a" fill="none" stroke-width="1.5" stroke-linecap="round" class="arm-right" />
+                            <path d="M 6 17 L 6 22" stroke="#0f172a" fill="none" stroke-width="1.5" stroke-linecap="round" class="leg-left"/>
+                            <path d="M 14 17 L 14 22" stroke="#0f172a" fill="none" stroke-width="1.5" stroke-linecap="round" class="leg-right"/>
+                        </g>
+                        <circle cx="10" cy="10" r="8" fill="currentColor" />
+                        <g class="eyes hidden-limb" fill="#0f172a">
+                            <circle cx="7" cy="9" r="1.5" />
+                            <circle cx="13" cy="9" r="1.5" />
+                        </g>
+                    </g>
+                </g>
+
+                <g class="text-orange-500 shape shape-2">
+                    <g class="bouncer">
+                        <g class="limbs hidden-limb">
+                            <path d="M 28 12 Q 24 12 24 17" stroke="#0f172a" fill="none" stroke-width="1.5" stroke-linecap="round" class="arm-left" />
+                            <path d="M 40 12 Q 44 12 44 17" stroke="#0f172a" fill="none" stroke-width="1.5" stroke-linecap="round" class="arm-right" />
+                            <path d="M 31 17 L 31 22" stroke="#0f172a" fill="none" stroke-width="1.5" stroke-linecap="round" class="leg-left"/>
+                            <path d="M 37 17 L 37 22" stroke="#0f172a" fill="none" stroke-width="1.5" stroke-linecap="round" class="leg-right"/>
+                        </g>
+                        <path d="M34 2 L42 18 H26 L34 2 Z" stroke="currentColor" fill="currentColor" stroke-width="2" stroke-linejoin="round" />
+                        <g class="eyes hidden-limb" fill="#0f172a">
+                            <circle cx="32" cy="12" r="1.2" />
+                            <circle cx="36" cy="12" r="1.2" />
+                        </g>
+                    </g>
+                </g>
+
+                <g class="text-emerald-500 shape shape-3">
+                    <g class="bouncer">
+                        <g class="limbs hidden-limb">
+                            <path d="M 2 34 Q -2 34 -2 39" stroke="#0f172a" fill="none" stroke-width="1.5" stroke-linecap="round" class="arm-left" />
+                            <path d="M 18 34 Q 22 34 22 39" stroke="#0f172a" fill="none" stroke-width="1.5" stroke-linecap="round" class="arm-right" />
+                            <path d="M 6 42 L 6 47" stroke="#0f172a" fill="none" stroke-width="1.5" stroke-linecap="round" class="leg-left"/>
+                            <path d="M 14 42 L 14 47" stroke="#0f172a" fill="none" stroke-width="1.5" stroke-linecap="round" class="leg-right"/>
+                        </g>
+                        <rect x="2" y="26" width="16" height="16" rx="3" fill="currentColor" />
+                        <g class="eyes hidden-limb" fill="#0f172a">
+                            <circle cx="7" cy="32" r="1.5" />
+                            <circle cx="13" cy="32" r="1.5" />
+                        </g>
+                    </g>
+                </g>
+
+                <g class="text-sky-500 shape shape-4">
+                    <g class="bouncer">
+                        <g class="limbs hidden-limb">
+                            <path d="M 28 34 Q 24 34 24 39" stroke="#0f172a" fill="none" stroke-width="1.5" stroke-linecap="round" class="arm-left" />
+                            <path d="M 40 34 Q 44 34 44 39" stroke="#0f172a" fill="none" stroke-width="1.5" stroke-linecap="round" class="arm-right" />
+                            <path d="M 31 40 L 31 45" stroke="#0f172a" fill="none" stroke-width="1.5" stroke-linecap="round" class="leg-left"/>
+                            <path d="M 37 40 L 37 45" stroke="#0f172a" fill="none" stroke-width="1.5" stroke-linecap="round" class="leg-right"/>
+                        </g>
+                        <path d="M34 26 C 40 26, 42 32, 39 36 C 34 41, 27 37, 28 31 C 29 27, 38 30, 37 34 C 36 38, 30 37, 31 32 C 32 28, 37 31, 34 35" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <g class="eyes hidden-limb" fill="#0f172a">
+                            <circle cx="31.5" cy="32" r="1.2" />
+                            <circle cx="36.5" cy="32" r="1.2" />
+                        </g>
+                    </g>
+                </g>
+
+            </svg>
+        </div>
+
+        <div id="brand-text" class="flex items-center text-[64px] sm:text-[80px] md:text-[96px] lg:text-[128px] leading-none font-black tracking-tight whitespace-nowrap overflow-hidden">
+            <span class="text-slate-900 prefix-text">Edu.</span>
+            
+            <!-- Rotating Hub Container -->
+            <div class="word-slider-container ml-1" id="slider">
+                <!-- Words injected by JavaScript -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const apps = [
+            { name: "Hub", color: "text-sky-500" },
+            { name: "Class", color: "text-rose-500" },
+            { name: "Bank", color: "text-emerald-500" },
+            { name: "Group", color: "text-orange-500" },
+            { name: "Randomizer", color: "text-purple-500" },
+            { name: "Attendance", color: "text-teal-500" },
+            { name: "Tie Breaker", color: "text-pink-500" },
+            { name: "Calendar", color: "text-indigo-500" }
+        ];
+
+        const slider = document.getElementById('slider');
+        let currentIndex = 0;
+        let rotationCount = 0;
+        let intervalId;
+
+        // Initialize words in the DOM
+        apps.forEach((app, index) => {
+            const span = document.createElement('span');
+            span.className = `word ${app.color}`;
+            span.textContent = app.name;
+            span.id = `word-${index}`;
+            slider.appendChild(span);
+        });
+
+        function rotateWords() {
+            const currentWord = document.getElementById(`word-${currentIndex}`);
+            const nextIndex = (currentIndex + 1) % apps.length;
+            const nextWord = document.getElementById(`word-${nextIndex}`);
+
+            // Animate current out
+            if (currentWord) {
+                currentWord.classList.remove('active');
+                currentWord.classList.add('exit');
+                
+                setTimeout(() => {
+                    currentWord.classList.remove('exit');
+                }, 500); 
+            }
+
+            // Animate next in
+            if (nextWord) {
+                nextWord.classList.remove('exit'); 
+                requestAnimationFrame(() => {
+                    nextWord.classList.add('active');
+                });
+            }
+
+            currentIndex = nextIndex;
+
+            // Stop condition: Back to "Hub"
+            if (currentIndex === 0) {
+                rotationCount++;
+                if (rotationCount === 1) { // We completed one full loop
+                    clearInterval(intervalId);
+                    
+                    // Wait a moment so "Hub" lingers, then trigger the outro
+                    setTimeout(triggerOutro, 1500); 
+                }
+            }
+        }
+
+        function triggerOutro() {
+            const brandText = document.getElementById('brand-text');
+            const logoWrapper = document.getElementById('logo-wrapper');
+            const logoSvg = document.getElementById('logo-svg');
+
+            // 1. Shrink and fade text
+            brandText.classList.add('outro-text');
+            
+            // 2. Remove margin from logo
+            logoWrapper.classList.add('outro-wrapper');
+
+            // 3. Morph logo into horizontal layout and trigger walking animation
+            logoSvg.classList.add('outro-logo', 'walking');
+
+            // 4. Trigger the wave after the walk completes (1.2s)
+            setTimeout(() => {
+                logoSvg.classList.remove('walking');
+                logoSvg.classList.add('waving');
+            }, 1200);
+        }
+
+        // Start initial sequence
+        setTimeout(() => {
+            const firstWord = document.getElementById('word-0');
+            firstWord.classList.add('active');
+
+            // Begin rotation loop
+            intervalId = setInterval(rotateWords, 1800);
+        }, 1600);
+
+    </script>
+</body>
+</html>

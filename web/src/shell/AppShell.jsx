@@ -7,7 +7,7 @@ import {
   Presentation,
   Upload,
 } from 'lucide-react';
-import { getTheme } from '../shared/theme';
+import { getTheme, resolveShellBackgroundClass } from '../shared/theme';
 import { SHELL_MAIN_PADDING } from '../shared/layout';
 import { useIsDesktop } from '../shared/useMediaQuery';
 import { apps, defaultAppId, getApp } from '../apps';
@@ -84,7 +84,7 @@ export function AppShell() {
   const isDesktop = useIsDesktop();
   const { classes, selectedClass, selectClass } = useClasses();
   const { lessonsByClassId, getLessons, addLesson, removeLesson } = useLessons();
-  const { getAppPrimary } = useAppThemePreferences();
+  const { getAppPrimary, shellBackgroundId } = useAppThemePreferences();
   const { fontId } = useAccessibilityPreferences();
   const [currentAppId, setCurrentAppId] = useState(defaultAppId);
   const currentApp = getApp(currentAppId);
@@ -132,6 +132,7 @@ export function AppShell() {
   }, []);
 
   const theme = getTheme(getAppPrimary(currentApp.id), isDarkMode);
+  const shellBackground = resolveShellBackgroundClass(shellBackgroundId, isDarkMode);
   const accessibleFont = ACCESSIBLE_FONTS.find((f) => f.id === fontId);
   const isLeft = sidebarSide === 'left';
 
@@ -495,7 +496,7 @@ export function AppShell() {
   return (
     <AppInfoProvider app={currentApp} theme={theme} isDarkMode={isDarkMode}>
     <div
-      className={`flex h-dvh overflow-hidden font-sans transition-all duration-300 ${theme.colorBackground} ${theme.colorOnBackground} ${
+      className={`flex h-dvh overflow-hidden font-sans transition-all duration-300 ${shellBackground} ${theme.colorOnBackground} ${
         isDarkMode ? '[color-scheme:dark]' : '[color-scheme:light]'
       } ${isLeft ? 'flex-row' : 'flex-row-reverse'}`}
       style={

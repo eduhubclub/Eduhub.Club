@@ -19,6 +19,7 @@ import {
   Palette,
   BookOpenCheck,
   Gamepad2,
+  Sparkles,
 } from 'lucide-react';
 
 /**
@@ -94,6 +95,13 @@ export const launcherApps = [
     icon: Palette,
     color: 'bg-violet-500',
     description: 'Living style guide — branding, patterns, cards, and shell chrome.',
+  },
+  {
+    id: 'brand',
+    name: 'HubBrand',
+    icon: Sparkles,
+    color: 'bg-rose-500',
+    description: 'Edu.Hub product brand — logo, naming, and identity guidelines.',
   },
   {
     id: 'earlyliteracy',

@@ -45,6 +45,46 @@ export const surfaceSchemes = {
   },
 };
 
+/** Warm paper shell — HubBrand / brand-site layouts. */
+export const SHELL_CREAM_HEX = '#F7F2EA';
+
+/**
+ * Global app-shell backgrounds (nav + content chrome).
+ * Boards/cards keep surface roles; only the shell canvas changes.
+ */
+export const SHELL_BACKGROUNDS = [
+  {
+    id: 'gray',
+    label: 'Gray',
+    description: 'Default slate canvas',
+    lightClass: 'bg-slate-50',
+    darkClass: 'bg-slate-950',
+    swatchLight: '#f8fafc',
+    swatchDark: '#020617',
+  },
+  {
+    id: 'cream',
+    label: 'Cream',
+    description: 'Warm paper canvas — spans simple nav across brand layouts',
+    lightClass: 'bg-[#F7F2EA]',
+    darkClass: 'bg-stone-950',
+    swatchLight: SHELL_CREAM_HEX,
+    swatchDark: '#0c0a09',
+  },
+];
+
+export const SHELL_BACKGROUND_IDS = SHELL_BACKGROUNDS.map((b) => b.id);
+
+/**
+ * @param {string} [id]
+ * @param {boolean} [isDarkMode=false]
+ */
+export function resolveShellBackgroundClass(id, isDarkMode = false) {
+  const opt =
+    SHELL_BACKGROUNDS.find((b) => b.id === id) || SHELL_BACKGROUNDS[0];
+  return isDarkMode ? opt.darkClass : opt.lightClass;
+}
+
 /**
  * Build an app theme from a primary hue family.
  * @param {{ token: string, primary: string, variant: string, secondary: string, secondaryOn: string, hoverBg: string, ring: string, text: string, hoverText: string, groupHoverText: string, border: string, bgMuted: string, activeBg: string, containerOn: string }} p
@@ -283,6 +323,7 @@ export const appThemes = {
   NoiseMeter: { ...primaryPalettes.Amber },
   Timer: { ...primaryPalettes.Emerald },
   Design: { ...primaryPalettes.Purple },
+  HubBrand: { ...primaryPalettes.Pink },
   EarlyLiteracy: { ...primaryPalettes.Blue },
   Games: { ...primaryPalettes.Indigo },
 };
@@ -302,6 +343,7 @@ export const appThemePrimaryKeys = {
   NoiseMeter: 'Amber',
   Timer: 'Emerald',
   Design: 'Purple',
+  HubBrand: 'Pink',
   EarlyLiteracy: 'Blue',
   Games: 'Indigo',
 };

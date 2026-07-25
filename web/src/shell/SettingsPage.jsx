@@ -10,7 +10,7 @@ import {
   TEXT_SIZES,
   useAccessibilityPreferences,
 } from '../data/settings/AccessibilityPreferencesContext';
-import { PRIMARY_KEYS, primaryPalettes } from '../shared/theme';
+import { PRIMARY_KEYS, primaryPalettes, SHELL_BACKGROUNDS } from '../shared/theme';
 import { WidgetCatalogPicker } from '../apps/dashboard/widgets/WidgetCatalogPicker';
 import { useRandomizerPoolSettings } from '../data/randomizer/RandomizerPoolContext';
 
@@ -75,7 +75,8 @@ export function SettingsPage({
   onUnpinWidget,
 }) {
   const { showDemoData, setShowDemoData } = useDemoData();
-  const { getAppPrimary, setAppPrimary } = useAppThemePreferences();
+  const { getAppPrimary, setAppPrimary, shellBackgroundId, setShellBackgroundId } =
+    useAppThemePreferences();
   const {
     fontId,
     textSizeId,
@@ -231,6 +232,50 @@ export function SettingsPage({
             </div>
           </SettingsCard>
         ) : null}
+
+        <SettingsCard
+          title="Shell background"
+          description="Canvas behind the sidebar and content. Simple nav spans Gray and Cream as we add more looks later."
+          isDarkMode={isDarkMode}
+        >
+          <div className="px-5 sm:px-6 py-5 sm:py-6">
+            <div
+              className="flex flex-wrap gap-2"
+              role="radiogroup"
+              aria-label="Shell background"
+            >
+              {SHELL_BACKGROUNDS.map((bg) => {
+                const isSelected = shellBackgroundId === bg.id;
+                const swatch = isDarkMode ? bg.swatchDark : bg.swatchLight;
+                return (
+                  <button
+                    key={bg.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={isSelected}
+                    aria-label={`${bg.label}: ${bg.description}`}
+                    title={bg.description}
+                    onClick={() => setShellBackgroundId(bg.id)}
+                    className={`edu-control inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl ${TYPE.labelLg} transition-colors ${
+                      isSelected
+                        ? `${theme.colorPrimary} ${theme.colorOnPrimary}`
+                        : segmentIdle
+                    }`}
+                  >
+                    <span
+                      className={`h-5 w-5 shrink-0 rounded-md border ${
+                        isDarkMode ? 'border-white/25' : 'border-slate-300'
+                      }`}
+                      style={{ backgroundColor: swatch }}
+                      aria-hidden
+                    />
+                    {bg.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </SettingsCard>
 
         {isDashboard ? (
           <SettingsCard

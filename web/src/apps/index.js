@@ -8,6 +8,7 @@ import { tiebreakerApp } from './tiebreaker/config';
 import { noiseMeterApp } from './noisemeter/config';
 import { timerApp } from './timer/config';
 import { designApp } from './design/config';
+import { brandApp } from './brand/config';
 import { earlyLiteracyApp } from './earlyliteracy/config';
 import { gamesApp } from './games/config';
 
@@ -25,6 +26,7 @@ export const apps = {
   [noiseMeterApp.id]: noiseMeterApp,
   [timerApp.id]: timerApp,
   [designApp.id]: designApp,
+  [brandApp.id]: brandApp,
   [earlyLiteracyApp.id]: earlyLiteracyApp,
   [gamesApp.id]: gamesApp,
 };

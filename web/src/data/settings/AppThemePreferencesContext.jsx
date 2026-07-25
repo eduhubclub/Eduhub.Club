@@ -1,9 +1,15 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { apps } from '../../apps';
-import { PRIMARY_KEYS, primaryPalettes, resolvePrimaryKey } from '../../shared/theme';
+import {
+  PRIMARY_KEYS,
+  primaryPalettes,
+  resolvePrimaryKey,
+  SHELL_BACKGROUND_IDS,
+} from '../../shared/theme';
 
 /** localStorage for now; same shape can persist to a user prefs DB later. */
 const STORAGE_KEY = 'eduHub.appPrimaryColors';
+const SHELL_BG_STORAGE_KEY = 'eduHub.shellBackground';
 
 function buildDefaults() {
   const defaults = {};
@@ -33,6 +39,16 @@ function readPreferences() {
   }
 }
 
+function readShellBackground() {
+  try {
+    const raw = localStorage.getItem(SHELL_BG_STORAGE_KEY);
+    if (raw && SHELL_BACKGROUND_IDS.includes(raw)) return raw;
+  } catch {
+    /* ignore */
+  }
+  return 'gray';
+}
+
 /**
  * Icon/tile background for launcher entries.
  * Registered apps use the user's primary preference; placeholders keep static colors.
@@ -48,11 +64,12 @@ export function resolveLauncherAppColor(app, getAppPrimary) {
 const AppThemePreferencesContext = createContext(null);
 
 /**
- * Per-app primary color preferences.
+ * Per-app primary color preferences + global shell background.
  * Persists in localStorage until a user preferences API/DB is wired.
  */
 export function AppThemePreferencesProvider({ children }) {
   const [appPrimaries, setAppPrimaries] = useState(readPreferences);
+  const [shellBackgroundId, setShellBackgroundIdState] = useState(readShellBackground);
 
   useEffect(() => {
     try {
@@ -62,12 +79,25 @@ export function AppThemePreferencesProvider({ children }) {
     }
   }, [appPrimaries]);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(SHELL_BG_STORAGE_KEY, shellBackgroundId);
+    } catch {
+      /* ignore quota / private mode */
+    }
+  }, [shellBackgroundId]);
+
   const setAppPrimary = useCallback((appId, primaryKey) => {
     if (!PRIMARY_KEYS.includes(primaryKey)) return;
     setAppPrimaries((prev) => {
       if (prev[appId] === primaryKey) return prev;
       return { ...prev, [appId]: primaryKey };
     });
+  }, []);
+
+  const setShellBackgroundId = useCallback((id) => {
+    if (!SHELL_BACKGROUND_IDS.includes(id)) return;
+    setShellBackgroundIdState(id);
   }, []);
 
   const getAppPrimary = useCallback(
@@ -90,8 +120,17 @@ export function AppThemePreferencesProvider({ children }) {
       getAppPrimary,
       getLauncherColor,
       defaults: buildDefaults(),
+      shellBackgroundId,
+      setShellBackgroundId,
     }),
-    [appPrimaries, setAppPrimary, getAppPrimary, getLauncherColor]
+    [
+      appPrimaries,
+      setAppPrimary,
+      getAppPrimary,
+      getLauncherColor,
+      shellBackgroundId,
+      setShellBackgroundId,
+    ]
   );
 
   return (
