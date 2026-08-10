@@ -1,14 +1,17 @@
 import { useState } from 'react';
-import { Check, Clock, Users } from 'lucide-react';
+import { Check, Clock, Pause, Play, Users, X } from 'lucide-react';
 import { secondsFromDuration } from '../timerUtils';
 import { StudentTimerRow } from '../components/StudentTimerRow';
 import { TimerSetupModal } from '../components/TimerSetupModal';
 import { ButtonRow } from '../../../shared/ButtonRow';
 import { toolBtnClass } from '../../../shared/toolBtn';
+import { studentDisplayName } from '../../../data/students/displayName';
 
 export function IndividualView({ isDarkMode, theme, students }) {
   const [activeStudentSetup, setActiveStudentSetup] = useState(null);
   const [studentConfigs, setStudentConfigs] = useState({});
+  const [bulkCommand, setBulkCommand] = useState(null);
+  const [isAllRunning, setIsAllRunning] = useState(false);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [isAssignAllOpen, setIsAssignAllOpen] = useState(false);
@@ -25,7 +28,17 @@ export function IndividualView({ isDarkMode, theme, students }) {
     setStudentConfigs((prev) => ({ ...prev, ...next }));
   };
 
+  const broadcast = (type) => {
+    setBulkCommand({ type, actionId: Date.now() });
+    if (type === 'CLEAR_ALL') {
+      setStudentConfigs({});
+      setIsAllRunning(false);
+    }
+  };
+
   const toolBtn = toolBtnClass(isDarkMode);
+  const dangerBtn = `${toolBtn} text-rose-500 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40`;
+  const hasAssignedTimers = Object.keys(studentConfigs).length > 0;
 
   return (
     <div className="flex-1 flex flex-col min-h-0 mt-2">
@@ -70,11 +83,56 @@ export function IndividualView({ isDarkMode, theme, students }) {
               <Users size={16} strokeWidth={2.5} />
               Assign All
             </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (isAllRunning) {
+                  broadcast('PAUSE_ALL');
+                  setIsAllRunning(false);
+                } else {
+                  broadcast('START_ALL');
+                  setIsAllRunning(true);
+                }
+              }}
+              disabled={!hasAssignedTimers}
+              className={`${toolBtn} disabled:opacity-50`}
+              title={
+                hasAssignedTimers
+                  ? undefined
+                  : 'Assign timers to students first'
+              }
+            >
+              {isAllRunning ? (
+                <>
+                  <Pause size={16} strokeWidth={2.5} />
+                  Pause All
+                </>
+              ) : (
+                <>
+                  <Play size={16} strokeWidth={2.5} />
+                  Start All
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => broadcast('CLEAR_ALL')}
+              disabled={!hasAssignedTimers}
+              className={`${dangerBtn} disabled:opacity-50`}
+              title={
+                hasAssignedTimers
+                  ? undefined
+                  : 'Assign timers to students first'
+              }
+            >
+              <X size={16} strokeWidth={2.5} />
+              Clear All
+            </button>
           </>
         )}
       </ButtonRow>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 pb-8 overflow-y-auto pr-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 overflow-y-auto p-1 pb-8">
         {students.map((student) => (
           <StudentTimerRow
             key={student.id}
@@ -83,6 +141,7 @@ export function IndividualView({ isDarkMode, theme, students }) {
             theme={theme}
             onOpenSetup={setActiveStudentSetup}
             config={studentConfigs[student.id]}
+            bulkCommand={bulkCommand}
             isSelectionMode={isSelectionMode}
             isSelected={selectedStudents.includes(student.id)}
             onToggleSelect={(id) =>
@@ -104,7 +163,7 @@ export function IndividualView({ isDarkMode, theme, students }) {
         }}
         title={
           activeStudentSetup
-            ? `Set Timer — ${activeStudentSetup.name}`
+            ? `Set Timer — ${studentDisplayName(activeStudentSetup)}`
             : 'Set Timer'
         }
         isDarkMode={isDarkMode}

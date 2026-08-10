@@ -1,4 +1,5 @@
 import { createContext, useContext, useMemo, useState, useEffect, useCallback } from 'react';
+import { SEED_CLASSES } from '../classes/seed';
 import { SEED_STUDENTS, SEED_REVISION, mergeDirectoryStudents } from './seed';
 import { isDemoStudentId, useDemoData } from '../settings/DemoDataContext';
 
@@ -8,9 +9,23 @@ function withoutDemoStudents(list) {
   return list.filter((s) => !isDemoStudentId(s.id));
 }
 
+/** Demo Class roster + rich profile overlays (Harper + sibling Liam). */
+function demoDirectoryStudents() {
+  const roster = SEED_CLASSES.flatMap((c) =>
+    (c.studentList || []).map((s) => ({
+      ...s,
+      grade_level: s.grade_level || c.grade || '',
+      school: s.school || 'Tahoma Elementary',
+      district: s.district || 'Tahoma School District',
+      managedByDistrict: s.managedByDistrict ?? true,
+    })),
+  );
+  return mergeDirectoryStudents([...SEED_STUDENTS], roster);
+}
+
 function withDemoStudents(list) {
   const userStudents = withoutDemoStudents(list);
-  return mergeDirectoryStudents([...SEED_STUDENTS], userStudents);
+  return mergeDirectoryStudents(demoDirectoryStudents(), userStudents);
 }
 
 /**
@@ -20,13 +35,13 @@ function withDemoStudents(list) {
 export function StudentProvider({ children }) {
   const { showDemoData } = useDemoData();
   const [students, setStudents] = useState(() =>
-    showDemoData ? [...SEED_STUDENTS] : []
+    showDemoData ? demoDirectoryStudents() : []
   );
 
   useEffect(() => {
     setStudents((prev) => {
       const userStudents = withoutDemoStudents(prev);
-      return showDemoData ? mergeDirectoryStudents([...SEED_STUDENTS], userStudents) : userStudents;
+      return showDemoData ? mergeDirectoryStudents(demoDirectoryStudents(), userStudents) : userStudents;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [SEED_REVISION]);

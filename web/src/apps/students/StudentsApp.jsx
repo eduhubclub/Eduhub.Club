@@ -15,6 +15,10 @@ import { AppPageShell } from '../../shared/AppPageShell';
 import { appFabClass, APP_SCROLL_BOARD } from '../../shared/layout';
 import { toolBtnClass } from '../../shared/toolBtn';
 import { TYPE } from '../../shared/typography';
+import {
+  studentAlternateName,
+  studentDisplayName,
+} from '../../data/students/displayName';
 
 function studentInClass(student, cls) {
   if (!cls?.studentList?.length) return false;
@@ -146,6 +150,7 @@ export function StudentsApp({ isDarkMode, theme, isLeft }) {
         theme={theme}
         isDarkMode={isDarkMode}
         allStudents={students}
+        classes={activeClasses}
         onBack={() => setSelectedStudentId(null)}
         onSave={(patch) => {
           updateStudent(selectedStudent.id, patch);
@@ -385,14 +390,14 @@ export function StudentsApp({ isDarkMode, theme, isLeft }) {
                 <StudentAvatar student={student} theme={theme} size="sm" className="mr-4" />
                 <div className="flex-1 min-w-0">
                   <h4 className={`${TYPE.titleSm} ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                    {student.name}
-                    {student.nickname ? (
+                    {studentDisplayName(student)}
+                    {studentAlternateName(student) ? (
                       <span
                         className={`ml-2 font-medium ${
                           isDarkMode ? 'text-slate-500' : 'text-slate-400'
                         }`}
                       >
-                        “{student.nickname}”
+                        “{studentAlternateName(student)}”
                       </span>
                     ) : null}
                   </h4>
@@ -404,7 +409,10 @@ export function StudentsApp({ isDarkMode, theme, isLeft }) {
                       student.studentId || null,
                       (() => {
                         const names = (student.siblingIds || [])
-                          .map((id) => students.find((x) => x.id === id)?.name)
+                          .map((id) => {
+                            const s = students.find((x) => x.id === id);
+                            return s ? studentDisplayName(s) : null;
+                          })
                           .filter(Boolean);
                         if (!names.length) return null;
                         return names.length === 1

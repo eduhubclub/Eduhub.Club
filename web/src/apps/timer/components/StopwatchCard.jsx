@@ -1,29 +1,78 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Maximize, Minimize, Pause, Play, RotateCcw, Timer as TimerIcon } from 'lucide-react';
+import { Maximize, Minimize, Pause, Play, RotateCcw } from 'lucide-react';
 import { formatStopwatch } from '../timerUtils';
-import { APP_GRID_CARD } from '../../../shared/layout';
+import {
+  APP_BOARD_MAX_WIDTH,
+  APP_GRID_CARD,
+  APP_STAGE_CARD_MAX_HEIGHT,
+} from '../../../shared/layout';
 import { TYPE } from '../../../shared/typography';
 
 const FULLSCREEN_Z = 'z-[240]';
 
+/** Scale stopwatch digits to the flex region between chrome and controls. */
+function useFluidStopwatchSize(enabled, text = '00:00.00') {
+  const containerRef = useRef(null);
+  const [fontPx, setFontPx] = useState(72);
+  const textRef = useRef(text);
+  textRef.current = text;
+
+  useEffect(() => {
+    if (!enabled) return undefined;
+    const el = containerRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return undefined;
+
+    const update = () => {
+      const { width, height } = el.getBoundingClientRect();
+      if (width < 16 || height < 16) return;
+      const chars = Math.max(8, String(textRef.current).length);
+      const byHeight = height * 0.82;
+      const byWidth = width / (chars * 0.62);
+      setFontPx(Math.round(Math.max(32, Math.min(byHeight, byWidth))));
+    };
+
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [enabled, text]);
+
+  return { containerRef, fontPx };
+}
+
 /** Whole-class stopwatch with centisecond precision. */
-export function StopwatchCard({ isDarkMode, theme, isFullscreen, setIsFullscreen }) {
+export function StopwatchCard({
+  isDarkMode,
+  theme,
+  isFullscreen,
+  setIsFullscreen,
+  large = false,
+}) {
   const [time, setTime] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const startTimeRef = useRef(0);
   const elapsedTimeRef = useRef(0);
+  const intervalRef = useRef(null);
+  const display = formatStopwatch(time);
+  const fluid = useFluidStopwatchSize(isFullscreen || large, display);
+
+  const stopTicker = () => {
+    if (intervalRef.current != null) {
+      window.clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
 
   useEffect(() => {
-    let intervalId;
-    if (isRunning) {
-      startTimeRef.current = Date.now() - elapsedTimeRef.current;
-      intervalId = setInterval(() => {
-        elapsedTimeRef.current = Date.now() - startTimeRef.current;
-        setTime(elapsedTimeRef.current);
-      }, 10);
-    }
-    return () => clearInterval(intervalId);
+    stopTicker();
+    if (!isRunning) return undefined;
+    startTimeRef.current = Date.now() - elapsedTimeRef.current;
+    intervalRef.current = window.setInterval(() => {
+      elapsedTimeRef.current = Date.now() - startTimeRef.current;
+      setTime(elapsedTimeRef.current);
+    }, 10);
+    return () => stopTicker();
   }, [isRunning]);
 
   useEffect(() => {
@@ -42,13 +91,18 @@ export function StopwatchCard({ isDarkMode, theme, isFullscreen, setIsFullscreen
 
   const handleReset = () => {
     setIsRunning(false);
-    setTime(0);
+    stopTicker();
     elapsedTimeRef.current = 0;
+    startTimeRef.current = Date.now();
+    setTime(0);
   };
+
+  const chromeIconSize = isFullscreen ? 32 : large ? 20 : 16;
+  const useStageLayout = isFullscreen || large;
 
   const surface = isFullscreen
     ? `fixed inset-0 ${FULLSCREEN_Z} rounded-none border-0 ${theme.colorBackground}`
-    : `relative ${APP_GRID_CARD} ${theme.colorSurface} ${theme.colorOutline} p-8 sm:p-12`;
+    : `relative ${APP_GRID_CARD} ${theme.colorSurface} ${theme.colorOutline}`;
 
   const chipBtn = isDarkMode
     ? `${theme.colorSurfaceVariant} ${theme.colorOnSurface} hover:opacity-90`
@@ -56,46 +110,89 @@ export function StopwatchCard({ isDarkMode, theme, isFullscreen, setIsFullscreen
 
   const shell = (
     <div
-      className={`${surface} flex flex-col items-center justify-center text-center transition-all duration-300`}
+      className={`transition-all duration-300 flex flex-col ${
+        useStageLayout ? 'overflow-hidden' : 'overflow-visible'
+      } ${surface} ${
+        isFullscreen
+          ? 'items-center p-6 sm:p-8'
+          : large
+            ? `items-center p-5 sm:p-6 w-full h-full min-h-0 ${APP_BOARD_MAX_WIDTH} ${APP_STAGE_CARD_MAX_HEIGHT} mx-auto my-auto text-center`
+            : 'p-8 sm:p-12 items-center justify-center text-center'
+      }`}
     >
-      <button
-        type="button"
-        onClick={() => setIsFullscreen(!isFullscreen)}
-        className={`absolute ${isFullscreen ? 'top-8 right-8 p-3' : 'top-4 right-4 p-2'} rounded-xl transition-colors ${theme.colorOnSurfaceVariant} hover:opacity-80`}
-        title={isFullscreen ? 'Exit full screen' : 'Full screen'}
+      <div
+        className={`absolute inset-x-0 z-10 flex items-center justify-between gap-3 pointer-events-none ${
+          isFullscreen ? 'top-6 px-6 sm:top-8 sm:px-8' : 'top-4 px-4'
+        }`}
       >
-        {isFullscreen ? <Minimize size={32} /> : <Maximize size={24} />}
-      </button>
+        <div className="min-w-0 flex-1 text-left">
+          {useStageLayout ? (
+            <h3
+              className={`truncate font-semibold leading-none ${theme.colorOnSurfaceVariant}`}
+              style={{ fontSize: chromeIconSize }}
+            >
+              Stopwatch
+            </h3>
+          ) : null}
+        </div>
+        <div className="flex items-center shrink-0 pointer-events-auto">
+          <button
+            type="button"
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            className={`edu-control p-2 rounded-xl transition-colors ${theme.colorOnSurfaceVariant} hover:opacity-80`}
+            title={isFullscreen ? 'Exit full screen' : 'Full screen'}
+          >
+            {isFullscreen ? (
+              <Minimize size={chromeIconSize} strokeWidth={2.5} />
+            ) : (
+              <Maximize size={chromeIconSize} strokeWidth={2.5} />
+            )}
+          </button>
+        </div>
+      </div>
 
-      <TimerIcon className={`mb-4 ${theme.text}`} size={isFullscreen ? 80 : 48} />
-      <h3
-        className={`${isFullscreen ? 'text-4xl font-bold mb-2' : TYPE.titleLg} ${theme.colorOnSurface}`}
+      {useStageLayout ? (
+        <div className="w-full shrink-0 h-8 sm:h-10" aria-hidden />
+      ) : null}
+
+      <div
+        ref={useStageLayout ? fluid.containerRef : undefined}
+        className={
+          useStageLayout
+            ? 'flex-1 min-h-0 w-full flex items-center justify-center px-2'
+            : 'w-full'
+        }
       >
-        Stopwatch
-      </h3>
+        <p
+          className={`font-mono font-black whitespace-nowrap tabular-nums ${
+            useStageLayout ? 'leading-none' : `${TYPE.displayLg} mt-4 mb-8`
+          } ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
+          style={
+            useStageLayout
+              ? { fontSize: fluid.fontPx, lineHeight: 1 }
+              : undefined
+          }
+        >
+          {display}
+        </p>
+      </div>
 
-      <p
-        className={`font-mono ${TYPE.displayLg} whitespace-nowrap ${
-          isFullscreen
-            ? 'text-[15vw] leading-none my-6'
-            : 'mt-4 mb-8'
-        } ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
+      <div
+        className={`flex items-center justify-center gap-3 md:gap-4 shrink-0 z-10 ${
+          useStageLayout ? 'mt-3 mb-1' : ''
+        } ${isFullscreen ? 'scale-125' : ''}`}
       >
-        {formatStopwatch(time)}
-      </p>
-
-      <div className={`flex items-center gap-4 ${isFullscreen ? 'scale-125' : ''}`}>
         <button
           type="button"
           onClick={handleReset}
-          className={`flex items-center px-4 py-3 rounded-xl ${TYPE.labelLg} transition-colors shadow-sm ${chipBtn}`}
+          className={`edu-control flex items-center px-4 py-3 rounded-xl ${TYPE.labelLg} transition-colors shadow-sm ${chipBtn}`}
         >
           <RotateCcw size={20} className="mr-2" /> Reset
         </button>
         <button
           type="button"
           onClick={() => setIsRunning(!isRunning)}
-          className={`flex items-center px-6 py-3 rounded-xl ${TYPE.labelLg} transition-all shadow-md hover:scale-105 active:scale-95 ${theme.colorPrimary} ${theme.colorOnPrimary}`}
+          className={`edu-control flex items-center px-6 py-3 rounded-xl ${TYPE.labelLg} transition-all shadow-md hover:scale-105 active:scale-95 ${theme.colorPrimary} ${theme.colorOnPrimary}`}
         >
           {isRunning ? (
             <>

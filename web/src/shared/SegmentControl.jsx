@@ -7,7 +7,7 @@ import { TYPE } from './typography';
 export function SegmentControl({ isDarkMode, theme, value, onChange, options }) {
   return (
     <div
-      className={`inline-flex p-1 rounded-xl shadow-sm border ${
+      className={`inline-flex p-1 rounded-full shadow-sm border ${
         isDarkMode
           ? `${theme.colorSurface} ${theme.colorOutline}`
           : `${theme.colorSurfaceVariant} ${theme.colorOutlineVariant}`
@@ -20,7 +20,7 @@ export function SegmentControl({ isDarkMode, theme, value, onChange, options }) 
             key={opt.id}
             type="button"
             onClick={() => onChange(opt.id)}
-            className={`edu-control flex items-center px-4 py-2 rounded-lg ${TYPE.labelLg} transition-all ${
+            className={`edu-control flex items-center px-4 py-2 rounded-full ${TYPE.labelLg} transition-all ${
               active
                 ? `${theme.colorSurface} ${theme.colorOnSurface} shadow`
                 : `${theme.colorOnSurfaceVariant} hover:opacity-80`

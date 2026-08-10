@@ -7,6 +7,16 @@ import { TimerSetupModal } from '../components/TimerSetupModal';
 import { APP_EMPTY_SLOT, appFabClass } from '../../../shared/layout';
 import { TYPE } from '../../../shared/typography';
 
+function partsFromMinutes(totalMin) {
+  const totalSec = Math.round(Number(totalMin || 0) * 60);
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return {
+    min: m > 0 ? String(m) : '',
+    sec: s > 0 ? String(s) : '',
+  };
+}
+
 export function SavedTimersView({
   isDarkMode,
   theme,
@@ -15,15 +25,20 @@ export function SavedTimersView({
   onRemove,
   onLoadRotation,
   onAddTimer,
+  onUpdateRotation,
 }) {
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [editingRotation, setEditingRotation] = useState(null);
   const rotations = savedTimers.filter((t) => t.type === 'rotation');
   const wholeClass = savedTimers.filter((t) => t.type !== 'rotation');
+  const editParts = editingRotation
+    ? partsFromMinutes(editingRotation.min)
+    : null;
 
   return (
     <div className="relative flex-1 flex flex-col min-h-0 mt-2">
       {savedTimers.length > 0 ? (
-        <div className="flex-1 overflow-y-auto pb-24 space-y-10">
+        <div className="flex-1 overflow-y-auto space-y-10 p-1 pb-24">
           {rotations.length > 0 ? (
             <section>
               <div className="flex items-center gap-3 mb-4">
@@ -42,9 +57,11 @@ export function SavedTimersView({
                     key={timer.id}
                     title={timer.label}
                     groups={timer.groups}
+                    minutes={timer.min}
                     isDarkMode={isDarkMode}
                     theme={theme}
                     onClick={() => onLoadRotation(timer)}
+                    onEdit={() => setEditingRotation(timer)}
                     onRemove={() => onRemove(timer.id)}
                   />
                 ))}
@@ -124,6 +141,27 @@ export function SavedTimersView({
         title="Saved Timer"
         icon={TimerIcon}
         startLabel="Save"
+      />
+
+      <TimerSetupModal
+        isOpen={Boolean(editingRotation)}
+        onClose={() => setEditingRotation(null)}
+        onStart={(min, sec) => {
+          const m = parseInt(min, 10) || 0;
+          const s = parseInt(sec, 10) || 0;
+          if (m === 0 && s === 0) return;
+          if (editingRotation) {
+            onUpdateRotation?.(editingRotation.id, minutesFromDuration(min, sec));
+          }
+          setEditingRotation(null);
+        }}
+        isDarkMode={isDarkMode}
+        theme={theme}
+        title="Edit Timer"
+        icon={TimerIcon}
+        startLabel="Save"
+        initialMin={editParts?.min ?? ''}
+        initialSec={editParts?.sec ?? ''}
       />
     </div>
   );

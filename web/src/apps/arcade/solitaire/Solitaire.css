@@ -1,0 +1,530 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/*
+ * Toolbar / chrome fallbacks by viewport.
+ * Play-board card geometry is overridden by .arcade-play-board (fits width, no x-scroll).
+ */
+.arcade-pixel {
+  font-family: 'Press Start 2P', ui-monospace, monospace;
+  image-rendering: pixelated;
+  -webkit-font-smoothing: none;
+
+  --arcade-card-w: 58px;
+  --arcade-card-h: 81px;
+  --arcade-peek: 14px;
+  --arcade-waste-peek: 16px;
+  --arcade-gap: 6px;
+  --arcade-deal-gap: 8px;
+  --arcade-card-radius: 4px;
+  --arcade-card-border: 2px;
+  --arcade-card-shadow: 2px;
+  --arcade-pip: 22px;
+  --arcade-pip-dense: 18px;
+  --arcade-index-rank: 11px;
+  --arcade-index-suit: 10px;
+  --arcade-btn-size: 9px;
+  --arcade-btn-pad-y: 8px;
+  --arcade-btn-pad-x: 10px;
+}
+
+@media (min-width: 768px) {
+  .arcade-pixel {
+    --arcade-btn-size: 10px;
+    --arcade-btn-pad-y: 10px;
+    --arcade-btn-pad-x: 12px;
+    --arcade-card-border: 3px;
+    --arcade-card-shadow: 3px;
+  }
+}
+
+/* Play surface: only vertical scroll when stacks grow tall */
+.arcade-play-scroll {
+  container-type: inline-size;
+  container-name: arcade-play;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/*
+ * Fit 7 tableau columns (+ gaps) into the play width.
+ * Caps keep phone / tablet / desktop feel without horizontal scroll.
+ */
+.arcade-play-board {
+  --arcade-gap: clamp(4px, 1.2cqi, 12px);
+  --arcade-deal-gap: clamp(6px, 1.5cqi, 12px);
+  --arcade-card-w: clamp(
+    48px,
+    calc((100cqi - 8px - var(--arcade-gap) * 6) / 7),
+    94px
+  );
+  --arcade-card-h: calc(var(--arcade-card-w) * 130 / 94);
+  --arcade-peek: clamp(10px, calc(var(--arcade-card-w) * 0.24), 22px);
+  --arcade-waste-peek: calc(var(--arcade-card-w) * 0.3);
+  --arcade-card-radius: clamp(3px, calc(var(--arcade-card-w) * 0.064), 6px);
+  --arcade-card-border: clamp(2px, calc(var(--arcade-card-w) * 0.032), 3px);
+  --arcade-card-shadow: clamp(2px, calc(var(--arcade-card-w) * 0.032), 3px);
+  --arcade-pip: calc(var(--arcade-card-w) * 0.34);
+  --arcade-pip-dense: calc(var(--arcade-card-w) * 0.3);
+  --arcade-index-rank: calc(var(--arcade-card-w) * 0.16);
+  --arcade-index-suit: calc(var(--arcade-card-w) * 0.15);
+  width: 100%;
+  min-width: 0;
+  position: relative;
+}
+
+/*
+ * Fit 10 Spider tableau columns (+ gaps) into the play width.
+ */
+.arcade-play-board-spider {
+  --arcade-gap: clamp(2px, 0.8cqi, 8px);
+  --arcade-deal-gap: clamp(4px, 1cqi, 10px);
+  --arcade-card-w: clamp(
+    36px,
+    calc((100cqi - 8px - var(--arcade-gap) * 9) / 10),
+    78px
+  );
+  --arcade-card-h: calc(var(--arcade-card-w) * 130 / 94);
+  --arcade-peek: clamp(8px, calc(var(--arcade-card-w) * 0.22), 18px);
+  --arcade-waste-peek: calc(var(--arcade-card-w) * 0.3);
+  --arcade-card-radius: clamp(2px, calc(var(--arcade-card-w) * 0.064), 5px);
+  --arcade-card-border: clamp(2px, calc(var(--arcade-card-w) * 0.032), 3px);
+  --arcade-card-shadow: clamp(1px, calc(var(--arcade-card-w) * 0.032), 3px);
+  --arcade-pip: calc(var(--arcade-card-w) * 0.34);
+  --arcade-pip-dense: calc(var(--arcade-card-w) * 0.3);
+  --arcade-index-rank: calc(var(--arcade-card-w) * 0.16);
+  --arcade-index-suit: calc(var(--arcade-card-w) * 0.15);
+}
+
+.arcade-felt {
+  background-color: #0a6b3c;
+  background-image:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.06) 1px, transparent 1px),
+    linear-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+  background-size: 8px 8px;
+  box-shadow: inset 0 0 0 4px #064a29;
+}
+
+.arcade-felt-dark {
+  background-color: #085530;
+  background-image:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.08) 1px, transparent 1px),
+    linear-gradient(rgba(0, 0, 0, 0.08) 1px, transparent 1px);
+  background-size: 8px 8px;
+  box-shadow: inset 0 0 0 4px #04351d;
+}
+
+.arcade-card {
+  width: var(--arcade-card-w);
+  height: var(--arcade-card-h);
+  border: var(--arcade-card-border) solid #1a1a1a;
+  border-radius: var(--arcade-card-radius);
+  box-shadow: var(--arcade-card-shadow) var(--arcade-card-shadow) 0 #00000055;
+  user-select: none;
+  position: relative;
+  flex-shrink: 0;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.arcade-card-face {
+  background-color: #f7f3e8;
+  background-image: none;
+  color: #1a1a1a;
+  isolation: isolate;
+}
+
+.arcade-card-red {
+  color: #d62828;
+}
+
+.arcade-card-black {
+  color: #1a1a1a;
+}
+
+.arcade-card-back {
+  background: #0f172a;
+  padding: 0;
+}
+
+.arcade-card-back-art {
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+.arcade-card-back-inner {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  border: none;
+  pointer-events: none;
+}
+
+.arcade-card-back-inner svg,
+.arcade-card-back-inner img,
+.arcade-card-back-inner > div {
+  image-rendering: pixelated;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.arcade-card-back::after {
+  display: none;
+}
+
+.arcade-card-selected,
+.arcade-selection-hull {
+  /* Half the card stroke, flush to the outer border. */
+  outline: 1.5px solid #fbbf24;
+  outline-offset: 0;
+}
+
+.arcade-card-selected {
+  overflow: visible;
+  box-shadow: var(--arcade-card-shadow) var(--arcade-card-shadow) 0 #00000055;
+  z-index: 5;
+}
+
+.arcade-selection-hull {
+  position: absolute;
+  left: 50%;
+  z-index: 55;
+  width: var(--arcade-card-w);
+  height: calc(
+    var(--arcade-card-h) + (var(--stack-n, 1) - 1) * var(--arcade-peek)
+  );
+  border-radius: var(--arcade-card-radius);
+  transform: translateX(-50%);
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.arcade-slot {
+  width: var(--arcade-card-w);
+  height: var(--arcade-card-h);
+  border: var(--arcade-card-border) dashed rgba(0, 0, 0, 0.35);
+  border-radius: var(--arcade-card-radius);
+  background: rgba(0, 0, 0, 0.12);
+  flex-shrink: 0;
+  box-shadow: var(--arcade-card-shadow) var(--arcade-card-shadow) 0 transparent;
+}
+
+.arcade-deal-row {
+  min-height: var(--arcade-card-h);
+  gap: var(--arcade-deal-gap);
+  /* Avoid overflow-x:hidden — it forces overflow-y clipping and chops selection outlines. */
+  overflow: visible;
+  padding-top: 4px;
+}
+
+.arcade-tableau-row {
+  gap: var(--arcade-gap);
+  overflow-x: hidden;
+}
+
+.arcade-btn {
+  font-family: 'Press Start 2P', ui-monospace, monospace;
+  font-size: var(--arcade-btn-size);
+  line-height: 1.2;
+  padding: var(--arcade-btn-pad-y) var(--arcade-btn-pad-x);
+  border: var(--arcade-card-border) solid #1a1a1a;
+  box-shadow: var(--arcade-card-shadow) var(--arcade-card-shadow) 0 #00000066;
+  background: #f7f3e8;
+  color: #1a1a1a;
+  image-rendering: pixelated;
+}
+
+.arcade-btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 #00000066;
+}
+
+.arcade-btn:disabled {
+  opacity: 0.45;
+}
+
+.arcade-btn-primary {
+  background: #fbbf24;
+}
+
+.arcade-btn-turn {
+  background: #fbbf24;
+}
+
+.arcade-btn-target {
+  background: #7dd3fc;
+}
+
+.arcade-gofish-match-reveal {
+  animation: arcade-gofish-callout-in 0.28s ease-out;
+}
+
+.arcade-panel {
+  border: 3px solid #1a1a1a;
+  border-radius: 1rem; /* rounded-2xl — Edu.Hub board chrome */
+  box-shadow: 4px 4px 0 #00000055;
+  background: #0d7a45;
+}
+
+/* Fixed card size inside Learn so demos stay readable on phones */
+.arcade-learn-demo {
+  --arcade-card-w: 52px;
+  --arcade-card-h: 72px;
+  --arcade-peek: 14px;
+  --arcade-card-radius: 4px;
+  --arcade-card-border: 2px;
+  --arcade-card-shadow: 2px;
+  --arcade-pip: 18px;
+  --arcade-pip-dense: 15px;
+  --arcade-index-rank: 9px;
+  --arcade-index-suit: 8px;
+}
+
+@media (min-width: 640px) {
+  .arcade-learn-demo {
+    --arcade-card-w: 58px;
+    --arcade-card-h: 81px;
+    --arcade-pip: 22px;
+    --arcade-pip-dense: 18px;
+    --arcade-index-rank: 11px;
+    --arcade-index-suit: 10px;
+  }
+}
+
+.arcade-win-banner {
+  border: 4px solid #1a1a1a;
+  box-shadow: 6px 6px 0 #00000066;
+  background-color: #fbbf24;
+  color: #1a1a1a;
+  opacity: 1;
+  isolation: isolate;
+}
+
+.arcade-card-drag-source {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.arcade-drag-ghost {
+  position: fixed;
+  z-index: 320;
+  pointer-events: none;
+  left: 0;
+  top: 0;
+  will-change: left, top;
+  width: var(--arcade-card-w);
+  border-radius: var(--arcade-card-radius);
+  outline: 1.5px solid #fbbf24;
+  outline-offset: 0;
+}
+
+.arcade-drag-ghost.arcade-drag-returning {
+  transition: left 0.22s ease-out, top 0.22s ease-out;
+}
+
+.arcade-drag-ghost .arcade-card {
+  box-shadow: 4px 4px 0 #00000066;
+  cursor: grabbing;
+}
+
+.arcade-hint-pulse {
+  outline: 1.5px solid #fbbf24;
+  outline-offset: 0;
+  animation: arcade-hint-blink 0.9s ease-in-out 2;
+}
+
+@keyframes arcade-hint-blink {
+  0%,
+  100% {
+    outline-color: #fbbf24;
+  }
+  50% {
+    outline-color: #fef08a;
+  }
+}
+
+/* Idle “tap the deck” nudge — fade outline in/out 3 times after a long wait. */
+.arcade-deal-nudge {
+  outline: 1.5px solid transparent;
+  outline-offset: 0;
+  animation: arcade-deal-nudge 1.2s ease-in-out 3;
+}
+
+@keyframes arcade-deal-nudge {
+  0%,
+  100% {
+    outline-color: transparent;
+  }
+  50% {
+    outline-color: #fbbf24;
+  }
+}
+
+@keyframes arcade-gofish-fly {
+  from {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translate(var(--fly-dx, 0px), var(--fly-dy, 0px))
+      rotate(var(--fly-rot, 0deg)) scale(0.96);
+    opacity: 1;
+  }
+}
+
+.arcade-gofish-fly {
+  animation: arcade-gofish-fly 0.18s ease-in forwards;
+  will-change: transform;
+}
+
+/* Spider stock → tableau deal cascade (slightly longer for readability). */
+@keyframes arcade-spider-deal-fly {
+  from {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translate(var(--fly-dx, 0px), var(--fly-dy, 0px)) scale(0.98);
+    opacity: 1;
+  }
+}
+
+.arcade-spider-deal-fly {
+  animation: arcade-spider-deal-fly var(--fly-duration, 380ms) ease-out forwards;
+  will-change: transform;
+  pointer-events: none;
+}
+
+@keyframes arcade-gofish-book-make {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  28% {
+    transform: translate(0, -30px) rotate(calc(var(--fly-rot, 0deg) * 0.2))
+      scale(1.04);
+  }
+  55% {
+    transform: translate(calc(var(--fly-dx, 0px) * 0.35), -18px)
+      rotate(calc(var(--fly-rot, 0deg) * 0.55)) scale(0.96);
+  }
+  100% {
+    transform: translate(var(--fly-dx, 0px), var(--fly-dy, 0px))
+      rotate(var(--fly-rot, 0deg)) scale(0.88);
+  }
+}
+
+@keyframes arcade-gofish-book-gather {
+  0% {
+    transform: translateX(var(--book-spread, 0px));
+  }
+  35% {
+    transform: translateX(var(--book-spread, 0px));
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes arcade-gofish-book-straight {
+  from {
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    transform: translate(var(--fly-dx, 0px), var(--fly-dy, 0px)) scale(0.94);
+  }
+}
+
+.arcade-gofish-book-fly {
+  animation: arcade-gofish-book-make 0.72s ease-in-out forwards;
+  will-change: transform;
+}
+
+.arcade-gofish-book-meet {
+  animation: arcade-gofish-book-straight 0.5s ease-in-out forwards;
+  will-change: transform;
+}
+
+.arcade-gofish-book-to-pile {
+  animation: arcade-gofish-book-straight 0.5s ease-in-out forwards;
+  will-change: transform;
+}
+
+.arcade-gofish-book-card {
+  animation: arcade-gofish-book-gather 0.72s ease-in-out forwards;
+}
+
+@keyframes arcade-gofish-callout-in {
+  0% {
+    transform: scale(0.72);
+    opacity: 0;
+  }
+  18% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.arcade-gofish-callout {
+  animation: arcade-gofish-callout-in 0.28s ease-out;
+}
+
+@keyframes arcade-gofish-pond-pulse {
+  0%,
+  100% {
+    outline-color: #fbbf24;
+  }
+  50% {
+    outline-color: #fef08a;
+  }
+}
+
+.arcade-gofish-pond-live .arcade-card {
+  outline: 2px solid #fbbf24;
+  outline-offset: 2px;
+  animation: arcade-gofish-pond-pulse 0.9s ease-in-out infinite;
+}
+
+.arcade-gofish-card-raised {
+  transform: translateY(-12px);
+  z-index: 24 !important;
+  transition: transform 0.15s ease-out;
+}
+
+.arcade-gofish-hand-card {
+  transition: transform 0.15s ease-out;
+}
+
+.arcade-card-back-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px;
+  border: 3px solid #1a1a1a;
+  box-shadow: 3px 3px 0 #00000066;
+  background: #0a5c34;
+  image-rendering: pixelated;
+}
+
+.arcade-card-back-option-active {
+  background: #fbbf24;
+  box-shadow: 1px 1px 0 #00000066;
+}
+
+.arcade-card-back-option-active span:last-child {
+  color: #1a1a1a;
+}
+
+.arcade-card-back-option-art {
+  display: block;
+  width: 44px;
+  height: 60px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #0f172a;
+}

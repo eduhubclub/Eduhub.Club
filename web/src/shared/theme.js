@@ -87,15 +87,15 @@ export function resolveShellBackgroundClass(id, isDarkMode = false) {
 
 /**
  * Build an app theme from a primary hue family.
- * @param {{ token: string, primary: string, variant: string, secondary: string, secondaryOn: string, hoverBg: string, ring: string, text: string, hoverText: string, groupHoverText: string, border: string, bgMuted: string, activeBg: string, containerOn: string }} p
+ * @param {{ token: string, primary: string, onPrimary: string, variant: string, onPrimaryVariant: string, secondary: string, secondaryOn: string, hoverBg: string, ring: string, text: string, hoverText: string, groupHoverText: string, border: string, bgMuted: string, activeBg: string, containerOn: string }} p
  */
 function brandTheme(p) {
   return {
     // —— Material roles (brand) ——
     colorPrimary: p.primary,
-    colorOnPrimary: 'text-white',
+    colorOnPrimary: p.onPrimary,
     colorPrimaryVariant: p.variant,
-    colorOnPrimaryVariant: 'text-white',
+    colorOnPrimaryVariant: p.onPrimaryVariant,
     colorSecondary: p.secondary,
     colorOnSecondary: p.secondaryOn,
     colorPrimaryContainer: p.activeBg,
@@ -119,19 +119,25 @@ function brandTheme(p) {
 const SECONDARY = { secondary: 'bg-slate-600', secondaryOn: 'text-white' };
 
 /**
- * Canonical Edu.Hub primaries — muted fills (400 / soft 700 brown) so UI isn’t garish.
- * Rainbow order for Design pickers.
+ * Muted fills (400 / soft 700 brown) for brand expression; on-colors and link
+ * steps are chosen for WCAG AA contrast (see HubBrand → Color).
  */
+/** Dark on-color for light 400 fills; white for deep browns. */
+const ON_PRIMARY_LIGHT = 'text-slate-900';
+const ON_PRIMARY_DARK = 'text-white';
+
 export const primaryPalettes = {
   Red: brandTheme({
     token: 'red-400',
     primary: 'bg-red-400',
+    onPrimary: ON_PRIMARY_LIGHT,
     variant: 'bg-red-600',
+    onPrimaryVariant: ON_PRIMARY_DARK,
     bgMuted: 'bg-red-400/35',
     activeBg: 'bg-red-400/12',
-    text: 'text-red-500',
-    hoverText: 'hover:text-red-500',
-    groupHoverText: 'group-hover:text-red-500',
+    text: 'text-red-600',
+    hoverText: 'hover:text-red-600',
+    groupHoverText: 'group-hover:text-red-600',
     border: 'border-red-400',
     hoverBg: 'hover:bg-red-50',
     ring: 'ring-red-400',
@@ -141,12 +147,14 @@ export const primaryPalettes = {
   Orange: brandTheme({
     token: 'orange-400',
     primary: 'bg-orange-400',
-    variant: 'bg-orange-600',
+    onPrimary: ON_PRIMARY_LIGHT,
+    variant: 'bg-orange-700',
+    onPrimaryVariant: ON_PRIMARY_DARK,
     bgMuted: 'bg-orange-400/35',
     activeBg: 'bg-orange-400/12',
-    text: 'text-orange-500',
-    hoverText: 'hover:text-orange-500',
-    groupHoverText: 'group-hover:text-orange-500',
+    text: 'text-orange-700',
+    hoverText: 'hover:text-orange-700',
+    groupHoverText: 'group-hover:text-orange-700',
     border: 'border-orange-400',
     hoverBg: 'hover:bg-orange-50',
     ring: 'ring-orange-400',
@@ -156,12 +164,14 @@ export const primaryPalettes = {
   Amber: brandTheme({
     token: 'amber-400',
     primary: 'bg-amber-400',
-    variant: 'bg-amber-600',
+    onPrimary: ON_PRIMARY_LIGHT,
+    variant: 'bg-amber-700',
+    onPrimaryVariant: ON_PRIMARY_DARK,
     bgMuted: 'bg-amber-400/35',
     activeBg: 'bg-amber-400/12',
-    text: 'text-amber-600',
-    hoverText: 'hover:text-amber-600',
-    groupHoverText: 'group-hover:text-amber-600',
+    text: 'text-amber-800',
+    hoverText: 'hover:text-amber-800',
+    groupHoverText: 'group-hover:text-amber-800',
     border: 'border-amber-400',
     hoverBg: 'hover:bg-amber-50',
     ring: 'ring-amber-400',
@@ -170,28 +180,32 @@ export const primaryPalettes = {
   }),
   Emerald: brandTheme({
     token: 'emerald-500',
-    primary: 'bg-emerald-500/80',
+    primary: 'bg-emerald-500',
+    onPrimary: ON_PRIMARY_LIGHT,
     variant: 'bg-emerald-700',
+    onPrimaryVariant: ON_PRIMARY_DARK,
     bgMuted: 'bg-emerald-500/30',
     activeBg: 'bg-emerald-500/10',
-    text: 'text-emerald-600',
-    hoverText: 'hover:text-emerald-600',
-    groupHoverText: 'group-hover:text-emerald-600',
-    border: 'border-emerald-500/80',
+    text: 'text-emerald-700',
+    hoverText: 'hover:text-emerald-700',
+    groupHoverText: 'group-hover:text-emerald-700',
+    border: 'border-emerald-500',
     hoverBg: 'hover:bg-emerald-50',
-    ring: 'ring-emerald-500/80',
+    ring: 'ring-emerald-500',
     containerOn: 'text-emerald-800',
     ...SECONDARY,
   }),
   Blue: brandTheme({
     token: 'blue-400',
     primary: 'bg-blue-400',
+    onPrimary: ON_PRIMARY_LIGHT,
     variant: 'bg-blue-600',
+    onPrimaryVariant: ON_PRIMARY_DARK,
     bgMuted: 'bg-blue-400/35',
     activeBg: 'bg-blue-400/12',
-    text: 'text-blue-400',
-    hoverText: 'hover:text-blue-400',
-    groupHoverText: 'group-hover:text-blue-400',
+    text: 'text-blue-600',
+    hoverText: 'hover:text-blue-600',
+    groupHoverText: 'group-hover:text-blue-600',
     border: 'border-blue-400',
     hoverBg: 'hover:bg-blue-50',
     ring: 'ring-blue-400',
@@ -201,12 +215,14 @@ export const primaryPalettes = {
   Indigo: brandTheme({
     token: 'indigo-400',
     primary: 'bg-indigo-400',
+    onPrimary: ON_PRIMARY_LIGHT,
     variant: 'bg-indigo-600',
+    onPrimaryVariant: ON_PRIMARY_DARK,
     bgMuted: 'bg-indigo-400/35',
     activeBg: 'bg-indigo-400/12',
-    text: 'text-indigo-500',
-    hoverText: 'hover:text-indigo-500',
-    groupHoverText: 'group-hover:text-indigo-500',
+    text: 'text-indigo-600',
+    hoverText: 'hover:text-indigo-600',
+    groupHoverText: 'group-hover:text-indigo-600',
     border: 'border-indigo-400',
     hoverBg: 'hover:bg-indigo-50',
     ring: 'ring-indigo-400',
@@ -216,12 +232,14 @@ export const primaryPalettes = {
   Purple: brandTheme({
     token: 'purple-400',
     primary: 'bg-purple-400',
+    onPrimary: ON_PRIMARY_LIGHT,
     variant: 'bg-purple-600',
+    onPrimaryVariant: ON_PRIMARY_DARK,
     bgMuted: 'bg-purple-400/35',
     activeBg: 'bg-purple-400/12',
-    text: 'text-purple-500',
-    hoverText: 'hover:text-purple-500',
-    groupHoverText: 'group-hover:text-purple-500',
+    text: 'text-purple-600',
+    hoverText: 'hover:text-purple-600',
+    groupHoverText: 'group-hover:text-purple-600',
     border: 'border-purple-400',
     hoverBg: 'hover:bg-purple-50',
     ring: 'ring-purple-400',
@@ -231,12 +249,14 @@ export const primaryPalettes = {
   Pink: brandTheme({
     token: 'rose-400',
     primary: 'bg-rose-400',
+    onPrimary: ON_PRIMARY_LIGHT,
     variant: 'bg-rose-600',
+    onPrimaryVariant: ON_PRIMARY_DARK,
     bgMuted: 'bg-rose-400/35',
     activeBg: 'bg-rose-400/12',
-    text: 'text-rose-500',
-    hoverText: 'hover:text-rose-500',
-    groupHoverText: 'group-hover:text-rose-500',
+    text: 'text-rose-600',
+    hoverText: 'hover:text-rose-600',
+    groupHoverText: 'group-hover:text-rose-600',
     border: 'border-rose-400',
     hoverBg: 'hover:bg-rose-50',
     ring: 'ring-rose-400',
@@ -246,12 +266,14 @@ export const primaryPalettes = {
   Brown: brandTheme({
     token: 'amber-700',
     primary: 'bg-amber-700/85',
+    onPrimary: ON_PRIMARY_DARK,
     variant: 'bg-amber-900',
+    onPrimaryVariant: ON_PRIMARY_DARK,
     bgMuted: 'bg-amber-700/30',
     activeBg: 'bg-amber-700/10',
-    text: 'text-amber-800',
-    hoverText: 'hover:text-amber-800',
-    groupHoverText: 'group-hover:text-amber-800',
+    text: 'text-amber-900',
+    hoverText: 'hover:text-amber-900',
+    groupHoverText: 'group-hover:text-amber-900',
     border: 'border-amber-700/80',
     hoverBg: 'hover:bg-amber-50',
     ring: 'ring-amber-700/80',
@@ -326,6 +348,14 @@ export const appThemes = {
   HubBrand: { ...primaryPalettes.Pink },
   EarlyLiteracy: { ...primaryPalettes.Blue },
   Games: { ...primaryPalettes.Indigo },
+  Arcade: { ...primaryPalettes.Emerald },
+  Bank: { ...primaryPalettes.Red },
+  Behavior: { ...primaryPalettes.Indigo },
+  Jobs: { ...primaryPalettes.Amber },
+  MathTools: { ...primaryPalettes.Blue },
+  Attendance: { ...primaryPalettes.Emerald },
+  Store: { ...primaryPalettes.Orange },
+  Calendar: { ...primaryPalettes.Blue },
 };
 
 /** Default primary key for each appThemes / themeKey name. */
@@ -346,6 +376,14 @@ export const appThemePrimaryKeys = {
   HubBrand: 'Pink',
   EarlyLiteracy: 'Blue',
   Games: 'Indigo',
+  Arcade: 'Emerald',
+  Bank: 'Red',
+  Behavior: 'Indigo',
+  Jobs: 'Amber',
+  MathTools: 'Blue',
+  Attendance: 'Emerald',
+  Store: 'Orange',
+  Calendar: 'Blue',
 };
 
 /**

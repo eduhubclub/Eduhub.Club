@@ -4,6 +4,14 @@
  * Glyphs echo the logo’s building blocks: circle, triangle, square, scribble.
  */
 
+import {
+  GLYPH_VIEWBOX,
+  GlyphCircleMark,
+  GlyphScribbleMark,
+  GlyphSquareMark,
+  GlyphTriangleMark,
+} from '../../shared/logoGlyphs';
+
 const LOGO = {
   rose: '#f43f5e',
   amber: '#f59e0b',
@@ -94,23 +102,18 @@ export function SampleShapeUnderLine({ className = 'w-full h-auto' }) {
 export function SampleLogoBlocks({ className = 'w-full h-auto' }) {
   return (
     <svg viewBox="0 0 280 120" className={className} aria-hidden>
-      <circle cx="40" cy="60" r="28" fill={LOGO.rose} />
-      <path
-        d="M112 28 L140 92 H84 Z"
-        fill={LOGO.amber}
-        stroke="#1c1917"
-        strokeWidth="2.5"
-        strokeLinejoin="round"
-      />
-      <rect x="168" y="32" width="52" height="52" rx="8" fill={LOGO.emerald} />
-      <path
-        d="M248 34c14 0 18 16 10 28-10 14-28 6-26-8 2-12 22-4 18 10-4 12-18 10-16-2"
-        fill="none"
-        stroke={LOGO.sky}
-        strokeWidth="5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <svg x="12" y="32" width="56" height="56" viewBox={GLYPH_VIEWBOX.circle} fill={LOGO.rose}>
+        <GlyphCircleMark />
+      </svg>
+      <svg x="84" y="34" width="60" height="52" viewBox={GLYPH_VIEWBOX.triangle} fill={LOGO.amber}>
+        <GlyphTriangleMark />
+      </svg>
+      <svg x="164" y="32" width="56" height="56" viewBox={GLYPH_VIEWBOX.square} fill={LOGO.emerald}>
+        <GlyphSquareMark />
+      </svg>
+      <svg x="228" y="28" width="44" height="64" viewBox={GLYPH_VIEWBOX.scribble} fill={LOGO.sky}>
+        <GlyphScribbleMark />
+      </svg>
       {/* ink overlays — line on shape */}
       <circle
         cx="40"
@@ -122,10 +125,10 @@ export function SampleLogoBlocks({ className = 'w-full h-auto' }) {
         opacity="0.35"
       />
       <rect
-        x="168"
+        x="164"
         y="32"
-        width="52"
-        height="52"
+        width="56"
+        height="56"
         rx="8"
         fill="none"
         stroke="#1c1917"

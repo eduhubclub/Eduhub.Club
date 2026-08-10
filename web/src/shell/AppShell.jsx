@@ -40,6 +40,10 @@ import { SettingsPage } from './SettingsPage';
 import { ShellPaddingBand, ShellPaddingOverlay } from './ShellPaddingBand';
 import { AppInfoProvider } from '../shared/AppInfo';
 import { SkipLink } from '../shared/SkipLink';
+import {
+  readStoreSettings,
+  STORE_SETTINGS_UPDATED_EVENT,
+} from '../data/store/storeSettings';
 
 const LESSON_ICONS = {
   ExternalLink,
@@ -55,6 +59,17 @@ function cloneNav(nav) {
     subItems: item.subItems ? [...item.subItems] : undefined,
     actions: item.actions ? [...item.actions] : undefined,
   }));
+}
+
+/** Hide Store embeds unless the matching Connect toggle is on. */
+function filterAppNav(appId, nav) {
+  const settings = readStoreSettings();
+  return nav.filter((item) => {
+    if (item.id !== 'store') return true;
+    if (appId === 'bank') return settings.connectBank;
+    if (appId === 'behavior') return settings.connectBehavior;
+    return true;
+  });
 }
 
 function buildClassesPanelContent(classes) {
@@ -171,7 +186,7 @@ export function AppShell() {
     const app = getApp(currentAppId);
     const classLessons = getLessons(selectedClass?.id);
     setNavItems(
-      cloneNav(app.nav).map((item) => {
+      filterAppNav(currentAppId, cloneNav(app.nav)).map((item) => {
         if (item.panelSource === 'classes') {
           return { ...item, panelContent: buildClassesPanelContent(classes) };
         }
@@ -197,6 +212,45 @@ export function AppShell() {
     setIsAddWidgetModalOpen(false);
     // classes/lessons snapshot at switch time; live updates handled below
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentAppId]);
+
+  // Refresh Bank/Behavior Store nav when Store connection toggles change.
+  useEffect(() => {
+    const refresh = () => {
+      if (currentAppId !== 'bank' && currentAppId !== 'behavior') return;
+      const app = getApp(currentAppId);
+      setNavItems((prev) => {
+        const panels = Object.fromEntries(
+          prev
+            .filter((i) => i.panelSource)
+            .map((i) => [i.id, i]),
+        );
+        return filterAppNav(currentAppId, cloneNav(app.nav)).map((item) => {
+          if (item.panelSource && panels[item.id]) {
+            return {
+              ...item,
+              panelContent: panels[item.id].panelContent,
+              panelTitle: panels[item.id].panelTitle,
+            };
+          }
+          return item;
+        });
+      });
+      setActiveTab((tab) => {
+        if (tab !== 'Store') return tab;
+        const settings = readStoreSettings();
+        if (currentAppId === 'bank' && !settings.connectBank) {
+          return app.defaultView;
+        }
+        if (currentAppId === 'behavior' && !settings.connectBehavior) {
+          return app.defaultView;
+        }
+        return tab;
+      });
+    };
+    window.addEventListener(STORE_SETTINGS_UPDATED_EVENT, refresh);
+    return () =>
+      window.removeEventListener(STORE_SETTINGS_UPDATED_EVENT, refresh);
   }, [currentAppId]);
 
   useEffect(() => {
@@ -377,6 +431,21 @@ export function AppShell() {
         setActiveTab('Card Types');
         setActiveWidgetId(null);
       }
+      // Arcade Classic — land on the Classic board.
+      if (isOpening && item.panelSource === 'arcade-classic') {
+        setActiveTab('Classic');
+        setActiveWidgetId(null);
+      }
+      // Arcade Cards — land on Card Games when opening the panel.
+      if (isOpening && item.panelSource === 'arcade-cards') {
+        setActiveTab('Card Games');
+        setActiveWidgetId(null);
+      }
+      // Arcade Platformers — land on the Platformers board.
+      if (isOpening && item.panelSource === 'arcade-platformers') {
+        setActiveTab('Platformers');
+        setActiveWidgetId(null);
+      }
       if (!isDesktop) setIsMobileNavOpen(false);
     }
   };
@@ -409,6 +478,18 @@ export function AppShell() {
     showAppShellPattern ||
     isDashboardApp ||
     currentAppId === 'noisemeter' ||
+    currentAppId === 'arcade' ||
+    currentAppId === 'games' ||
+    (currentAppId === 'calendar' &&
+      activeTab !== 'Create Calendar' &&
+      activeTab !== 'Saved Calendar' &&
+      activeTab !== 'Countdown') ||
+    (currentAppId === 'brand' && activeTab === 'Color Test') ||
+    (currentAppId === 'timer' &&
+      activeTab !== 'Local Time' &&
+      activeTab !== 'World Clock') ||
+    (currentAppId === 'bank' && activeTab === 'Learning') ||
+    currentAppId === 'mathTools' ||
     activeTab === 'Static board' ||
     activeTab === 'Static medium' ||
     activeTab === 'Static small' ||
@@ -588,7 +669,10 @@ export function AppShell() {
             panelNavItem?.panelSource === 'classes' ||
             panelNavItem?.panelSource === 'lessons' ||
             panelNavItem?.panelSource === 'design-patterns' ||
-            panelNavItem?.panelSource === 'design-cards'
+            panelNavItem?.panelSource === 'design-cards' ||
+            panelNavItem?.panelSource === 'arcade-classic' ||
+            panelNavItem?.panelSource === 'arcade-cards' ||
+            panelNavItem?.panelSource === 'arcade-platformers'
           }
           onAddClick={() => setIsAddModalOpen(true)}
           onSelectItem={(sub) => {
@@ -611,7 +695,10 @@ export function AppShell() {
             }
             if (
               panelNavItem?.panelSource === 'design-patterns' ||
-              panelNavItem?.panelSource === 'design-cards'
+              panelNavItem?.panelSource === 'design-cards' ||
+              panelNavItem?.panelSource === 'arcade-classic' ||
+              panelNavItem?.panelSource === 'arcade-cards' ||
+              panelNavItem?.panelSource === 'arcade-platformers'
             ) {
               setActiveTab(sub.label);
               setActiveWidgetId(null);
@@ -730,6 +817,7 @@ export function AppShell() {
                       <currentApp.View
                         activeTab={activeTab}
                         isDarkMode={isDarkMode}
+                        onDarkModeChange={setIsDarkMode}
                         theme={theme}
                         isLeft={isLeft}
                         isSidebarOpen={isSidebarOpen}
@@ -791,6 +879,7 @@ export function AppShell() {
                     <currentApp.View
                       activeTab={activeTab}
                       isDarkMode={isDarkMode}
+                      onDarkModeChange={setIsDarkMode}
                       theme={theme}
                       isLeft={isLeft}
                       isSidebarOpen={isSidebarOpen}

@@ -11,6 +11,14 @@ import { designApp } from './design/config';
 import { brandApp } from './brand/config';
 import { earlyLiteracyApp } from './earlyliteracy/config';
 import { gamesApp } from './games/config';
+import { arcadeApp } from './arcade/config';
+import { bankApp } from './bank/config';
+import { behaviorApp } from './behavior/config';
+import { jobsApp } from './jobs/config';
+import { mathToolsApp } from './mathTools/config';
+import { attendanceApp } from './attendance/config';
+import { storeApp } from './store/config';
+import { calendarApp } from './calendar/config';
 
 export { launcherApps } from './launcher';
 
@@ -29,6 +37,14 @@ export const apps = {
   [brandApp.id]: brandApp,
   [earlyLiteracyApp.id]: earlyLiteracyApp,
   [gamesApp.id]: gamesApp,
+  [arcadeApp.id]: arcadeApp,
+  [bankApp.id]: bankApp,
+  [behaviorApp.id]: behaviorApp,
+  [jobsApp.id]: jobsApp,
+  [mathToolsApp.id]: mathToolsApp,
+  [attendanceApp.id]: attendanceApp,
+  [storeApp.id]: storeApp,
+  [calendarApp.id]: calendarApp,
 };
 
 /** Hub is the default entry app. */

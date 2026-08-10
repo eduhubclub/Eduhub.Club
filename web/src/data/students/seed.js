@@ -1,18 +1,18 @@
 import {
-  AVATAR_IMAGE_LIBRARY,
   AVATAR_TYPES,
   createDefaultAvatar,
-  createEmojiAvatar,
-  createLibraryAvatar,
+  createUploadAvatar,
   normalizeAvatar,
 } from '../classes/avatar';
 import { syncLegacyGuardianFields } from '../classes/guardians';
+import { HISTORICAL_PORTRAITS } from './historicalPortraits';
+import { normalizeAppDisplayName } from './displayName';
 
 /**
  * Shared student directory seed.
  * Bump SEED_REVISION when seed content should replace in-memory state.
  */
-export const SEED_REVISION = 7;
+export const SEED_REVISION = 16;
 
 export const DISTRICT_OPTIONS = ['Tahoma School District'];
 
@@ -58,44 +58,49 @@ const DEMO_GUARDIANS = [
 export const SEED_STUDENTS = [
   {
     id: 'demo-student-profile',
-    name: 'Harper Anderson',
-    firstName: 'Harper',
-    lastName: 'Anderson',
-    nickname: 'Harps',
+    name: HISTORICAL_PORTRAITS[0].name,
+    firstName: 'Booker T.',
+    lastName: 'Washington',
+    nickname: HISTORICAL_PORTRAITS[0].nickname || '',
+    appDisplayName: normalizeAppDisplayName(undefined, HISTORICAL_PORTRAITS[0].nickname),
     studentId: '100250001',
-    email: 'handerson@edu.hub',
+    email: 'bwashington@edu.hub',
     password: '4821',
-    gender: 'Female',
+    gender: HISTORICAL_PORTRAITS[0].gender,
     grade_level: '3rd Grade',
     school: 'Tahoma Elementary',
     district: 'Tahoma School District',
     managedByDistrict: true,
-    siblingIds: ['demo-sibling-liam'],
-    birthdate: '04/12/2017',
+    siblingIds: [],
+    birthdate: `${HISTORICAL_PORTRAITS[0].birthMonthDay}/2017`,
     guardianAddress: '214 Maple Lane, Maple Valley, WA 98038',
-    avatar: createEmojiAvatar('🐶'),
+    avatar: createUploadAvatar(
+      HISTORICAL_PORTRAITS[0].imageUrl,
+      HISTORICAL_PORTRAITS[0].imageUrl,
+    ),
     ...syncLegacyGuardianFields(DEMO_GUARDIANS),
   },
   {
-    id: 'demo-sibling-liam',
-    name: 'Liam Anderson',
-    firstName: 'Liam',
-    lastName: 'Anderson',
+    id: 'demo-student-2',
+    name: HISTORICAL_PORTRAITS[1].name,
+    firstName: 'Harriet',
+    lastName: 'Tubman',
     nickname: '',
-    studentId: '100250010',
-    email: 'landerson@edu.hub',
-    password: '3917',
-    gender: 'Male',
-    grade_level: '6th Grade',
+    appDisplayName: 'legal',
+    studentId: '100250002',
+    email: 'htubman@edu.hub',
+    password: '1137',
+    gender: HISTORICAL_PORTRAITS[1].gender,
+    grade_level: '3rd Grade',
     school: 'Tahoma Elementary',
     district: 'Tahoma School District',
     managedByDistrict: true,
-    siblingIds: ['demo-student-profile'],
-    birthdate: '09/03/2014',
-    guardianAddress: '214 Maple Lane, Maple Valley, WA 98038',
-    avatar: createLibraryAvatar(
-      AVATAR_IMAGE_LIBRARY[1].id,
-      AVATAR_IMAGE_LIBRARY[1].imageUrl
+    siblingIds: [],
+    birthdate: `${HISTORICAL_PORTRAITS[1].birthMonthDay}/2016`,
+    guardianAddress: '88 Cedar Court, Renton, WA 98055',
+    avatar: createUploadAvatar(
+      HISTORICAL_PORTRAITS[1].imageUrl,
+      HISTORICAL_PORTRAITS[1].imageUrl,
     ),
     ...syncLegacyGuardianFields(DEMO_GUARDIANS),
   },
@@ -118,6 +123,7 @@ export function normalizeDirectoryStudent(raw, extras = {}) {
     firstName,
     lastName,
     nickname: raw.nickname || '',
+    appDisplayName: normalizeAppDisplayName(raw.appDisplayName, raw.nickname),
     studentId: raw.studentId || '',
     email: raw.email || '',
     password: raw.password || '',
@@ -193,6 +199,10 @@ export function mergeDirectoryStudents(existing, incoming, extras = {}) {
       email: prev.email || normalized.email,
       password: prev.password || normalized.password,
       nickname: prev.nickname || normalized.nickname,
+      appDisplayName: normalizeAppDisplayName(
+        prev.appDisplayName ?? normalized.appDisplayName,
+        prev.nickname || normalized.nickname,
+      ),
       birthdate: prev.birthdate || normalized.birthdate,
       guardianAddress: prev.guardianAddress || normalized.guardianAddress,
       guardians: prev.guardians?.length ? prev.guardians : normalized.guardians,
@@ -230,6 +240,7 @@ export function buildStudentFromForm(form) {
     firstName,
     lastName,
     nickname: (form.nickname || '').trim(),
+    appDisplayName: normalizeAppDisplayName(form.appDisplayName, form.nickname),
     studentId: (form.studentId || '').trim(),
     email: (form.email || '').trim(),
     password: (form.password || '').trim(),

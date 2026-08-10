@@ -1,17 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
-import { Globe, Loader2, Plus } from 'lucide-react';
+import { Globe, LayoutGrid, Loader2, Map, Plus } from 'lucide-react';
 import {
   DEFAULT_WORLD_CLOCKS,
   GOOGLE_MAPS_API_KEY,
-  WORLD_CITIES,
+  searchWorldLocations,
+  withCityCoords,
 } from '../constants';
 import { WorldClockCard } from '../components/WorldClockCard';
+import { WorldClockMap } from '../components/WorldClockMap';
 import { Modal } from '../../../shared/Modal';
+import { SegmentControl } from '../../../shared/SegmentControl';
 import { APP_EMPTY_SLOT, appFabClass } from '../../../shared/layout';
 import { TYPE } from '../../../shared/typography';
 
 export function WorldClockView({ isDarkMode, theme, isLeft }) {
   const [worldClocks, setWorldClocks] = useState(DEFAULT_WORLD_CLOCKS);
+  const [boardMode, setBoardMode] = useState('cards');
   const [citySearch, setCitySearch] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
@@ -38,19 +42,11 @@ export function WorldClockView({ isDarkMode, theme, isLeft }) {
 
     const timer = setTimeout(async () => {
       setIsSearching(true);
+      const excludeNames = worldClocks.map((wc) => wc.name);
+      const localResults = searchWorldLocations(citySearch, { excludeNames });
 
       if (!GOOGLE_MAPS_API_KEY) {
-        const fallback = WORLD_CITIES.filter(
-          (c) =>
-            c.name.toLowerCase().includes(citySearch.toLowerCase()) &&
-            !worldClocks.find((wc) => wc.name === c.name),
-        ).map((c) => ({
-          name: c.name,
-          country: c.country,
-          tz: c.tz,
-          isFallback: true,
-        }));
-        setSearchResults(fallback);
+        setSearchResults(localResults);
         setIsSearching(false);
         return;
       }
@@ -60,7 +56,7 @@ export function WorldClockView({ isDarkMode, theme, isLeft }) {
           `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(citySearch)}&key=${GOOGLE_MAPS_API_KEY}`,
         );
         const data = await response.json();
-        if (data.status === 'OK') {
+        if (data.status === 'OK' && data.results?.length) {
           setSearchResults(
             data.results.map((r) => {
               const country = r.address_components.find((c) =>
@@ -76,20 +72,26 @@ export function WorldClockView({ isDarkMode, theme, isLeft }) {
             }),
           );
         } else {
-          setSearchResults([]);
+          setSearchResults(localResults);
         }
       } catch {
-        setSearchResults([]);
+        setSearchResults(localResults);
       }
       setIsSearching(false);
-    }, 600);
+    }, 350);
 
     return () => clearTimeout(timer);
   }, [citySearch, worldClocks]);
 
   const addCityClock = async (cityObj) => {
     if (cityObj.isFallback && cityObj.tz) {
-      setWorldClocks((prev) => [...prev, { name: cityObj.name, tz: cityObj.tz }]);
+      const next = withCityCoords({
+        name: cityObj.name,
+        tz: cityObj.tz,
+        lat: cityObj.lat,
+        lng: cityObj.lng,
+      });
+      setWorldClocks((prev) => [...prev, next]);
       setCitySearch('');
       setShowDropdown(false);
       setIsAddModalOpen(false);
@@ -105,7 +107,15 @@ export function WorldClockView({ isDarkMode, theme, isLeft }) {
       const data = await response.json();
       if (data.status === 'OK') {
         const shortName = cityObj.name.split(',')[0];
-        setWorldClocks((prev) => [...prev, { name: shortName, tz: data.timeZoneId }]);
+        setWorldClocks((prev) => [
+          ...prev,
+          {
+            name: shortName,
+            tz: data.timeZoneId,
+            lat: cityObj.lat,
+            lng: cityObj.lng,
+          },
+        ]);
         setIsAddModalOpen(false);
       }
     } catch {
@@ -116,6 +126,10 @@ export function WorldClockView({ isDarkMode, theme, isLeft }) {
     setShowDropdown(false);
   };
 
+  const removeClock = (index) => {
+    setWorldClocks((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const inputClass = `w-full px-4 py-3 rounded-xl border ${TYPE.bodyMd} outline-none transition-all ${
     isDarkMode
       ? `${theme.colorSurfaceVariant} ${theme.colorOutline} ${theme.colorOnSurface}`
@@ -123,9 +137,38 @@ export function WorldClockView({ isDarkMode, theme, isLeft }) {
   }`;
 
   return (
-    <div className="relative flex-1 min-h-0">
-      {worldClocks.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4 pb-24">
+    <div className="relative">
+      <div className="flex justify-center mt-2 mb-4">
+        <SegmentControl
+          isDarkMode={isDarkMode}
+          theme={theme}
+          value={boardMode}
+          onChange={setBoardMode}
+          options={[
+            { id: 'cards', label: 'Cards', icon: LayoutGrid },
+            { id: 'map', label: 'Map', icon: Map },
+          ]}
+        />
+      </div>
+
+      {worldClocks.length === 0 ? (
+        <div
+          className={`text-center py-16 mt-4 ${APP_EMPTY_SLOT} ${theme.colorOutlineVariant} ${theme.colorOnSurfaceVariant}`}
+        >
+          <Globe size={48} className="mx-auto mb-4 opacity-50" />
+          <p className={TYPE.titleSm}>No world clocks active.</p>
+          <p className={`${TYPE.bodyMd} mt-1`}>Tap + to add a city to your board.</p>
+        </div>
+      ) : boardMode === 'map' ? (
+        <div className="px-1 pb-8">
+          <WorldClockMap
+            clocks={worldClocks}
+            isDarkMode={isDarkMode}
+            theme={theme}
+          />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-1 pt-2 pb-8">
           {worldClocks.map((city, index) => (
             <WorldClockCard
               key={`${city.name}-${index}`}
@@ -133,19 +176,9 @@ export function WorldClockView({ isDarkMode, theme, isLeft }) {
               tz={city.tz}
               isDarkMode={isDarkMode}
               theme={theme}
-              onClose={() =>
-                setWorldClocks((prev) => prev.filter((_, i) => i !== index))
-              }
+              onClose={() => removeClock(index)}
             />
           ))}
-        </div>
-      ) : (
-        <div
-          className={`text-center py-16 mt-8 ${APP_EMPTY_SLOT} ${theme.colorOutlineVariant} ${theme.colorOnSurfaceVariant}`}
-        >
-          <Globe size={48} className="mx-auto mb-4 opacity-50" />
-          <p className={TYPE.titleSm}>No world clocks active.</p>
-          <p className={`${TYPE.bodyMd} mt-1`}>Tap + to add a city to your board.</p>
         </div>
       )}
 
@@ -198,7 +231,7 @@ export function WorldClockView({ isDarkMode, theme, isLeft }) {
               setShowDropdown(true);
             }}
             onFocus={() => setShowDropdown(true)}
-            placeholder="e.g. Paris, Tokyo…"
+            placeholder="e.g. Shanghai, Lagos, grandparents’ city…"
             className={inputClass}
           />
           {showDropdown && (citySearch.trim() || isSearching) ? (
@@ -215,11 +248,11 @@ export function WorldClockView({ isDarkMode, theme, isLeft }) {
                 </li>
               ) : (
                 searchResults.map((result, i) => (
-                  <li key={`${result.name}-${i}`}>
+                  <li key={`${result.name}-${result.tz || result.lat}-${i}`}>
                     <button
                       type="button"
                       onClick={() => addCityClock(result)}
-                      className={`w-full text-left px-4 py-3 ${TYPE.bodyMd} transition-colors hover:opacity-90 ${theme.colorOnSurface} ${theme.colorPrimaryContainer}`}
+                      className={`w-full text-left px-4 py-3 ${TYPE.bodyMd} transition-colors hover:opacity-90 ${theme.colorOnSurface}`}
                     >
                       {result.name}
                       {result.country ? (
@@ -233,12 +266,9 @@ export function WorldClockView({ isDarkMode, theme, isLeft }) {
               )}
             </ul>
           ) : null}
-          {!GOOGLE_MAPS_API_KEY ? (
-            <p className={`mt-3 ${TYPE.bodySm} ${theme.colorOnSurfaceVariant}`}>
-              Using built-in city list. Set{' '}
-              <code className="font-mono">VITE_GOOGLE_MAPS_API_KEY</code> for global search.
-            </p>
-          ) : null}
+          <p className={`mt-3 ${TYPE.bodySm} ${theme.colorOnSurfaceVariant}`}>
+            Search any city or region — cards and map pins share the same clocks.
+          </p>
         </div>
       </Modal>
     </div>

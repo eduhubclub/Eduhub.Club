@@ -15,7 +15,14 @@ import { WorldClockView } from './views/WorldClockView';
 /**
  * Edu.Timer — classroom timers, stopwatches, and clocks.
  */
-export function TimerApp({ activeTab, isDarkMode, theme, isLeft }) {
+export function TimerApp({
+  activeTab,
+  isDarkMode,
+  theme,
+  isLeft,
+  onSetActiveTab,
+  onShellFooterActiveChange,
+}) {
   const { classes, selectedClass, selectClass } = useClasses();
   const [savedTimers, setSavedTimers] = useState([]);
   const [pendingRotation, setPendingRotation] = useState(null);
@@ -57,8 +64,8 @@ export function TimerApp({ activeTab, isDarkMode, theme, isLeft }) {
     activeTab === 'Small Group' ||
     activeTab === 'Individual' ||
     activeTab === 'Stopwatch' ||
-    activeTab === 'Saved Timers' ||
-    activeTab === 'World Clock'
+    activeTab === 'Learning' ||
+    activeTab === 'Saved Timers'
       ? 'stage'
       : 'scroll';
 
@@ -76,7 +83,14 @@ export function TimerApp({ activeTab, isDarkMode, theme, isLeft }) {
   };
 
   return (
-    <AppPageShell variant={shellVariant}>
+    <AppPageShell
+      variant={shellVariant}
+      className={
+        activeTab === 'Learning'
+          ? '!max-w-none h-full min-h-0'
+          : undefined
+      }
+    >
       {activeTab === 'Whole Class' ? (
         <WholeClassView isDarkMode={isDarkMode} theme={theme} isLeft={isLeft} />
       ) : null}
@@ -102,7 +116,11 @@ export function TimerApp({ activeTab, isDarkMode, theme, isLeft }) {
       ) : null}
 
       {activeTab === 'Learning' ? (
-        <LearningView isDarkMode={isDarkMode} theme={theme} />
+        <LearningView
+          isDarkMode={isDarkMode}
+          theme={theme}
+          onShellFooterActiveChange={onShellFooterActiveChange}
+        />
       ) : null}
 
       {activeTab === 'Saved Timers' ? (
@@ -112,8 +130,16 @@ export function TimerApp({ activeTab, isDarkMode, theme, isLeft }) {
           isLeft={isLeft}
           savedTimers={savedTimers}
           onRemove={(id) => setSavedTimers((prev) => prev.filter((t) => t.id !== id))}
-          onLoadRotation={(timer) => setPendingRotation(timer)}
+          onLoadRotation={(timer) => {
+            setPendingRotation(timer);
+            onSetActiveTab?.('Small Group');
+          }}
           onAddTimer={(timer) => setSavedTimers((prev) => [...prev, timer])}
+          onUpdateRotation={(id, min) =>
+            setSavedTimers((prev) =>
+              prev.map((t) => (t.id === id ? { ...t, min } : t)),
+            )
+          }
         />
       ) : null}
 

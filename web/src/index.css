@@ -38,18 +38,17 @@
     }
   }
 
-  --animate-timer-swing: timer-swing 1.2s ease-in-out infinite;
+  --animate-timer-swing: timer-swing 1.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
 
   @keyframes timer-swing {
-    0%,
+    0% {
+      transform: rotate(-15deg);
+    }
+    50% {
+      transform: rotate(15deg);
+    }
     100% {
-      transform: rotate(0deg);
-    }
-    25% {
-      transform: rotate(20deg);
-    }
-    75% {
-      transform: rotate(-20deg);
+      transform: rotate(-15deg);
     }
   }
 
@@ -160,6 +159,13 @@ html[data-edu-font] #root {
 :focus-visible {
   outline: 2px solid #0ea5e9;
   outline-offset: 2px;
+}
+
+.animate-timer-swing {
+  transform-origin: top center;
+  transform-box: fill-box;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 /* Reduced motion — OS preference and/or Settings switch.

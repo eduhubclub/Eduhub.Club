@@ -13,6 +13,7 @@ import {
   Users,
 } from 'lucide-react';
 import { useClasses } from '../../data/classes/ClassContext';
+import { filterHereToday } from '../../data/attendance/todayPresence';
 import { useGroupsWorkshop } from '../../data/groups/GroupsContext';
 import { PageHeader } from '../../shared/PageHeader';
 import { PageBackLink } from '../../shared/PageBackLink';
@@ -33,6 +34,7 @@ import {
   resolveGroupName,
 } from './groupUtils';
 import { TYPE } from '../../shared/typography';
+import { studentDisplayName } from '../../data/students/displayName';
 
 function FieldLabel({ children, isDarkMode }) {
   return (
@@ -132,6 +134,13 @@ export function GroupsApp({
     () => selectedClass?.studentList || [],
     [selectedClass]
   );
+
+  const workingRoster = useMemo(
+    () => filterHereToday(roster, selectedClass?.id),
+    [roster, selectedClass?.id],
+  );
+
+  const outTodayCount = Math.max(0, roster.length - workingRoster.length);
 
   const [viewingSavedGroupingId, setViewingSavedGroupingId] = useState(null);
   /** Ensures quick-generate from Saved Groups shows Group Generator even if shell tab sync is delayed. */
@@ -388,11 +397,11 @@ export function GroupsApp({
     if (showCreateGroups) {
       setBuilderGroups(Array.from({ length: n }, () => []));
       setBuilderGroupNames(defaultGroupNames(n));
-      setUnassignedStudents([...roster]);
+      setUnassignedStudents([...workingRoster]);
       announce(`Ready to fill ${n} groups`);
     } else {
-      if (!roster.length) return;
-      const created = generateGroups(roster, n);
+      if (!workingRoster.length) return;
+      const created = generateGroups(workingRoster, n);
       if (!created) return;
       setViewingSavedGroupingId(null);
       setForceSorterView(true);
@@ -526,6 +535,14 @@ export function GroupsApp({
       />
 
       <AppPageShell variant="scroll" className="print:hidden">
+      {outTodayCount > 0 ? (
+        <p
+          className={`mb-3 rounded-xl border-[1.5px] px-3 py-2 ${TYPE.bodySm} ${theme.colorSurfaceVariant} ${theme.colorOutline} ${theme.colorOnSurfaceVariant}`}
+        >
+          {outTodayCount} student{outTodayCount === 1 ? '' : 's'} marked out
+          today in Attendance — new groups use students who are here.
+        </p>
+      ) : null}
       {isEditingSavedGrouping ? (
         <PageBackLink
           label={showArchive ? 'Back to Archive' : 'Back to Saved Groups'}
@@ -580,7 +597,7 @@ export function GroupsApp({
                     isDarkMode ? 'text-slate-200' : 'text-slate-700'
                   }`}
                 >
-                  {student.name}
+                  {studentDisplayName(student)}
                 </span>
                 {hasPrefs ? (
                   <div className="flex gap-2 mr-1">
@@ -868,7 +885,7 @@ export function GroupsApp({
                       size="xs"
                       isDarkMode={isDarkMode}
                     />
-                    <span className={`${TYPE.labelMd} whitespace-nowrap`}>{student.name}</span>
+                    <span className={`${TYPE.labelMd} whitespace-nowrap`}>{studentDisplayName(student)}</span>
                   </div>
                 ))
               )}
@@ -1324,7 +1341,7 @@ export function GroupsApp({
                       isDarkMode ? 'text-slate-200' : 'text-slate-700'
                     }`}
                   >
-                    {student.name}
+                    {studentDisplayName(student)}
                   </span>
                 </div>
                 <div className="flex gap-2 shrink-0">

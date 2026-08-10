@@ -43,9 +43,38 @@ export function secondsFromDuration(min, sec) {
   return m * 60 + s;
 }
 
-/** Countdown color classes for final 30 seconds. */
-export function countdownColorClass(timeLeft, isDarkMode) {
+/**
+ * Countdown color classes.
+ * Under 1 minute: thirds of the total — late third yellow, final third red.
+ * 1 minute+: absolute cues — amber at 30s, red at 15s.
+ */
+export function countdownColorClass(timeLeft, isDarkMode, totalSeconds) {
+  const total =
+    typeof totalSeconds === 'number' && Number.isFinite(totalSeconds)
+      ? totalSeconds
+      : null;
+
+  if (total != null && total > 0 && total < 60) {
+    if (timeLeft <= total / 3) return 'text-rose-500';
+    if (timeLeft <= (total * 2) / 3) return 'text-amber-500';
+    return isDarkMode ? 'text-slate-100' : 'text-slate-800';
+  }
+
   if (timeLeft <= 15) return 'text-rose-500';
   if (timeLeft <= 30) return 'text-amber-500';
   return isDarkMode ? 'text-slate-100' : 'text-slate-800';
+}
+
+/** Yellow / red warning thresholds for countdown UI (digital + analog). */
+export function countdownWarnThresholds(totalSeconds) {
+  const total =
+    typeof totalSeconds === 'number' && Number.isFinite(totalSeconds)
+      ? totalSeconds
+      : null;
+
+  if (total != null && total > 0 && total < 60) {
+    return { yellowAt: (total * 2) / 3, redAt: total / 3 };
+  }
+
+  return { yellowAt: 30, redAt: 15 };
 }

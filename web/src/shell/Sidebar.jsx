@@ -88,9 +88,9 @@ export function Sidebar({
         >
           <div className="flex items-center justify-center px-1 min-w-0">
             {showLabels ? (
-              <LogoHorizontal className="h-5 w-auto" />
+              <LogoHorizontal className="h-8 w-auto" />
             ) : (
-              <LogoIcon2x2 className="w-7 h-7" />
+              <LogoIcon2x2 className="h-8 w-8" />
             )}
           </div>
           {!isDesktop && (

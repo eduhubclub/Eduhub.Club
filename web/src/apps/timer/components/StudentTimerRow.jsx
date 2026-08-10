@@ -5,6 +5,7 @@ import { formatShortCountdown } from '../timerUtils';
 import { APP_GRID_CARD } from '../../../shared/layout';
 import { TYPE } from '../../../shared/typography';
 import { useAnnounce } from '../../../shared/LiveAnnouncer';
+import { studentDisplayName } from '../../../data/students/displayName';
 
 /** Compact per-student countdown row. */
 export function StudentTimerRow({
@@ -13,6 +14,7 @@ export function StudentTimerRow({
   theme,
   onOpenSetup,
   config,
+  bulkCommand,
   isSelectionMode,
   isSelected,
   onToggleSelect,
@@ -36,6 +38,24 @@ export function StudentTimerRow({
   }, [config?.triggerId, config?.totalSeconds, config?.autoStart]);
 
   useEffect(() => {
+    if (!bulkCommand?.actionId) return;
+    if (bulkCommand.type === 'START_ALL') {
+      if (isTimerActive && timeLeft > 0) setIsRunning(true);
+    } else if (bulkCommand.type === 'PAUSE_ALL') {
+      setIsRunning(false);
+    } else if (bulkCommand.type === 'CLEAR_ALL') {
+      setIsTimerActive(false);
+      setIsRunning(false);
+      setTimeLeft(0);
+      setInitialTime(0);
+      setIsExpanded(false);
+      setHasAnnouncedEnd(false);
+    }
+    // Respond once per broadcast — do not re-run on timer ticks.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- isTimerActive/timeLeft read from the actionId render
+  }, [bulkCommand?.actionId, bulkCommand?.type]);
+
+  useEffect(() => {
     if (!isRunning) return undefined;
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
@@ -53,12 +73,12 @@ export function StudentTimerRow({
   useEffect(() => {
     if (timeLeft === 0 && isTimerActive && !hasAnnouncedEnd) {
       setHasAnnouncedEnd(true);
-      const name = student?.name?.trim() || 'Student';
+      const name = studentDisplayName(student);
       announce(`${name}'s timer finished`);
     } else if (timeLeft > 0 && hasAnnouncedEnd) {
       setHasAnnouncedEnd(false);
     }
-  }, [timeLeft, isTimerActive, hasAnnouncedEnd, student?.name, announce]);
+  }, [timeLeft, isTimerActive, hasAnnouncedEnd, student, announce]);
 
   const adjustTime = (amount) => setTimeLeft((prev) => Math.max(0, prev + amount));
   const resetTime = () => setTimeLeft(initialTime);
@@ -78,43 +98,83 @@ export function StudentTimerRow({
 
   return (
     <div
-      className={`relative flex flex-col p-3 ${APP_GRID_CARD} transition-all overflow-hidden ${cardClass}`}
+      className={`relative flex flex-col p-3 ${APP_GRID_CARD} transition-all ${cardClass} ${
+        isSelectionMode ? 'cursor-pointer edu-control' : ''
+      }`}
+      role={isSelectionMode ? 'button' : undefined}
+      tabIndex={isSelectionMode ? 0 : undefined}
+      aria-pressed={isSelectionMode ? isSelected : undefined}
+      aria-label={
+        isSelectionMode
+          ? `${isSelected ? 'Deselect' : 'Select'} ${studentDisplayName(student)}`
+          : undefined
+      }
+      onClick={
+        isSelectionMode ? () => onToggleSelect(student.id) : undefined
+      }
+      onKeyDown={
+        isSelectionMode
+          ? (event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                onToggleSelect(student.id);
+              }
+            }
+          : undefined
+      }
     >
       {!isSelectionMode && isTimerActive && timeLeft <= 120 && timeLeft > 60 ? (
-        <div className="absolute inset-0 z-0 pointer-events-none bg-amber-500/10" />
+        <div className="pointer-events-none absolute inset-0 z-0 rounded-[calc(1rem-1.5px)] bg-amber-500/10" />
       ) : null}
       {!isSelectionMode && isTimerActive && timeLeft <= 60 && timeLeft > 0 ? (
-        <div className="absolute inset-0 z-0 pointer-events-none bg-rose-500/15" />
+        <div className="pointer-events-none absolute inset-0 z-0 rounded-[calc(1rem-1.5px)] bg-rose-500/15" />
       ) : null}
 
       <div className="relative z-10 flex items-center justify-between w-full">
-        <button
-          type="button"
-          onClick={() => {
-            if (isSelectionMode) onToggleSelect(student.id);
-            else if (isTimerActive) setIsExpanded(!isExpanded);
-            else onOpenSetup(student);
-          }}
-          className="flex items-center min-w-0 flex-1 text-left cursor-pointer group outline-none"
-        >
-          <StudentAvatar
-            student={student}
-            theme={theme}
-            isDarkMode={isDarkMode}
-            size="sm"
-            className="mr-3"
-          />
-          <span
-            className={`${TYPE.titleSm} truncate pr-2 transition-colors ${theme.colorOnSurface} group-hover:opacity-90`}
+        {isSelectionMode ? (
+          <div className="flex min-w-0 flex-1 items-center text-left">
+            <StudentAvatar
+              student={student}
+              theme={theme}
+              isDarkMode={isDarkMode}
+              size="sm"
+              className="mr-3"
+            />
+            <span
+              className={`${TYPE.titleSm} truncate pr-2 ${theme.colorOnSurface}`}
+            >
+              {studentDisplayName(student)}
+            </span>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => {
+              if (isTimerActive) setIsExpanded(!isExpanded);
+              else onOpenSetup(student);
+            }}
+            className="flex items-center min-w-0 flex-1 text-left cursor-pointer group outline-none"
           >
-            {student.name}
-          </span>
-        </button>
+            <StudentAvatar
+              student={student}
+              theme={theme}
+              isDarkMode={isDarkMode}
+              size="sm"
+              className="mr-3"
+            />
+            <span
+              className={`${TYPE.titleSm} truncate pr-2 transition-colors ${theme.colorOnSurface} group-hover:opacity-90`}
+            >
+              {studentDisplayName(student)}
+            </span>
+          </button>
+        )}
 
         <div className="shrink-0 flex items-center ml-2">
           {isSelectionMode ? (
             <div
-              className={`w-6 h-6 rounded-md border flex items-center justify-center transition-colors shadow-sm ${
+              aria-hidden
+              className={`pointer-events-none w-6 h-6 rounded-md border flex items-center justify-center transition-colors ${
                 isSelected
                   ? `${theme.colorPrimary} border-transparent ${theme.colorOnPrimary}`
                   : `${theme.colorSurfaceVariant} ${theme.colorOutline}`

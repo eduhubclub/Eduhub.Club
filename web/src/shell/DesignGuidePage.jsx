@@ -9,6 +9,11 @@ import { StyleGuideCard } from '../shared/StyleGuideCard';
 import { ShellInsetPreview } from '../shared/ShellInsetPreview';
 import { ContentCardsPreview } from '../shared/ContentCardsPreview';
 import { ContentCardStylesPreview } from '../shared/ContentCardStylesPreview';
+import { BrandColorGuideSections } from '../apps/brand/BrandColorGuideSections';
+import { ColorTestView } from '../apps/brand/ColorTestView';
+import { ColorThemeRolesCard } from '../apps/brand/ColorThemeRolesCard';
+import { colorThemeRolesFromPrimaryKey } from '../apps/brand/colorThemeRoles';
+import { LogoTestView } from '../apps/brand/LogoTestView';
 import {
   SHELL_MAIN_PADDING,
   SHELL_PADDING_PX,
@@ -57,7 +62,7 @@ const TAB_ID_BY_LABEL = Object.fromEntries(TABS.map((t) => [t.label, t.id]));
 const OVERVIEW_SECTIONS = [
   {
     name: 'Branding',
-    blurb: 'Logo marks, radius, and board chrome.',
+    blurb: 'Logo marks, Logo Test / Color Test playgrounds, radius, and board chrome.',
   },
   {
     name: 'Text',
@@ -93,11 +98,30 @@ const OVERVIEW_SECTIONS = [
   },
   {
     name: 'Colors',
-    blurb: 'Material color roles and primary palettes.',
+    blurb: 'WCAG contrast, Material color roles theme board, and primary palettes.',
   },
   {
     name: 'Notes',
     blurb: 'Handoff rules that keep mini-apps on the same system.',
+  },
+];
+
+/**
+ * Two intentional design modes. Classroom tools use App mode; brand/docs pages
+ * (HubBrand today, FAQs and help later) stay Webpage mode on purpose.
+ */
+const DESIGN_MODES = [
+  {
+    name: 'App mode',
+    feels: 'a classroom tool inside the shell',
+    usedFor: 'Timer, Randomizer, Groups, Noise Meter, Classes — anything a teacher runs live.',
+    look: 'theme.* roles · APP_* boards · TYPE.* · toolBtnClass / FAB / Modal',
+  },
+  {
+    name: 'Webpage mode',
+    feels: 'a brand site or doc inside the shell',
+    usedFor: 'HubBrand today; FAQs, help, and policy pages later.',
+    look: 'serif headings · stone/paper text · long-scroll article — no board chrome',
   },
 ];
 
@@ -239,6 +263,57 @@ export function DesignGuidePage({ theme, isDarkMode, activeTab = 'Overview' }) {
             </GuideSection>
 
             <GuideSection
+              title="Two design modes"
+              description="Pick the mode before you build — mixing them is what makes screens drift."
+              isDarkMode={isDarkMode}
+            >
+              <ul className="space-y-3">
+                {DESIGN_MODES.map(({ name, feels, usedFor, look }) => (
+                  <li key={name} className={`rounded-xl border px-3.5 py-3 ${nestedSurface}`}>
+                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                      <span
+                        className={`${TYPE.titleSm} ${
+                          isDarkMode ? 'text-white' : 'text-slate-900'
+                        }`}
+                      >
+                        {name}
+                      </span>
+                      <span
+                        className={`${TYPE.bodySm} ${
+                          isDarkMode ? 'text-slate-400' : 'text-slate-500'
+                        }`}
+                      >
+                        {feels}
+                      </span>
+                    </div>
+                    <p
+                      className={`${TYPE.bodySm} mt-1.5 ${
+                        isDarkMode ? 'text-slate-300' : 'text-slate-600'
+                      }`}
+                    >
+                      {usedFor}
+                    </p>
+                    <p
+                      className={`${TYPE.bodySm} mt-1 font-mono ${
+                        isDarkMode ? 'text-slate-500' : 'text-slate-400'
+                      }`}
+                    >
+                      {look}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+              <p
+                className={`${TYPE.bodySm} mt-4 ${
+                  isDarkMode ? 'text-slate-400' : 'text-slate-500'
+                }`}
+              >
+                AppGuide documents <span className={TYPE.titleSm}>App</span> mode. Product identity
+                and <span className={TYPE.titleSm}>Webpage</span> mode live in HubBrand.
+              </p>
+            </GuideSection>
+
+            <GuideSection
               title="How to use it"
               description="Sidebar picks the section. Live surfaces open dedicated canvases."
               isDarkMode={isDarkMode}
@@ -321,7 +396,7 @@ export function DesignGuidePage({ theme, isDarkMode, activeTab = 'Overview' }) {
                     Horizontal
                   </p>
                   <div className={`h-14 px-4 rounded-xl border flex items-center ${surface}`}>
-                    <LogoHorizontal className="h-5 w-auto" />
+                    <LogoHorizontal className="h-8 w-auto" />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -335,7 +410,7 @@ export function DesignGuidePage({ theme, isDarkMode, activeTab = 'Overview' }) {
                   <div
                     className={`h-14 w-14 rounded-xl border flex items-center justify-center ${surface}`}
                   >
-                    <LogoIcon2x2 className="w-7 h-7" />
+                    <LogoIcon2x2 className="h-8 w-8" />
                   </div>
                 </div>
               </div>
@@ -344,7 +419,7 @@ export function DesignGuidePage({ theme, isDarkMode, activeTab = 'Overview' }) {
             <StyleGuideCard
               title="Logo"
               token="LogoHorizontal · LogoIcon2x2"
-              description="Four glyphs in fixed Tailwind *-500 accents — brighter than app primary fills (mostly *-400). Import from shared/Logo."
+              description="Four glyphs in fixed Tailwind *-500 accents — brighter than app primary fills (mostly *-400). Import from shared/Logo. Chrome size matches Edu. text height (h-8)."
               isDarkMode={isDarkMode}
               accentClass={previewTheme.text}
               specs={[
@@ -352,6 +427,11 @@ export function DesignGuidePage({ theme, isDarkMode, activeTab = 'Overview' }) {
                 { label: 'Triangle', value: 'text-amber-500', note: 'Second glyph' },
                 { label: 'Square', value: 'text-emerald-500', note: 'Third glyph' },
                 { label: 'Spiral', value: 'text-sky-500', note: 'Right glyph' },
+                {
+                  label: 'Chrome size',
+                  value: 'h-8',
+                  note: 'Matches Edu. logotype height in the header',
+                },
                 {
                   label: 'vs primaries',
                   value: 'Logo = *-500',
@@ -361,6 +441,7 @@ export function DesignGuidePage({ theme, isDarkMode, activeTab = 'Overview' }) {
               doList={[
                 'Keep official logo glyph colors — do not recolor with theme.colorPrimary.',
                 'Use LogoHorizontal in the open sidebar; LogoIcon2x2 on the collapsed rail.',
+                'Size chrome logos to h-8 so they match the Edu. text height.',
               ]}
               dontList={[
                 'Theme the logo marks with app primary roles.',
@@ -377,7 +458,7 @@ export function DesignGuidePage({ theme, isDarkMode, activeTab = 'Overview' }) {
                       isDarkMode ? 'border-slate-600 bg-slate-950/40' : 'border-slate-300 bg-slate-50'
                     }`}
                   >
-                    <LogoHorizontal className="h-5 w-auto" />
+                    <LogoHorizontal className="h-8 w-auto" />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -389,7 +470,7 @@ export function DesignGuidePage({ theme, isDarkMode, activeTab = 'Overview' }) {
                       isDarkMode ? 'border-slate-600 bg-slate-950/40' : 'border-slate-300 bg-slate-50'
                     }`}
                   >
-                    <LogoIcon2x2 className="w-7 h-7" />
+                    <LogoIcon2x2 className="h-8 w-8" />
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2 items-center">
@@ -417,6 +498,34 @@ export function DesignGuidePage({ theme, isDarkMode, activeTab = 'Overview' }) {
                 </div>
               </div>
             </StyleGuideCard>
+
+            <GuideSection
+              title="Logo Test"
+              description="Interactive playground for layout, Default / Outline / Textured styles, scribble variants, and padding overlays. Same tool as HubBrand → Logo Test."
+              isDarkMode={isDarkMode}
+            >
+              <div
+                className={`overflow-hidden rounded-2xl border ${
+                  isDarkMode ? 'border-slate-700 bg-slate-950/40' : 'border-slate-300 bg-slate-50'
+                }`}
+              >
+                <LogoTestView isDarkMode={isDarkMode} embedded />
+              </div>
+            </GuideSection>
+
+            <GuideSection
+              title="Color Test"
+              description="Coolors-style palette generator with Edu.Hub component previews, a color picker, and export. Same tool as HubBrand → Color Test."
+              isDarkMode={isDarkMode}
+            >
+              <div
+                className={`overflow-hidden rounded-2xl border ${
+                  isDarkMode ? 'border-slate-700 bg-slate-950/40' : 'border-slate-300 bg-slate-50'
+                }`}
+              >
+                <ColorTestView isDarkMode={isDarkMode} embedded />
+              </div>
+            </GuideSection>
 
             <GuideSection
               title="Radius & chrome"
@@ -2016,8 +2125,16 @@ export function MyWidget({ isDarkMode, theme }) {
         {guideTab === 'colors' ? (
           <>
             <GuideSection
+              title="Color contrast & palettes"
+              description="WCAG pairings for HubBrand primaries, leveled scales, and neutrals. Prototype in HubBrand → Color Test."
+              isDarkMode={isDarkMode}
+            >
+              <BrandColorGuideSections isDarkMode={isDarkMode} />
+            </GuideSection>
+
+            <GuideSection
               title="Material color roles"
-              description="Adapted from Material Design’s color system. Use role tokens (colorPrimary, colorOnPrimary, …) so content stays readable on fills. Surfaces flip with light/dark mode."
+              description="Edu.Hub maps brand fills onto Material 3 role language (primary, on-primary, surface, error, …). Use role tokens so content stays readable on fills. Surfaces flip with light/dark mode. Reference: m3.material.io/styles/color/roles."
               isDarkMode={isDarkMode}
             >
               <div className="mb-6 pb-5 border-b border-dashed border-slate-200 dark:border-slate-700">
@@ -2040,7 +2157,7 @@ export function MyWidget({ isDarkMode, theme }) {
                         title={key}
                         aria-label={`${key} primary`}
                         aria-pressed={selected}
-                        className={`w-9 h-9 rounded-full ${t.colorPrimary} shrink-0 transition-transform ${
+                        className={`edu-control w-9 h-9 rounded-full ${t.colorPrimary} shrink-0 transition-transform ${
                           selected
                             ? isDarkMode
                               ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-900 scale-105'
@@ -2060,6 +2177,17 @@ export function MyWidget({ isDarkMode, theme }) {
                   {' · '}
                   {previewTheme.primary}
                 </p>
+              </div>
+
+              <div className="mb-6">
+                <ColorThemeRolesCard
+                  themeRoles={colorThemeRolesFromPrimaryKey(
+                    previewThemeKey,
+                    isDarkMode,
+                  )}
+                  isDarkMode={isDarkMode}
+                  description="Theme board for the selected primary — same layout as HubBrand → Color Test."
+                />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
@@ -2110,19 +2238,19 @@ export function MyWidget({ isDarkMode, theme }) {
                 >
                   <button
                     type="button"
-                    className={`px-4 py-2 rounded-xl text-sm font-bold ${previewTheme.colorPrimary} ${previewTheme.colorOnPrimary}`}
+                    className={`edu-control px-4 py-2 rounded-xl text-sm font-bold ${previewTheme.colorPrimary} ${previewTheme.colorOnPrimary}`}
                   >
                     Primary button
                   </button>
                   <button
                     type="button"
-                    className={`px-4 py-2 rounded-xl text-sm font-bold ${previewTheme.colorSecondary} ${previewTheme.colorOnSecondary}`}
+                    className={`edu-control px-4 py-2 rounded-xl text-sm font-bold ${previewTheme.colorSecondary} ${previewTheme.colorOnSecondary}`}
                   >
                     Secondary
                   </button>
                   <button
                     type="button"
-                    className={`px-4 py-2 rounded-xl text-sm font-bold ${previewTheme.colorError} ${previewTheme.colorOnError}`}
+                    className={`edu-control px-4 py-2 rounded-xl text-sm font-bold ${previewTheme.colorError} ${previewTheme.colorOnError}`}
                   >
                     Error
                   </button>

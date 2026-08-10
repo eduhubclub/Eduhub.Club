@@ -1,10 +1,9 @@
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Pause, Play, RotateCcw, User, Users, X } from 'lucide-react';
 import { StopwatchCard } from '../components/StopwatchCard';
 import { StudentStopwatchRow } from '../components/StudentStopwatchRow';
 import { SegmentControl } from '../../../shared/SegmentControl';
 import { ButtonRow } from '../../../shared/ButtonRow';
-import { APP_BOARD_MAX_WIDTH } from '../../../shared/layout';
 import { toolBtnClass } from '../../../shared/toolBtn';
 
 export function StopwatchView({ isDarkMode, theme, students }) {
@@ -13,6 +12,7 @@ export function StopwatchView({ isDarkMode, theme, students }) {
   const [studentConfigs, setStudentConfigs] = useState({});
   const [isAllRunning, setIsAllRunning] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
+  const [rowStatuses, setRowStatuses] = useState({});
 
   const broadcast = (type) => {
     const actionId = Date.now();
@@ -22,6 +22,32 @@ export function StopwatchView({ isDarkMode, theme, students }) {
     });
     setStudentConfigs((prev) => ({ ...prev, ...next }));
   };
+
+  const handleStatusChange = useCallback((studentId, status) => {
+    setRowStatuses((prev) => {
+      const cur = prev[studentId];
+      if (
+        cur &&
+        cur.active === status.active &&
+        cur.running === status.running
+      ) {
+        return prev;
+      }
+      return { ...prev, [studentId]: status };
+    });
+    if (status.active) setHasStarted(true);
+  }, []);
+
+  const anyRunning = useMemo(
+    () => Object.values(rowStatuses).some((s) => s?.running),
+    [rowStatuses],
+  );
+  const anyActive = useMemo(
+    () => Object.values(rowStatuses).some((s) => s?.active),
+    [rowStatuses],
+  );
+  const showBulkControls = hasStarted || anyActive;
+  const showPause = anyRunning || isAllRunning;
 
   const toolBtn = toolBtnClass(isDarkMode);
   const dangerBtn = `${toolBtn} text-rose-500 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40`;
@@ -44,20 +70,19 @@ export function StopwatchView({ isDarkMode, theme, students }) {
       ) : null}
 
       {mode === 'whole' ? (
-        <div className="flex justify-center flex-1">
-          <div className={`w-full ${APP_BOARD_MAX_WIDTH} pt-4`}>
-            <StopwatchCard
-              isDarkMode={isDarkMode}
-              theme={theme}
-              isFullscreen={isFullscreen}
-              setIsFullscreen={setIsFullscreen}
-            />
-          </div>
+        <div className="flex-1 flex flex-col w-full min-h-0 justify-center">
+          <StopwatchCard
+            isDarkMode={isDarkMode}
+            theme={theme}
+            isFullscreen={isFullscreen}
+            setIsFullscreen={setIsFullscreen}
+            large
+          />
         </div>
       ) : (
         <div className="flex-1 flex flex-col min-h-0">
           <ButtonRow>
-            {!hasStarted ? (
+            {!showBulkControls ? (
               <button
                 type="button"
                 onClick={() => {
@@ -72,7 +97,7 @@ export function StopwatchView({ isDarkMode, theme, students }) {
               </button>
             ) : (
               <>
-                {isAllRunning ? (
+                {showPause ? (
                   <button
                     type="button"
                     onClick={() => {
@@ -100,8 +125,8 @@ export function StopwatchView({ isDarkMode, theme, students }) {
                 <button
                   type="button"
                   onClick={() => {
-                    broadcast('START_ALL');
-                    setIsAllRunning(true);
+                    broadcast('RESET_ALL');
+                    setIsAllRunning(false);
                   }}
                   className={toolBtn}
                 >
@@ -114,6 +139,7 @@ export function StopwatchView({ isDarkMode, theme, students }) {
                     broadcast('CLEAR_ALL');
                     setIsAllRunning(false);
                     setHasStarted(false);
+                    setRowStatuses({});
                   }}
                   className={dangerBtn}
                 >
@@ -123,7 +149,7 @@ export function StopwatchView({ isDarkMode, theme, students }) {
               </>
             )}
           </ButtonRow>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 pb-8 overflow-y-auto pr-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 overflow-y-auto p-1 pb-8">
             {students.map((student) => (
               <StudentStopwatchRow
                 key={student.id}
@@ -131,6 +157,7 @@ export function StopwatchView({ isDarkMode, theme, students }) {
                 isDarkMode={isDarkMode}
                 theme={theme}
                 config={studentConfigs[student.id]}
+                onStatusChange={handleStatusChange}
               />
             ))}
           </div>

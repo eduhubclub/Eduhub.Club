@@ -13,6 +13,7 @@ import {
   Mic,
   Palette,
   Swords,
+  Briefcase,
 } from 'lucide-react';
 import { WheelOfNamesWidget } from './WheelOfNamesWidget';
 import { RandomizerShuffleWidget } from './RandomizerShuffleWidget';
@@ -188,6 +189,34 @@ export const DASHBOARD_WIDGET_APPS = [
         icon: Building,
         available: true,
         Component: BlockTowerWidget,
+      },
+    ],
+  },
+  {
+    id: 'behavior',
+    name: 'Behavior',
+    widgets: [
+      {
+        id: 'behavior-award',
+        name: 'Award points',
+        description: 'Quick ClassDojo-style awards (widget coming soon).',
+        icon: Users,
+        available: false,
+        Component: null,
+      },
+    ],
+  },
+  {
+    id: 'jobs',
+    name: 'Jobs',
+    widgets: [
+      {
+        id: 'jobs-board',
+        name: 'Jobs board',
+        description: 'Assign classroom jobs (widget coming soon).',
+        icon: Briefcase,
+        available: false,
+        Component: null,
       },
     ],
   },

@@ -7,6 +7,11 @@ import {
   useState,
 } from 'react';
 import { useClasses } from '../classes/ClassContext';
+import {
+  ATTENDANCE_UPDATED_EVENT,
+  filterHereToday,
+  isStudentHere,
+} from '../attendance/todayPresence';
 
 const SYNC_STORAGE_KEY = 'eduHub.randomizer.syncActivePools';
 
@@ -41,6 +46,10 @@ function rosterSignature(roster) {
     .join(',');
 }
 
+function hereRoster(classId, roster) {
+  return filterHereToday(roster || [], classId);
+}
+
 function emptyByMode(roster = []) {
   const list = [...(roster || [])];
   return Object.fromEntries(RANDOMIZER_POOL_MODES.map((mode) => [mode, list]));
@@ -51,6 +60,10 @@ function intersectPools(pools) {
   const idSets = pools.map((p) => new Set((p || []).map((s) => s.id)));
   const first = pools[0] || [];
   return first.filter((s) => idSets.every((set) => set.has(s.id)));
+}
+
+function prunePoolToHere(pool, classId) {
+  return (pool || []).filter((s) => isStudentHere(classId, s.id));
 }
 
 const RandomizerPoolContext = createContext(null);
@@ -73,14 +86,15 @@ export function RandomizerPoolProvider({ children }) {
 
   const seedClass = useCallback((classId, roster) => {
     if (!classId) return;
-    const sig = rosterSignature(roster);
+    const available = hereRoster(classId, roster);
+    const sig = `${rosterSignature(roster)}|here:${rosterSignature(available)}`;
     setClassPools((prev) => {
       if (prev[classId]?.rosterSig === sig) return prev;
-      const byMode = emptyByMode(roster);
+      const byMode = emptyByMode(available);
       return {
         ...prev,
         [classId]: {
-          shared: [...(roster || [])],
+          shared: [...available],
           byMode,
           rosterSig: sig,
         },
@@ -159,7 +173,7 @@ export function RandomizerPoolProvider({ children }) {
   const resetActiveFor = useCallback(
     (classId, modeKey, roster) => {
       if (!classId) return;
-      const full = [...(roster || [])];
+      const full = hereRoster(classId, roster);
       setClassPools((prev) => {
         const entry = prev[classId];
         if (!entry) return prev;
@@ -183,6 +197,32 @@ export function RandomizerPoolProvider({ children }) {
     },
     [syncActivePools]
   );
+
+  // After attendance submit, drop students marked absent/excused from pools.
+  useEffect(() => {
+    const onAttendance = (e) => {
+      const classId = e?.detail?.classId;
+      if (!classId) return;
+      setClassPools((prev) => {
+        const entry = prev[classId];
+        if (!entry) return prev;
+        const shared = prunePoolToHere(entry.shared, classId);
+        const byMode = Object.fromEntries(
+          RANDOMIZER_POOL_MODES.map((m) => [
+            m,
+            prunePoolToHere(entry.byMode?.[m], classId),
+          ]),
+        );
+        return {
+          ...prev,
+          [classId]: { ...entry, shared, byMode },
+        };
+      });
+    };
+    window.addEventListener(ATTENDANCE_UPDATED_EVENT, onAttendance);
+    return () =>
+      window.removeEventListener(ATTENDANCE_UPDATED_EVENT, onAttendance);
+  }, []);
 
   const value = useMemo(
     () => ({

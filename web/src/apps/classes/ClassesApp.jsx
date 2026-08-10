@@ -31,6 +31,10 @@ import { StudentProfileCard } from './StudentProfileCard';
 import { AppPageShell } from '../../shared/AppPageShell';
 import { appFabClass, APP_GRID_CARD } from '../../shared/layout';
 import { TYPE } from '../../shared/typography';
+import {
+  studentAlternateName,
+  studentDisplayName,
+} from '../../data/students/displayName';
 
 export function ClassesApp({ activeTab, isDarkMode, theme, isLeft }) {
   const {
@@ -153,7 +157,7 @@ export function ClassesApp({ activeTab, isDarkMode, theme, isLeft }) {
         />
 
         <PageHeader
-          title={selectedStudent.name}
+          title={studentDisplayName(selectedStudent)}
           description="Student details for this class."
           isDarkMode={isDarkMode}
         />
@@ -317,14 +321,14 @@ export function ClassesApp({ activeTab, isDarkMode, theme, isLeft }) {
                           isDarkMode ? 'text-white' : 'text-slate-900'
                         }`}
                       >
-                        {student.name}
-                        {student.nickname ? (
+                        {studentDisplayName(student)}
+                        {studentAlternateName(student) ? (
                           <span
                             className={`ml-2 font-medium ${
                               isDarkMode ? 'text-slate-500' : 'text-slate-400'
                             }`}
                           >
-                            “{student.nickname}”
+                            “{studentAlternateName(student)}”
                           </span>
                         ) : null}
                       </h4>

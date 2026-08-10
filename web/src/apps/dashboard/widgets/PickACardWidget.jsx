@@ -10,6 +10,7 @@ import { appFabClass } from '../../../shared/layout';
 import { toolBtnClass } from '../../../shared/toolBtn';
 import { TYPE } from '../../../shared/typography';
 import { useAnnounce } from '../../../shared/LiveAnnouncer';
+import { studentDisplayName } from '../../../data/students/displayName';
 
 /**
  * Dashboard teaching widget — Pick a Card.
@@ -66,7 +67,7 @@ export function PickACardWidget({ isDarkMode, theme, isLeft }) {
       const fromRoster = roster.find((s) => s.id === student.id);
       return fromRoster ? [...prev, fromRoster] : prev;
     });
-    if (shouldFlip && student?.name) announce(`${student.name} was revealed`);
+    if (shouldFlip) announce(`${studentDisplayName(student)} was revealed`);
   };
 
   const scrollToCard = (studentId) => {
@@ -97,7 +98,7 @@ export function PickACardWidget({ isDarkMode, theme, isLeft }) {
     }
 
     scrollToCard(pick.id);
-    if (pick?.name) announce(`${pick.name} was picked`);
+    if (pick) announce(`${studentDisplayName(pick)} was picked`);
   };
 
   const resetAll = () => {
@@ -166,7 +167,7 @@ export function PickACardWidget({ isDarkMode, theme, isLeft }) {
               }}
               onClick={() => setCardFlipped(student, !isFlipped)}
               aria-label={
-                isFlipped ? `Hide ${student.name}` : `Reveal ${student.name}`
+                isFlipped ? `Hide ${studentDisplayName(student)}` : `Reveal ${studentDisplayName(student)}`
               }
               className={`aspect-[3/4.2] text-left transition-all duration-500 [transform-style:preserve-3d] relative rounded-2xl ${
                 isFlipped
@@ -197,7 +198,7 @@ export function PickACardWidget({ isDarkMode, theme, isLeft }) {
                   isDarkMode={isDarkMode}
                 />
                 <div className={`${TYPE.labelMicro} text-center mt-2 sm:mt-3`}>
-                  {student.name}
+                  {studentDisplayName(student)}
                 </div>
               </div>
             </button>

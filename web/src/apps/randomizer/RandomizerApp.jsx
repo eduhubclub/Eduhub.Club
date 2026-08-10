@@ -20,6 +20,10 @@ import { toolBtnClass } from '../../shared/toolBtn';
 import { TYPE } from '../../shared/typography';
 import { useAnnounce } from '../../shared/LiveAnnouncer';
 import {
+  studentAlternateName,
+  studentDisplayName,
+} from '../../data/students/displayName';
+import {
   RANDOMIZER_POOL_MODES,
   useRandomizerActivePool,
 } from '../../data/randomizer/RandomizerPoolContext';
@@ -119,7 +123,7 @@ function CardSizeControl({ cardSize, onChange, theme, isDarkMode }) {
 }
 
 function getWheelNameParts(student) {
-  const parts = String(student?.name || '')
+  const parts = String(studentDisplayName(student, ''))
     .trim()
     .split(/\s+/)
     .filter(Boolean);
@@ -351,7 +355,7 @@ export function RandomizerApp({ activeTab, isDarkMode, theme, isLeft }) {
         clearInterval(shuffleIntervalRef.current);
         shuffleIntervalRef.current = null;
         setIsAnimating(false);
-        if (finalPick?.name) announce(`${finalPick.name} was picked`);
+        if (finalPick) announce(`${studentDisplayName(finalPick)} was picked`);
       }
     }, 75);
   };
@@ -377,7 +381,7 @@ export function RandomizerApp({ activeTab, isDarkMode, theme, isLeft }) {
       wheelTimerRef.current = null;
       setIsSpinningWheel(false);
       setWheelWinner(winner);
-      if (winner?.name) announce(`${winner.name} was picked`);
+      if (winner) announce(`${studentDisplayName(winner)} was picked`);
     }, 4000);
   };
 
@@ -410,7 +414,7 @@ export function RandomizerApp({ activeTab, isDarkMode, theme, isLeft }) {
       const fromRoster = roster.find((s) => s.id === student.id);
       return fromRoster ? [...prev, fromRoster] : prev;
     });
-    if (shouldFlip && student?.name) announce(`${student.name} was revealed`);
+    if (shouldFlip) announce(`${studentDisplayName(student)} was revealed`);
   };
 
   const pickAndFlipCard = () => {
@@ -434,7 +438,7 @@ export function RandomizerApp({ activeTab, isDarkMode, theme, isLeft }) {
     }
 
     scrollToCard(pick.id);
-    if (pick?.name) announce(`${pick.name} was picked`);
+    if (pick) announce(`${studentDisplayName(pick)} was picked`);
   };
 
   const onPullDragStart = (e) => {
@@ -458,7 +462,7 @@ export function RandomizerApp({ activeTab, isDarkMode, theme, isLeft }) {
       setIsPullDragging(false);
       setPullDragY(-600);
       window.getSelection()?.removeAllRanges();
-      if (stagedStudent?.name) announce(`${stagedStudent.name} was pulled`);
+      if (stagedStudent) announce(`${studentDisplayName(stagedStudent)} was pulled`);
     }
   };
 
@@ -579,20 +583,22 @@ export function RandomizerApp({ activeTab, isDarkMode, theme, isLeft }) {
                 className={`${TYPE.displaySm} text-center truncate w-full max-w-full ${
                   isDarkMode ? 'text-white' : 'text-slate-900'
                 }`}
-                title={selectedStudent.name}
+                title={studentDisplayName(selectedStudent)}
               >
-                {selectedStudent.name}
+                {studentDisplayName(selectedStudent)}
               </h2>
               <p
                 className={`${TYPE.bodyMd} mt-2 h-5 truncate w-full text-center ${
-                  selectedStudent.nickname
+                  studentAlternateName(selectedStudent)
                     ? isDarkMode
                       ? 'text-slate-500'
                       : 'text-slate-400'
                     : 'invisible'
                 }`}
               >
-                “{selectedStudent.nickname || '—'}”
+                {studentAlternateName(selectedStudent)
+                  ? `“${studentAlternateName(selectedStudent)}”`
+                  : '—'}
               </p>
             </div>
           ) : (
@@ -736,7 +742,7 @@ export function RandomizerApp({ activeTab, isDarkMode, theme, isLeft }) {
                     isDarkMode ? 'text-white' : 'text-slate-900'
                   }`}
                 >
-                  {wheelWinner.name}
+                  {studentDisplayName(wheelWinner)}
                 </h2>
                 <div className="mt-8 flex items-center gap-3">
                   <button
@@ -791,8 +797,8 @@ export function RandomizerApp({ activeTab, isDarkMode, theme, isLeft }) {
                     onClick={() => setCardFlipped(student, !isFlipped)}
                     aria-label={
                       isFlipped
-                        ? `Hide ${student.name}`
-                        : `Reveal ${student.name}`
+                        ? `Hide ${studentDisplayName(student)}`
+                        : `Reveal ${studentDisplayName(student)}`
                     }
                     className={`aspect-[3/4.2] text-left transition-all duration-500 [transform-style:preserve-3d] relative rounded-2xl ${
                       isFlipped
@@ -823,7 +829,7 @@ export function RandomizerApp({ activeTab, isDarkMode, theme, isLeft }) {
                         isDarkMode={isDarkMode}
                       />
                       <div className={`${TYPE.labelMicro} text-center mt-2 sm:mt-3`}>
-                        {student.name}
+                        {studentDisplayName(student)}
                       </div>
                     </div>
                   </button>
@@ -876,7 +882,7 @@ export function RandomizerApp({ activeTab, isDarkMode, theme, isLeft }) {
                           : 'translate-y-4 opacity-0'
                       } ${isDarkMode ? 'text-white' : 'text-slate-900'}`}
                     >
-                      {stagedStudent.name}
+                      {studentDisplayName(stagedStudent)}
                     </h2>
                     <div
                       className={`mt-8 flex flex-col w-full gap-3 transition-all duration-500 delay-700 ${

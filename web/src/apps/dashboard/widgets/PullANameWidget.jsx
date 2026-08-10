@@ -8,6 +8,7 @@ import { WidgetToolBar } from './WidgetToolBar';
 import { AppPageShell } from '../../../shared/AppPageShell';
 import { TYPE } from '../../../shared/typography';
 import { useAnnounce } from '../../../shared/LiveAnnouncer';
+import { studentDisplayName } from '../../../data/students/displayName';
 
 /**
  * Dashboard teaching widget — Pull a Name.
@@ -66,7 +67,7 @@ export function PullANameWidget({ isDarkMode, theme }) {
       setIsPullDragging(false);
       setPullDragY(-600);
       window.getSelection()?.removeAllRanges();
-      if (stagedStudent?.name) announce(`${stagedStudent.name} was pulled`);
+      if (stagedStudent) announce(`${studentDisplayName(stagedStudent)} was pulled`);
     }
   };
 
@@ -172,7 +173,7 @@ export function PullANameWidget({ isDarkMode, theme }) {
                     : 'translate-y-4 opacity-0'
                 } ${isDarkMode ? 'text-white' : 'text-slate-900'}`}
               >
-                {stagedStudent.name}
+                {studentDisplayName(stagedStudent)}
               </h2>
               <div
                 className={`mt-8 flex flex-col w-full gap-3 transition-all duration-500 delay-700 ${

@@ -12,6 +12,7 @@ import { TimerApp } from './TimerApp';
 
 /**
  * Edu.Timer — classroom timers, stopwatches, and clocks.
+ * Learning embeds the Clock widget from Edu.MathTools.
  */
 export const timerApp = {
   id: 'timer',

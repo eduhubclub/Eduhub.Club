@@ -1,0 +1,24 @@
+.arcade-ark-canvas {
+  image-rendering: auto;
+  touch-action: none;
+  border: 3px solid #0a0614;
+  box-shadow:
+    0 0 0 2px rgba(45, 226, 230, 0.45),
+    inset 0 0 24px rgba(0, 0, 0, 0.35);
+  background: #12081f;
+}
+
+.arcade-ark-stage {
+  min-height: 0;
+}
+
+.arcade-ark-pad {
+  min-width: 3.5rem;
+  min-height: 3rem;
+  user-select: none;
+  touch-action: none;
+}
+
+.arcade-ark-pad-launch {
+  min-width: 5.5rem;
+}

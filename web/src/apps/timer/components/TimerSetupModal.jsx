@@ -18,6 +18,8 @@ export function TimerSetupModal({
   icon: Icon,
   showSavePreset = false,
   startLabel = 'Start',
+  initialMin = '',
+  initialSec = '',
 }) {
   const [min, setMin] = useState('');
   const [sec, setSec] = useState('');
@@ -26,11 +28,11 @@ export function TimerSetupModal({
 
   useEffect(() => {
     if (!isOpen) return;
-    setMin('');
-    setSec('');
+    setMin(initialMin === 0 || initialMin ? String(initialMin) : '');
+    setSec(initialSec === 0 || initialSec ? String(initialSec) : '');
     setShowKeypad(false);
     setActiveInput('min');
-  }, [isOpen]);
+  }, [isOpen, initialMin, initialSec]);
 
   const handleKeypress = (val) => {
     if (val === 'del') {

@@ -18,9 +18,10 @@ import {
   WHEEL_SEGMENT_OPACITY,
   wheelSvgChrome,
 } from '../../../shared/wheelColors';
+import { studentDisplayName } from '../../../data/students/displayName';
 
 function getWheelNameParts(student) {
-  const parts = String(student?.name || '')
+  const parts = String(studentDisplayName(student, ''))
     .trim()
     .split(/\s+/)
     .filter(Boolean);
@@ -152,7 +153,7 @@ export function WheelOfNamesWidget({ isDarkMode, theme }) {
     setTimeout(() => {
       setIsSpinningWheel(false);
       setWheelWinner(winner);
-      if (winner?.name) announce(`${winner.name} was picked`);
+      if (winner) announce(`${studentDisplayName(winner)} was picked`);
     }, 4000);
   };
 
@@ -319,7 +320,7 @@ export function WheelOfNamesWidget({ isDarkMode, theme }) {
                 isDarkMode ? 'text-white' : 'text-slate-900'
               }`}
             >
-              {wheelWinner.name}
+              {studentDisplayName(wheelWinner)}
             </h2>
             <div className="mt-8 flex items-center gap-3">
               <button

@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from 'react';
+import { forwardRef, useLayoutEffect, useRef } from 'react';
 
 /**
  * Keeps an absolutely positioned popout inside the viewport (horizontal clamp).
@@ -42,21 +42,38 @@ export function usePopoutFit(open, { centerX = false, padding = 8 } = {}) {
   return ref;
 }
 
+function assignRef(ref, value) {
+  if (!ref) return;
+  if (typeof ref === 'function') ref(value);
+  else ref.current = value;
+}
+
 /**
  * Drop-in wrapper: same as a popout `div`, but slides horizontally to stay on-screen.
  */
-export function FitPopout({
-  open = true,
-  centerX = false,
-  padding = 8,
-  className = '',
-  children,
-  ...rest
-}) {
-  const ref = usePopoutFit(open, { centerX, padding });
+export const FitPopout = forwardRef(function FitPopout(
+  {
+    open = true,
+    centerX = false,
+    padding = 8,
+    className = '',
+    children,
+    ...rest
+  },
+  forwardedRef,
+) {
+  const fitRef = usePopoutFit(open, { centerX, padding });
+
   return (
-    <div ref={ref} className={className} {...rest}>
+    <div
+      ref={(node) => {
+        fitRef.current = node;
+        assignRef(forwardedRef, node);
+      }}
+      className={className}
+      {...rest}
+    >
       {children}
     </div>
   );
-}
+});

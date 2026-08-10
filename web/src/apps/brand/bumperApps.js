@@ -1,19 +1,36 @@
-import { PRIMARY_KEYS, primaryPalettes } from '../../shared/theme';
+import { primaryPalettes } from '../../shared/theme';
 
 /**
  * HubBrand Overview bumper words.
- * Rolls through each Settings primary theme, then lands on BrandGuidelines (Pink).
+ * Opens on Edu.Hub (Blue), rolls a blue-first rainbow through the apps,
+ * then lands on BrandGuidelines (Pink).
+ * Names must be unique — React keys the reel by `name`.
  */
 
-const APP_NAMES = ['Hub', 'Classes', 'Groups', 'Students', 'Games', 'Timer'];
+/**
+ * Roll order — Hub first (product blue), then spectrum:
+ * Blue → Indigo → Purple → Brown → Red → Orange → Amber → Emerald,
+ * with remaining apps after the first pass. Pink reserved for the finale.
+ */
+const BUMPER_ROLL = [
+  { name: 'Hub', primaryKey: 'Blue' },
+  { name: 'Students', primaryKey: 'Indigo' },
+  { name: 'Randomizer', primaryKey: 'Purple' },
+  { name: 'TieBreaker', primaryKey: 'Brown' },
+  { name: 'Attendance', primaryKey: 'Red' },
+  { name: 'Groups', primaryKey: 'Orange' },
+  { name: 'NoiseMeter', primaryKey: 'Amber' },
+  { name: 'Classes', primaryKey: 'Emerald' },
+  { name: 'Dashboard', primaryKey: 'Blue' },
+  { name: 'Timer', primaryKey: 'Emerald' },
+  { name: 'Bank', primaryKey: 'Red' },
+  { name: 'MathTools', primaryKey: 'Blue' },
+];
 
-/** All primaries except Pink — saved for the final BrandGuidelines lockup. */
-const ROTATE_KEYS = PRIMARY_KEYS.filter((key) => key !== 'Pink');
-
-export const BUMPER_APPS = ROTATE_KEYS.map((key, i) => ({
-  name: APP_NAMES[i % APP_NAMES.length],
-  primaryKey: key,
-  colorClass: primaryPalettes[key].text,
+export const BUMPER_APPS = BUMPER_ROLL.map(({ name, primaryKey }) => ({
+  name,
+  primaryKey,
+  colorClass: primaryPalettes[primaryKey].text,
 }));
 
 export const BUMPER_FINAL = {

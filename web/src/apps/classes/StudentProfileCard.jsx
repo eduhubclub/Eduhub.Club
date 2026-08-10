@@ -9,13 +9,22 @@ import {
   syncLegacyGuardianFields,
 } from '../../data/classes/guardians';
 import { StudentAvatar } from '../../shared/StudentAvatar';
+import { StudentBankQr } from '../../shared/StudentBankQr';
 import { ModalPrimaryButton } from '../../shared/ModalPrimaryButton';
 import { StudentAuthDisplay, StudentAuthField } from '../../shared/StudentAuthField';
 import { getDistrictAuthMethod } from '../../data/students/districtAuth';
 import { GRADE_OPTIONS } from './gradeOptions';
 import { DISTRICT_OPTIONS, SCHOOL_OPTIONS } from '../../data/students/seed';
 import { APP_GRID_CARD } from '../../shared/layout';
+import { SegmentControl } from '../../shared/SegmentControl';
 import { TYPE } from '../../shared/typography';
+import {
+  APP_DISPLAY_NAME,
+  normalizeAppDisplayName,
+  resolveAppDisplayName,
+  studentNickname,
+  studentDisplayName,
+} from '../../data/students/displayName';
 
 const GENDER_OPTIONS = ['', 'Female', 'Male', 'Non-binary', 'Prefer not to say', 'Other'];
 
@@ -24,6 +33,11 @@ const STUDENT_INFO_FIELDS = [
   { key: 'nickname', label: 'Nickname' },
   { key: 'gender', label: 'Gender', type: 'select' },
   { key: 'birthdate', label: 'Birthday', lockable: true },
+];
+
+const APP_NAME_OPTIONS = [
+  { id: APP_DISPLAY_NAME.legal, label: 'Full name' },
+  { id: APP_DISPLAY_NAME.nickname, label: 'Nickname' },
 ];
 
 const SCHOOL_FIELDS = [
@@ -271,6 +285,7 @@ function toDraft(student) {
   return {
     ...student,
     nickname: student.nickname || '',
+    appDisplayName: resolveAppDisplayName(student),
     studentId: student.studentId || '',
     email: student.email || '',
     password: student.password || '',
@@ -296,6 +311,7 @@ export function StudentProfileCard({
   onSave,
   allStudents = [],
   sectionVisibility = null,
+  showBankQr = true,
 }) {
   const [editingSection, setEditingSection] = useState(null);
   const [draft, setDraft] = useState(() => toDraft(student));
@@ -313,7 +329,13 @@ export function StudentProfileCard({
   const updateDraft = (key, value) => {
     if (key === 'birthdate' && isFieldLocked('birthdate')) return;
     if ((key === 'guardianAddress' || key === 'address') && isFieldLocked('address')) return;
-    setDraft((prev) => ({ ...prev, [key]: value }));
+    setDraft((prev) => {
+      const next = { ...prev, [key]: value };
+      if (key === 'nickname') {
+        next.appDisplayName = normalizeAppDisplayName(prev.appDisplayName, value);
+      }
+      return next;
+    });
   };
 
   const updateGuardian = (index, patch) => {
@@ -362,10 +384,12 @@ export function StudentProfileCard({
       }))
       .filter((g) => g.name || g.phone || g.email);
 
+    const nickname = (nextDraft.nickname || '').trim();
     onSave({
       ...nextDraft,
       name: (nextDraft.name || '').trim() || student.name,
-      nickname: (nextDraft.nickname || '').trim(),
+      nickname,
+      appDisplayName: normalizeAppDisplayName(nextDraft.appDisplayName, nickname),
       studentId: (nextDraft.studentId || '').trim(),
       email: (nextDraft.email || '').trim(),
       password: (nextDraft.password || '').trim(),
@@ -461,6 +485,36 @@ export function StudentProfileCard({
                 isDarkMode={isDarkMode}
               />
             ))}
+            <div>
+              <p
+                className={`${TYPE.labelMicro} mb-2 ${
+                  isDarkMode ? 'text-slate-500' : 'text-slate-400'
+                }`}
+              >
+                Name used in apps
+              </p>
+              <SegmentControl
+                isDarkMode={isDarkMode}
+                theme={theme}
+                value={resolveAppDisplayName(draft)}
+                onChange={(id) => {
+                  if (id === APP_DISPLAY_NAME.nickname && !studentNickname(draft)) return;
+                  updateDraft('appDisplayName', id);
+                }}
+                options={APP_NAME_OPTIONS.map((opt) =>
+                  opt.id === APP_DISPLAY_NAME.nickname && !studentNickname(draft)
+                    ? { ...opt, label: 'Nickname (add one)' }
+                    : opt
+                )}
+              />
+              <p
+                className={`mt-2 ${TYPE.bodySm} ${
+                  isDarkMode ? 'text-slate-500' : 'text-slate-400'
+                }`}
+              >
+                Randomizer, Behavior, Bank, Timer, and other apps use this name.
+              </p>
+            </div>
           </div>
         ) : (
           <dl className="grid grid-cols-1 gap-4">
@@ -473,6 +527,15 @@ export function StudentProfileCard({
                 isDarkMode={isDarkMode}
               />
             ))}
+            <FieldDisplay
+              label="Name used in apps"
+              value={
+                resolveAppDisplayName(display) === APP_DISPLAY_NAME.nickname
+                  ? `Nickname (${studentNickname(display)})`
+                  : 'Full name'
+              }
+              isDarkMode={isDarkMode}
+            />
           </dl>
         )}
       </ProfileSectionCard>
@@ -549,17 +612,48 @@ export function StudentProfileCard({
             </div>
           </div>
         ) : (
-          <dl className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {LOGIN_ID_FIELDS.map((field) => (
-              <FieldDisplay
-                key={field.key}
-                label={field.label}
-                value={display[field.key]}
-                isDarkMode={isDarkMode}
-              />
-            ))}
-            <StudentAuthDisplay value={display.password} isDarkMode={isDarkMode} />
-          </dl>
+          <div
+            className={`grid grid-cols-1 gap-6 ${
+              showBankQr ? 'lg:grid-cols-[1fr_auto] lg:items-start' : ''
+            }`}
+          >
+            <dl className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {LOGIN_ID_FIELDS.map((field) => (
+                <FieldDisplay
+                  key={field.key}
+                  label={field.label}
+                  value={display[field.key]}
+                  isDarkMode={isDarkMode}
+                />
+              ))}
+              <StudentAuthDisplay value={display.password} isDarkMode={isDarkMode} />
+            </dl>
+            {showBankQr ? (
+              <div className="justify-self-center lg:justify-self-end">
+                <p
+                  className={`mb-2 text-center ${TYPE.labelMicro} ${
+                    isDarkMode ? 'text-slate-500' : 'text-slate-400'
+                  }`}
+                >
+                  ClassBank card
+                </p>
+                <StudentBankQr
+                  student={display}
+                  size={128}
+                  theme={theme}
+                  isDarkMode={isDarkMode}
+                  showCaption={false}
+                />
+                <p
+                  className={`mt-2 max-w-[10rem] text-center ${TYPE.bodySm} ${
+                    isDarkMode ? 'text-slate-500' : 'text-slate-400'
+                  }`}
+                >
+                  Scan to log in to ClassBank
+                </p>
+              </div>
+            ) : null}
+          </div>
         )}
       </ProfileSectionCard>
       ) : null}
@@ -804,7 +898,7 @@ export function StudentProfileCard({
                             isDarkMode ? 'text-white' : 'text-slate-900'
                           }`}
                         >
-                          {s.name}
+                          {studentDisplayName(s)}
                         </span>
                         <span className={`${TYPE.bodySm} ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
                           {[s.grade_level, s.school].filter(Boolean).join(' · ')}
@@ -825,7 +919,7 @@ export function StudentProfileCard({
                     key={s.id}
                     className={`text-sm font-medium ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}
                   >
-                    {s.name}
+                    {studentDisplayName(s)}
                     <span
                       className={`ml-2 ${TYPE.labelSm} ${
                         isDarkMode ? 'text-slate-500' : 'text-slate-400'

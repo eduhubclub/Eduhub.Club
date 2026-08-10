@@ -8,6 +8,10 @@ import { AppPageShell } from '../../../shared/AppPageShell';
 import { appFabClass, APP_GRID_CARD } from '../../../shared/layout';
 import { TYPE } from '../../../shared/typography';
 import { useAnnounce } from '../../../shared/LiveAnnouncer';
+import {
+  studentAlternateName,
+  studentDisplayName,
+} from '../../../data/students/displayName';
 
 /**
  * Dashboard teaching widget — shuffle picker (Randomizer mode).
@@ -42,7 +46,7 @@ export function RandomizerShuffleWidget({ isDarkMode, theme, isLeft }) {
       if (shuffles >= maxShuffles) {
         clearInterval(interval);
         setIsAnimating(false);
-        if (finalPick?.name) announce(`${finalPick.name} was picked`);
+        if (finalPick) announce(`${studentDisplayName(finalPick)} was picked`);
       }
     }, 75);
   };
@@ -92,20 +96,22 @@ export function RandomizerShuffleWidget({ isDarkMode, theme, isLeft }) {
               className={`${TYPE.displaySm} text-center truncate w-full max-w-full ${
                 isDarkMode ? 'text-white' : 'text-slate-900'
               }`}
-              title={selectedStudent.name}
+              title={studentDisplayName(selectedStudent)}
             >
-              {selectedStudent.name}
+              {studentDisplayName(selectedStudent)}
             </h2>
             <p
               className={`${TYPE.bodyMd} mt-2 h-5 truncate w-full text-center ${
-                selectedStudent.nickname
+                studentAlternateName(selectedStudent)
                   ? isDarkMode
                     ? 'text-slate-500'
                     : 'text-slate-400'
                   : 'invisible'
               }`}
             >
-              “{selectedStudent.nickname || '—'}”
+              {studentAlternateName(selectedStudent)
+                ? `“${studentAlternateName(selectedStudent)}”`
+                : '—'}
             </p>
           </div>
         ) : (

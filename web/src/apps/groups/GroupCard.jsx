@@ -2,6 +2,7 @@ import { StudentAvatar } from '../../shared/StudentAvatar';
 
 import { APP_GRID_CARD } from '../../shared/layout';
 import { TYPE } from '../../shared/typography';
+import { studentDisplayName } from '../../data/students/displayName';
 
 export function GroupCard({
   title,
@@ -58,7 +59,7 @@ export function GroupCard({
                 isDarkMode ? 'text-slate-300' : 'text-slate-700'
               }`}
             >
-              {student.name}
+              {studentDisplayName(student)}
             </span>
           </div>
         ))}

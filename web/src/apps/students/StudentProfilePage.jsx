@@ -5,16 +5,20 @@ import { PageHeader } from '../../shared/PageHeader';
 import { AppPageShell } from '../../shared/AppPageShell';
 import { PageBackLink } from '../../shared/PageBackLink';
 import { ButtonRow } from '../../shared/ButtonRow';
-import { APP_EMPTY_SLOT } from '../../shared/layout';
 import { toolBtnClass } from '../../shared/toolBtn';
 import { StudentProfileCard } from '../classes/StudentProfileCard';
+import { StudentBankQr } from '../../shared/StudentBankQr';
+import { APP_BOARD_PAD, APP_GRID_CARD } from '../../shared/layout';
 import { TYPE } from '../../shared/typography';
+import { StudentInsightsPanel } from './StudentInsightsPanel';
+import { studentDisplayName } from '../../data/students/displayName';
 
 const SECTION_OPTIONS = [
   { id: 'info', label: 'Student info' },
   { id: 'school', label: 'School' },
   { id: 'login', label: 'Logins & sign-in' },
   { id: 'family', label: 'Family information' },
+  { id: 'bankCard', label: 'ClassBank card' },
   { id: 'insights', label: 'Insights & highlights' },
 ];
 
@@ -49,7 +53,14 @@ function sectionsMatchingQuery(student, allStudents, query) {
       'district',
       'grade',
     ]),
-    login: includes([student.studentId, student.email, student.password, 'login', 'password', 'email']),
+    login: includes([
+      student.studentId,
+      student.email,
+      student.password,
+      'login',
+      'password',
+      'email',
+    ]),
     family: includes([
       student.guardianAddress || student.address,
       siblingNames,
@@ -60,14 +71,31 @@ function sectionsMatchingQuery(student, allStudents, query) {
       'parent',
       'guardian',
     ]),
-    insights: includes(['insight', 'highlight']),
+    bankCard: includes([
+      'bank',
+      'classbank',
+      'qr',
+      'card',
+      'scan',
+      student.name,
+      student.studentId,
+    ]),
+    insights: includes([
+      'insight',
+      'highlight',
+      'bank',
+      'behavior',
+      'job',
+      'jobs',
+      'balance',
+      'points',
+    ]),
   };
 }
 
 /**
  * Individual student profile in Edu.Students.
- * Today: personal information (editable).
- * Later: data insights and highlights from other apps.
+ * Personal information plus cross-app insights (Bank, Behavior, Jobs).
  */
 export function StudentProfilePage({
   student,
@@ -77,6 +105,7 @@ export function StudentProfilePage({
   onSave,
   onDelete,
   allStudents = [],
+  classes = [],
 }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -127,7 +156,7 @@ export function StudentProfilePage({
       />
 
       <PageHeader
-        title={student.name}
+        title={studentDisplayName(student)}
         description="Personal information for this student."
         isDarkMode={isDarkMode}
       />
@@ -305,9 +334,47 @@ export function StudentProfilePage({
             isDarkMode={isDarkMode}
             allStudents={allStudents}
             sectionVisibility={sectionVisibility}
+            showBankQr={false}
             onSave={onSave}
           />
         </section>
+
+        {sectionVisibility.bankCard !== false ? (
+          <section aria-labelledby="student-bank-card-heading">
+            <h2
+              id="student-bank-card-heading"
+              className={`${TYPE.titleSm} mb-3 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}
+            >
+              ClassBank card
+            </h2>
+            <div
+              className={`${APP_GRID_CARD} ${APP_BOARD_PAD} ${theme.colorSurface} ${theme.colorOutline}`}
+            >
+              <div className="flex flex-col items-center gap-2 sm:flex-row sm:items-start sm:gap-8">
+                <StudentBankQr
+                  student={student}
+                  size={160}
+                  theme={theme}
+                  isDarkMode={isDarkMode}
+                />
+                <div className="min-w-0 flex-1 text-center sm:pt-2 sm:text-left">
+                  <p className={`${TYPE.titleMd} ${theme.colorOnSurface}`}>
+                    {studentDisplayName(student)}
+                  </p>
+                  {student.studentId ? (
+                    <p className={`mt-1 ${TYPE.bodyMd} ${theme.colorOnSurfaceVariant}`}>
+                      Student ID {student.studentId}
+                    </p>
+                  ) : null}
+                  <p className={`mt-3 ${TYPE.bodySm} ${theme.colorOnSurfaceVariant}`}>
+                    Print or laminate this QR for the student’s ClassBank card.
+                    Scanning identifies the student; their PIN is entered after.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         {sectionVisibility.insights !== false ? (
           <section aria-labelledby="student-insights-heading">
@@ -317,15 +384,12 @@ export function StudentProfilePage({
             >
               Insights & highlights
             </h2>
-            <div
-              className={`${APP_EMPTY_SLOT} px-6 py-10 text-center ${
-                isDarkMode ? 'border-slate-600 bg-slate-900/40' : 'border-slate-300 bg-slate-50/60'
-              }`}
-            >
-              <p className={`${TYPE.bodyMd} ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
-                Data insights and highlights from other Edu.Hub apps will appear here.
-              </p>
-            </div>
+            <StudentInsightsPanel
+              student={student}
+              classes={classes}
+              theme={theme}
+              isDarkMode={isDarkMode}
+            />
           </section>
         ) : null}
       </div>

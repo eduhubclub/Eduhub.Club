@@ -19,7 +19,15 @@ import {
   Palette,
   BookOpenCheck,
   Gamepad2,
+  Joystick,
+  Landmark,
+  Award,
+  Briefcase,
   Sparkles,
+  Calculator,
+  ClipboardCheck,
+  ShoppingBag,
+  Calendar,
 } from 'lucide-react';
 
 /**
@@ -120,6 +128,62 @@ export const launcherApps = [
       'Classroom Wordle and other quick literacy games for word practice.',
   },
   {
+    id: 'arcade',
+    name: 'Arcade',
+    icon: Joystick,
+    color: 'bg-lime-500',
+    description:
+      'For-fun classic games — Solitaire and more so kids stay in Edu.Hub.',
+  },
+  {
+    id: 'bank',
+    name: 'Bank',
+    icon: Landmark,
+    color: 'bg-red-500',
+    description:
+      'Classroom economy — balances, payday, and transactions.',
+  },
+  {
+    id: 'behavior',
+    name: 'Behavior',
+    icon: Award,
+    color: 'bg-indigo-500',
+    description:
+      'ClassDojo-style points tracker. Optionally sync awards to Bank dollars.',
+  },
+  {
+    id: 'jobs',
+    name: 'Jobs',
+    icon: Briefcase,
+    color: 'bg-amber-500',
+    description:
+      'Classroom roles and salaries. Sync assignments to Bank for payday.',
+  },
+  {
+    id: 'attendance',
+    name: 'Attendance',
+    icon: ClipboardCheck,
+    color: 'bg-emerald-500',
+    description:
+      'Daily attendance, lunch count, reports, and class attendance goals.',
+  },
+  {
+    id: 'store',
+    name: 'Store',
+    icon: ShoppingBag,
+    color: 'bg-orange-500',
+    description:
+      'Classroom rewards catalog. Redeem from Bank or Behavior when connected.',
+  },
+  {
+    id: 'mathTools',
+    name: 'MathTools',
+    icon: Calculator,
+    color: 'bg-blue-500',
+    description:
+      'Hands-on math desks — Money and Clock — also available from Bank and Timer.',
+  },
+  {
     id: 'district',
     name: 'District',
     icon: Users,
@@ -150,9 +214,10 @@ export const launcherApps = [
   {
     id: 'calendar',
     name: 'Calendar',
-    icon: BookOpen,
-    color: 'bg-violet-500',
-    description: 'Schedules, events, and due dates — coming soon.',
+    icon: Calendar,
+    color: 'bg-sky-500',
+    description:
+      'Class schedules, specialist rotations, snow-day pause, and countdowns.',
   },
   {
     id: 'files',

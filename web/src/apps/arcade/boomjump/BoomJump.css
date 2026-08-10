@@ -1,0 +1,20 @@
+.arcade-boom-canvas {
+  image-rendering: pixelated;
+  touch-action: none;
+  box-shadow: 4px 4px 0 #00000055;
+}
+
+.arcade-boom-stage {
+  min-height: 0;
+}
+
+.arcade-boom-pad {
+  min-width: 3.5rem;
+  min-height: 3rem;
+  user-select: none;
+  touch-action: none;
+}
+
+.arcade-boom-pad-jump {
+  min-width: 5.5rem;
+}

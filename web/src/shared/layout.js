@@ -74,6 +74,13 @@ export const APP_BOARD_MAX_WIDTH_SM = 'max-w-md';
 /** @deprecated Use APP_BOARD_MAX_WIDTH */
 export const APP_STAGE_CARD_MAX_WIDTH = APP_BOARD_MAX_WIDTH;
 
+/**
+ * Max height for a focused stage card on a standard 13.3″ laptop content area.
+ * Fills available height up to this cap; centers when the shell is taller (large monitors).
+ * Pair with `h-full min-h-0 … mx-auto my-auto`.
+ */
+export const APP_STAGE_CARD_MAX_HEIGHT = 'max-h-[min(100%,40.625rem)]'; // 650px
+
 /** Bottom clearance when a shell FAB sits over scrollable content. */
 export const APP_SCROLL_BOTTOM = 'pb-24';
 

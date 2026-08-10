@@ -22,6 +22,8 @@ import { launcherApps } from '../apps';
 import { useAppThemePreferences } from '../data/settings/AppThemePreferencesContext';
 
 const LAUNCHER_ORDER_KEY = 'eduHub.launcherAppOrder.v2';
+const APPS_EDGE_SCROLL_ZONE = 40;
+const APPS_EDGE_SCROLL_MAX = 14;
 
 function loadOrderedApps() {
   const byId = Object.fromEntries(launcherApps.map((a) => [a.id, a]));
@@ -123,6 +125,46 @@ export function Header({
   const [dropEdge, setDropEdge] = useState('before'); // 'before' | 'after'
   const dropEdgeRef = useRef('before');
   const dragOverAppIdRef = useRef(null);
+  const appsGridRef = useRef(null);
+  const autoScrollRafRef = useRef(null);
+  const dragPointerYRef = useRef(null);
+
+  const stopAppsAutoScroll = () => {
+    if (autoScrollRafRef.current != null) {
+      cancelAnimationFrame(autoScrollRafRef.current);
+      autoScrollRafRef.current = null;
+    }
+  };
+
+  const tickAppsAutoScroll = () => {
+    const el = appsGridRef.current;
+    const y = dragPointerYRef.current;
+    if (!el || y == null) {
+      autoScrollRafRef.current = null;
+      return;
+    }
+    const rect = el.getBoundingClientRect();
+    let dy = 0;
+    if (y < rect.top + APPS_EDGE_SCROLL_ZONE) {
+      const t = Math.min(
+        1,
+        (rect.top + APPS_EDGE_SCROLL_ZONE - y) / APPS_EDGE_SCROLL_ZONE,
+      );
+      dy = -APPS_EDGE_SCROLL_MAX * t;
+    } else if (y > rect.bottom - APPS_EDGE_SCROLL_ZONE) {
+      const t = Math.min(
+        1,
+        (y - (rect.bottom - APPS_EDGE_SCROLL_ZONE)) / APPS_EDGE_SCROLL_ZONE,
+      );
+      dy = APPS_EDGE_SCROLL_MAX * t;
+    }
+    if (dy !== 0) {
+      el.scrollTop += dy;
+      autoScrollRafRef.current = requestAnimationFrame(tickAppsAutoScroll);
+    } else {
+      autoScrollRafRef.current = null;
+    }
+  };
 
   const updateDropTarget = (appId, edge) => {
     dragOverAppIdRef.current = appId;
@@ -139,8 +181,29 @@ export function Header({
       setDropEdge('before');
       dragOverAppIdRef.current = null;
       dropEdgeRef.current = 'before';
+      stopAppsAutoScroll();
     }
   }, [isAppsMenuOpen]);
+
+  // While dragging, scroll the apps grid when the pointer is near its edges.
+  useEffect(() => {
+    if (draggedAppId == null) {
+      stopAppsAutoScroll();
+      dragPointerYRef.current = null;
+      return undefined;
+    }
+    const onDragOver = (e) => {
+      dragPointerYRef.current = e.clientY;
+      if (autoScrollRafRef.current == null) {
+        autoScrollRafRef.current = requestAnimationFrame(tickAppsAutoScroll);
+      }
+    };
+    document.addEventListener('dragover', onDragOver);
+    return () => {
+      document.removeEventListener('dragover', onDragOver);
+      stopAppsAutoScroll();
+    };
+  }, [draggedAppId]);
 
   // Pick up newly registered apps without wiping a saved order
   useEffect(() => {
@@ -169,6 +232,8 @@ export function Header({
     setDropEdge('before');
     dragOverAppIdRef.current = null;
     dropEdgeRef.current = 'before';
+    stopAppsAutoScroll();
+    dragPointerYRef.current = null;
   };
 
   const appsList = orderedApps;
@@ -238,7 +303,9 @@ export function Header({
               }}
               className={`w-10 h-10 shrink-0 flex items-center justify-center transition-opacity duration-300 ${
                 isSearchExpanded ? 'opacity-100' : 'opacity-0 pointer-events-none'
-              } text-slate-400 hover:text-slate-600 dark:hover:text-slate-200`}
+              } text-slate-400 hover:text-slate-600 ${
+                isDarkMode ? 'hover:text-slate-200' : ''
+              }`}
             >
               <X size={16} strokeWidth={2.5} />
             </button>
@@ -294,7 +361,14 @@ export function Header({
                   </button>
                 </div>
 
-                <div className="grid grid-cols-3 gap-1 overflow-y-auto max-h-[220px] p-2.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-track]:bg-transparent">
+                <div
+                  ref={appsGridRef}
+                  className={`grid grid-cols-3 gap-1 overflow-y-auto max-h-[220px] p-2.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent ${
+                    isDarkMode
+                      ? '[&::-webkit-scrollbar-thumb]:bg-slate-700'
+                      : '[&::-webkit-scrollbar-thumb]:bg-slate-200'
+                  }`}
+                >
                   {appsList.map((app, index) => {
                     const isDragging = draggedAppId === app.id;
                     const isDropTarget =
@@ -340,7 +414,9 @@ export function Header({
                           className={`w-full flex flex-col items-center justify-start gap-1.5 p-2 rounded-xl group ${
                             isEditingApps
                               ? 'cursor-grab active:cursor-grabbing'
-                              : 'hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors'
+                              : isDarkMode
+                                ? 'hover:bg-slate-800 transition-colors'
+                                : 'hover:bg-slate-50 transition-colors'
                           } ${isDragging ? 'opacity-40' : ''}`}
                           onClick={() => {
                             if (isEditingApps) return;
@@ -434,7 +510,13 @@ export function Header({
                   </button>
                 </div>
 
-                <div className="overflow-y-auto max-h-[300px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-track]:bg-transparent">
+                <div
+                  className={`overflow-y-auto max-h-[300px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent ${
+                    isDarkMode
+                      ? '[&::-webkit-scrollbar-thumb]:bg-slate-700'
+                      : '[&::-webkit-scrollbar-thumb]:bg-slate-200'
+                  }`}
+                >
                   {PLACEHOLDER_NOTIFICATIONS.map((notif) => (
                     <button
                       key={notif.id}

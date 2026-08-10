@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom';
 import { StudentAvatar } from '../../shared/StudentAvatar';
 import { TYPE } from '../../shared/typography';
+import { studentDisplayName } from '../../data/students/displayName';
 
 /**
  * Letter-size print layout for Groups (previewed via browser print dialog).
@@ -32,7 +33,7 @@ export function GroupsPrintSheet({
   const studentRow = (student) => (
     <li key={student.id} className={`flex items-center gap-2 ${TYPE.bodyMd}`}>
       <StudentAvatar student={student} theme={theme} size="xs" />
-      <span>{student.name}</span>
+      <span>{studentDisplayName(student)}</span>
     </li>
   );
 

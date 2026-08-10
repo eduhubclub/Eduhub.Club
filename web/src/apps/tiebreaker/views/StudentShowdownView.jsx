@@ -13,6 +13,7 @@ import {
 } from '../../../shared/layout';
 import { TYPE } from '../../../shared/typography';
 import { useAnnounce } from '../../../shared/LiveAnnouncer';
+import { studentDisplayName } from '../../../data/students/displayName';
 
 function shuffleRoster(roster) {
   const next = [...roster];
@@ -185,7 +186,7 @@ export function StudentShowdownView({ isDarkMode, theme, isLeft }) {
       [rowIndex]: nextWinner,
     }));
     if (nextWinner && student?.name) {
-      announce(`${student.name} wins the matchup`);
+      announce(`${studentDisplayName(student)} wins the matchup`);
     } else if (!nextWinner) {
       announce(`Row ${rowIndex + 1} cleared`);
     }
@@ -321,7 +322,7 @@ export function StudentShowdownView({ isDarkMode, theme, isLeft }) {
                             : 'text-rose-600'
                       }`}
                     >
-                      {student.name}
+                      {studentDisplayName(student)}
                     </div>
                   </div>
                   {i === 0 ? (
@@ -582,7 +583,7 @@ function TeamStudentSlot({
               ? 'bg-slate-900 text-slate-200 border-slate-600 hover:border-slate-600'
               : 'bg-white text-slate-700 border-slate-200 hover:shadow-md'
       }`}
-      title={student.name}
+      title={studentDisplayName(student)}
     >
       <StudentAvatar
         student={student}
@@ -590,7 +591,7 @@ function TeamStudentSlot({
         size="xs"
         isDarkMode={isDarkMode}
       />
-      <span className="ml-2 truncate pointer-events-none">{student.name}</span>
+      <span className="ml-2 truncate pointer-events-none">{studentDisplayName(student)}</span>
     </div>
   );
 }

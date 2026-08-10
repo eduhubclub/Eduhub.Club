@@ -1,0 +1,398 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/*
+ * Classic arcade cabinet chrome — night room + pixel machine.
+ * Used for Classic game select and for playing Classic titles.
+ */
+
+.arcade-cab-room {
+  --cab-bg: #12081f;
+  --cab-purple: #2a1450;
+  --cab-purple-deep: #1a0a32;
+  --cab-cyan: #2de2e6;
+  --cab-pink: #ff4fd8;
+  --cab-teal: #1a9b9e;
+  --cab-crt: #1c1033;
+  --cab-cream: #f7f3e8;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 1rem;
+  background-color: var(--cab-bg);
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, #9fd4ff 40%, transparent 50%),
+    radial-gradient(1px 1px at 28% 8%, #ffffff 40%, transparent 50%),
+    radial-gradient(1px 1px at 44% 22%, #7dd3fc 40%, transparent 50%),
+    radial-gradient(1px 1px at 61% 11%, #ffffff 40%, transparent 50%),
+    radial-gradient(1px 1px at 78% 19%, #a5f3fc 40%, transparent 50%),
+    radial-gradient(1px 1px at 88% 7%, #ffffff 40%, transparent 50%),
+    radial-gradient(1px 1px at 8% 42%, #67e8f9 40%, transparent 50%),
+    linear-gradient(180deg, #1a0a2e 0%, #12081f 55%, #0a0614 100%);
+  image-rendering: pixelated;
+}
+
+.arcade-cab-room::before,
+.arcade-cab-room::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  width: 22%;
+  max-width: 9rem;
+  height: 38%;
+  pointer-events: none;
+  opacity: 0.55;
+  background-image:
+    linear-gradient(90deg, transparent 0 18%, var(--cab-cyan) 18% 22%, transparent 22%),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 10px,
+      rgba(45, 226, 230, 0.35) 10px 12px
+    ),
+    linear-gradient(180deg, transparent 0 35%, #0f1f3a 35%);
+  background-size: 100% 100%, 100% 40%, 100% 100%;
+  background-position: bottom, bottom, bottom;
+  background-repeat: no-repeat;
+  mask-image: linear-gradient(90deg, #000 0%, #000 70%, transparent 100%);
+}
+
+.arcade-cab-room::before {
+  left: 0;
+  transform: scaleX(1);
+}
+
+.arcade-cab-room::after {
+  right: 0;
+  transform: scaleX(-1);
+}
+
+.arcade-cab {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  margin: 0.75rem auto;
+  width: min(100% - 1.25rem, 52rem);
+  max-width: 52rem;
+}
+
+.arcade-cab-marquee {
+  flex-shrink: 0;
+  border: 3px solid #0a0614;
+  box-shadow:
+    0 0 0 2px var(--cab-cyan),
+    4px 4px 0 #00000088;
+  background:
+    linear-gradient(180deg, #3b1d6e 0%, var(--cab-purple) 55%, var(--cab-purple-deep) 100%);
+  padding: 0.65rem 0.85rem 0.75rem;
+  text-align: center;
+}
+
+.arcade-cab-marquee-title {
+  margin: 0;
+  color: var(--cab-cream);
+  font-size: clamp(11px, 2.4vw, 16px);
+  line-height: 1.35;
+  letter-spacing: 0.04em;
+  text-shadow:
+    0 0 6px var(--cab-pink),
+    0 0 14px rgba(255, 79, 216, 0.55),
+    2px 2px 0 #1a0a32;
+}
+
+.arcade-cab-marquee-sub {
+  margin: 0.45rem 0 0;
+  color: var(--cab-cyan);
+  font-size: 8px;
+  line-height: 1.4;
+  text-shadow: 0 0 6px rgba(45, 226, 230, 0.45);
+}
+
+.arcade-cab-marquee-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.arcade-cab-marquee-row .arcade-cab-marquee-title {
+  flex: 1 1 auto;
+  text-align: center;
+}
+
+.arcade-cab-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  border: 3px solid #0a0614;
+  border-top: none;
+  box-shadow:
+    0 0 0 2px var(--cab-cyan),
+    4px 4px 0 #00000088;
+  background:
+    linear-gradient(180deg, var(--cab-purple) 0%, var(--cab-purple-deep) 100%);
+}
+
+.arcade-cab-bezel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  margin: 0.65rem 0.65rem 0;
+  padding: 0.45rem;
+  border: 3px solid #0a0614;
+  box-shadow: inset 0 0 0 2px var(--cab-cyan);
+  background: #140828;
+}
+
+.arcade-cab-crt {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.035) 0 1px,
+      transparent 1px 3px
+    ),
+    radial-gradient(ellipse at center, #2a1848 0%, var(--cab-crt) 70%);
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.55);
+}
+
+.arcade-cab-crt::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    transparent 18%,
+    transparent 82%,
+    rgba(0, 0, 0, 0.25) 100%
+  );
+  z-index: 2;
+}
+
+.arcade-cab-crt-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+}
+
+.arcade-cab-deck {
+  flex-shrink: 0;
+  margin: 0.55rem 0.65rem 0.65rem;
+  padding: 0.65rem 0.75rem 0.75rem;
+  border: 3px solid #0a0614;
+  box-shadow:
+    inset 0 0 0 2px rgba(45, 226, 230, 0.55),
+    0 3px 0 #00000066;
+  background:
+    linear-gradient(180deg, #2de2e6 0%, var(--cab-teal) 40%, #0f6f72 100%);
+}
+
+.arcade-cab-deck-art {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.55rem;
+  pointer-events: none;
+}
+
+.arcade-cab-stick {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  border: 2px solid #0a0614;
+  background: var(--cab-pink);
+  box-shadow:
+    0 0 8px rgba(255, 79, 216, 0.65),
+    2px 2px 0 #00000055;
+  position: relative;
+}
+
+.arcade-cab-stick::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  width: 3px;
+  height: 10px;
+  transform: translateX(-50%);
+  background: #e2e8f0;
+  border: 1px solid #0a0614;
+}
+
+.arcade-cab-deck-dots {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.arcade-cab-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  border: 2px solid #0a0614;
+  background: #a3e635;
+  box-shadow: 1px 1px 0 #00000044;
+}
+
+.arcade-cab-dot-pink {
+  background: var(--cab-pink);
+}
+
+.arcade-cab-deck-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* Buttons tuned for cabinet surfaces */
+.arcade-cab-btn {
+  font-family: 'Press Start 2P', ui-monospace, monospace;
+  font-size: 8px;
+  line-height: 1.25;
+  padding: 0.55rem 0.7rem;
+  border: 3px solid #0a0614;
+  box-shadow: 3px 3px 0 #00000066;
+  background: var(--cab-cream);
+  color: #1a0a32;
+  image-rendering: pixelated;
+}
+
+.arcade-cab-btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 #00000066;
+}
+
+.arcade-cab-btn-primary {
+  background: var(--cab-pink);
+  color: #1a0a32;
+  text-shadow: 0 0 6px rgba(255, 255, 255, 0.25);
+}
+
+.arcade-cab-btn-cyan {
+  background: var(--cab-cyan);
+  color: #0a0614;
+}
+
+.arcade-cab-game-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  justify-content: center;
+  gap: 0.85rem;
+  padding: 1rem;
+}
+
+.arcade-cab-game-card {
+  width: min(100%, 11.5rem);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.65rem;
+  text-align: left;
+  background: linear-gradient(180deg, #3b1d6e 0%, #241047 100%);
+  color: var(--cab-cream);
+  border-color: #0a0614;
+  box-shadow:
+    0 0 0 2px var(--cab-cyan),
+    3px 3px 0 #00000066;
+}
+
+.arcade-cab-game-card:hover {
+  box-shadow:
+    0 0 0 2px var(--cab-pink),
+    3px 3px 0 #00000066;
+}
+
+.arcade-cab-game-icon {
+  display: flex;
+  height: 2.75rem;
+  width: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #0a0614;
+  background: #140828;
+  color: var(--cab-cyan);
+  box-shadow: inset 0 0 0 1px rgba(45, 226, 230, 0.35);
+}
+
+.arcade-cab-game-blurb {
+  color: #c4b5fd;
+  font-size: 7px;
+  line-height: 1.45;
+}
+
+.arcade-cab-hint {
+  margin: 0;
+  color: #a5f3fc;
+  font-size: 7px;
+  line-height: 1.4;
+  text-align: center;
+  text-shadow: 0 0 4px rgba(45, 226, 230, 0.35);
+}
+
+.arcade-cab-status {
+  margin: 0 0 0.5rem;
+  color: var(--cab-cream);
+  font-size: 8px;
+  line-height: 1.4;
+  text-align: center;
+  text-shadow: 0 0 6px rgba(255, 79, 216, 0.35);
+}
+
+.arcade-cab-overlay {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(10, 6, 20, 0.55);
+}
+
+.arcade-cab-dialog {
+  pointer-events: auto;
+  max-width: 18rem;
+  width: 100%;
+  padding: 1rem 1.1rem;
+  border: 3px solid #0a0614;
+  box-shadow:
+    0 0 0 2px var(--cab-pink),
+    4px 4px 0 #00000088;
+  background: linear-gradient(180deg, #3b1d6e 0%, #1a0a32 100%);
+  text-align: center;
+  color: var(--cab-cream);
+}
+
+@media (max-width: 640px) {
+  .arcade-cab-room::before,
+  .arcade-cab-room::after {
+    display: none;
+  }
+
+  .arcade-cab {
+    margin: 0.5rem auto;
+    width: min(100% - 0.75rem, 52rem);
+  }
+}

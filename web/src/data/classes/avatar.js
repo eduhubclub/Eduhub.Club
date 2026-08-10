@@ -1,13 +1,19 @@
+import { studentDisplayName } from '../students/displayName';
+
 /** Avatar modes students can pick later. Initials are the base default. */
 export const AVATAR_TYPES = {
   initials: 'initials',
   emoji: 'emoji',
   upload: 'upload',
+  link: 'link',
   library: 'library',
 };
 
 export function getAvatarInitials(studentOrName) {
-  const name = typeof studentOrName === 'string' ? studentOrName : studentOrName?.name;
+  const name =
+    typeof studentOrName === 'string'
+      ? studentOrName
+      : studentDisplayName(studentOrName, '');
   if (!name) return 'ST';
   return name
     .split(/\s+/)
@@ -29,6 +35,7 @@ export function normalizeAvatar(student) {
       emoji: avatar.emoji || student?.emoji || '',
       imageUrl: avatar.imageUrl || '',
       libraryId: avatar.libraryId || '',
+      sourceUrl: avatar.sourceUrl || '',
     };
   }
 
@@ -38,6 +45,7 @@ export function normalizeAvatar(student) {
       emoji: student.emoji,
       imageUrl: '',
       libraryId: '',
+      sourceUrl: '',
     };
   }
 
@@ -46,6 +54,7 @@ export function normalizeAvatar(student) {
     emoji: '',
     imageUrl: '',
     libraryId: '',
+    sourceUrl: '',
   };
 }
 
@@ -56,6 +65,7 @@ export function createDefaultAvatar() {
     emoji: '',
     imageUrl: '',
     libraryId: '',
+    sourceUrl: '',
   };
 }
 
@@ -65,15 +75,17 @@ export function createEmojiAvatar(emoji) {
     emoji,
     imageUrl: '',
     libraryId: '',
+    sourceUrl: '',
   };
 }
 
-export function createUploadAvatar(imageUrl) {
+export function createUploadAvatar(imageUrl, sourceUrl = '') {
   return {
     type: AVATAR_TYPES.upload,
     emoji: '',
     imageUrl,
     libraryId: '',
+    sourceUrl: sourceUrl || imageUrl,
   };
 }
 
@@ -83,6 +95,7 @@ export function createLibraryAvatar(libraryId, imageUrl) {
     emoji: '',
     imageUrl,
     libraryId,
+    sourceUrl: '',
   };
 }
 
@@ -126,6 +139,7 @@ export const AVATAR_MODE_OPTIONS = [
   { id: AVATAR_TYPES.initials, label: 'Initials' },
   { id: AVATAR_TYPES.emoji, label: 'Emoji' },
   { id: AVATAR_TYPES.upload, label: 'Upload' },
+  { id: AVATAR_TYPES.link, label: 'Link' },
   { id: AVATAR_TYPES.library, label: 'Library' },
 ];
 

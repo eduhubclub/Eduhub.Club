@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAccessibilityPreferences } from '../../data/settings/AccessibilityPreferencesContext';
+import { LogoIcon2x2 } from '../../shared/Logo';
 import {
   BUMPER_FINAL_INDEX,
   BUMPER_SLIDER_CHS,
@@ -10,8 +11,14 @@ import './BrandBumper.css';
 const SCROLL_SETTLE_PX = 40;
 const WORD_MS = 1800;
 const REEL_MS = 600;
+/** Logo pops, then text slides in from the logo — reel waits until that lands. */
+const TEXT_SLIDE_DELAY_MS = 850;
+const TEXT_SLIDE_MS = 700;
+const REEL_START_MS = TEXT_SLIDE_DELAY_MS + TEXT_SLIDE_MS + 250;
 /** Soft mask only — keep tiny so it doesn’t eat the centered word. */
 const EDGE_FADE_PX = 3;
+/** Soft left edge while text slides — eases to 0 after (see CSS @property). */
+const REVEAL_FADE_PX = 3;
 
 /** Pixel row height — same value for window, word, and translate (no em drift). */
 function useRowPx() {
@@ -40,6 +47,7 @@ export function BrandBumper({ isDarkMode }) {
   const { reduceMotion } = useAccessibilityPreferences();
   const rowPx = useRowPx();
   const [phase, setPhase] = useState(() => (reduceMotion ? 'settled' : 'playing'));
+  const [textIn, setTextIn] = useState(() => Boolean(reduceMotion));
   const [reelIndex, setReelIndex] = useState(() =>
     reduceMotion ? BUMPER_FINAL_INDEX : 0
   );
@@ -78,6 +86,11 @@ export function BrandBumper({ isDarkMode }) {
     settledRef.current = false;
     indexRef.current = 0;
     setReelIndex(0);
+    setTextIn(false);
+
+    const revealId = setTimeout(() => {
+      setTextIn(true);
+    }, TEXT_SLIDE_DELAY_MS + TEXT_SLIDE_MS);
 
     const startId = setTimeout(() => {
       let current = 0;
@@ -101,9 +114,9 @@ export function BrandBumper({ isDarkMode }) {
         schedule(tick, WORD_MS);
       };
       schedule(tick, WORD_MS);
-    }, 1400);
+    }, REEL_START_MS);
 
-    timers.current.push(startId);
+    timers.current.push(revealId, startId);
     return () => clearTimers();
   }, [phase, reduceMotion, goTo, settle, clearTimers, schedule]);
 
@@ -127,6 +140,7 @@ export function BrandBumper({ isDarkMode }) {
     settledRef.current = true;
     clearTimers();
     goTo(BUMPER_FINAL_INDEX);
+    setTextIn(true);
     setPhase('settled');
   }, [reduceMotion, clearTimers, goTo]);
 
@@ -135,86 +149,61 @@ export function BrandBumper({ isDarkMode }) {
 
   return (
     <h1
-      className={`edu-bumper-stage${isSettled ? ' is-settled' : ' is-playing'}`}
-      style={{ '--bumper-row': `${rowPx}px`, '--bumper-edge-fade': `${EDGE_FADE_PX}px` }}
+      className={`edu-bumper-stage${isSettled ? ' is-settled' : ' is-playing'}${textIn ? ' is-text-in' : ''}`}
+      style={{
+        '--bumper-row': `${rowPx}px`,
+        '--bumper-edge-fade': `${EDGE_FADE_PX}px`,
+      }}
       aria-label="Edu.BrandGuidelines"
     >
       <div className="edu-bumper-cluster" style={{ height: rowPx }}>
-        <svg
-          viewBox="0 0 44 44"
-          fill="currentColor"
-          xmlns="http://www.w3.org/2000/svg"
+        <LogoIcon2x2
           className="edu-bumper-svg"
           style={{ width: rowPx, height: rowPx }}
-          aria-hidden
-        >
-          <circle
-            cx="10"
-            cy="10"
-            r="8"
-            className="text-rose-500 edu-bumper-shape edu-bumper-shape-1"
-          />
-          <path
-            d="M34 2 L42 18 H26 L34 2 Z"
-            stroke="currentColor"
-            fill="currentColor"
-            strokeWidth="2"
-            strokeLinejoin="round"
-            className="text-amber-500 edu-bumper-shape edu-bumper-shape-2"
-          />
-          <rect
-            x="2"
-            y="26"
-            width="16"
-            height="16"
-            rx="3"
-            className="text-emerald-500 edu-bumper-shape edu-bumper-shape-3"
-          />
-          <path
-            d="M34 26 C 40 26, 42 32, 39 36 C 34 41, 27 37, 28 31 C 29 27, 38 30, 37 34 C 36 38, 30 37, 31 32 C 32 28, 37 31, 34 35"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-sky-500 edu-bumper-shape edu-bumper-shape-4"
-          />
-        </svg>
+        />
 
-        <div className="edu-bumper-text" style={{ height: rowPx, fontSize: rowPx }}>
-          <span className={`edu-bumper-prefix ${prefixClass}`}>Edu.</span>
-          <div
-            className="edu-bumper-window"
-            style={{
-              width: `${BUMPER_SLIDER_CHS}ch`,
-              height: rowPx,
-            }}
-            aria-live="polite"
-          >
+        <div
+          className="edu-bumper-text-clip"
+          style={{
+            '--bumper-reveal-fade':
+              textIn || isSettled || reduceMotion ? '0px' : `${REVEAL_FADE_PX}px`,
+          }}
+        >
+          <div className="edu-bumper-text" style={{ height: rowPx, fontSize: rowPx }}>
+            <span className={`edu-bumper-prefix ${prefixClass}`}>Edu.</span>
             <div
-              className="edu-bumper-reel"
+              className="edu-bumper-window"
               style={{
-                transform: `translateY(${-reelIndex * rowPx}px)`,
-                transition:
-                  isSettled || reduceMotion
-                    ? 'none'
-                    : `transform ${REEL_MS}ms cubic-bezier(0.4, 0, 0.2, 1)`,
+                width: `${BUMPER_SLIDER_CHS}ch`,
+                height: rowPx,
               }}
+              aria-live="polite"
             >
-              {BUMPER_WORDS.map((app) => (
-                <span
-                  key={app.name}
-                  className={`edu-bumper-word ${app.colorClass}`}
-                  style={{
-                    height: rowPx,
-                    maxHeight: rowPx,
-                    lineHeight: `${rowPx}px`,
-                    fontSize: rowPx,
-                  }}
-                >
-                  {app.name}
-                </span>
-              ))}
+              <div
+                className="edu-bumper-reel"
+                style={{
+                  transform: `translateY(${-reelIndex * rowPx}px)`,
+                  transition:
+                    isSettled || reduceMotion
+                      ? 'none'
+                      : `transform ${REEL_MS}ms cubic-bezier(0.4, 0, 0.2, 1)`,
+                }}
+              >
+                {BUMPER_WORDS.map((app) => (
+                  <span
+                    key={app.name}
+                    className={`edu-bumper-word ${app.colorClass}`}
+                    style={{
+                      height: rowPx,
+                      maxHeight: rowPx,
+                      lineHeight: `${rowPx}px`,
+                      fontSize: rowPx,
+                    }}
+                  >
+                    {app.name}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </div>

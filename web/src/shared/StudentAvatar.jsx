@@ -8,6 +8,8 @@ const SIZE_CLASSES = {
   sm: 'w-10 h-10 text-sm',
   md: 'w-12 h-12 text-base',
   lg: 'w-16 h-16 text-xl',
+  /** Fills parent; set parent to the avatar box size and `text-[Ncqw]` / fontSize. */
+  fluid: 'h-full w-full',
 };
 
 const EDIT_BADGE = {
@@ -15,6 +17,7 @@ const EDIT_BADGE = {
   sm: 'w-5 h-5',
   md: 'w-5 h-5',
   lg: 'w-6 h-6',
+  fluid: 'w-[28%] h-[28%] min-w-[0.85rem] min-h-[0.85rem]',
 };
 
 const EMOJI_TEXT = {
@@ -22,6 +25,7 @@ const EMOJI_TEXT = {
   sm: 'text-xl',
   md: 'text-2xl',
   lg: 'text-3xl',
+  fluid: 'text-[0.92em] leading-none',
 };
 
 /**
@@ -47,7 +51,9 @@ export function StudentAvatar({
   let face = null;
 
   if (
-    (avatar.type === AVATAR_TYPES.upload || avatar.type === AVATAR_TYPES.library) &&
+    (avatar.type === AVATAR_TYPES.upload ||
+      avatar.type === AVATAR_TYPES.link ||
+      avatar.type === AVATAR_TYPES.library) &&
     avatar.imageUrl
   ) {
     face = (
@@ -65,19 +71,28 @@ export function StudentAvatar({
     );
   } else {
     face = (
-      <div className={solidShell} aria-hidden>
+      <div
+        className={`${solidShell}${size === 'fluid' ? ' text-[0.35em]' : ''}`}
+        aria-hidden
+      >
         {getAvatarInitials(student)}
       </div>
     );
   }
 
   if (!editable) {
-    return <div className={className}>{face}</div>;
+    return (
+      <div className={`${size === 'fluid' ? 'h-full w-full' : ''} ${className}`.trim()}>
+        {face}
+      </div>
+    );
   }
 
   return (
     <>
-      <div className={`relative inline-flex shrink-0 ${className}`}>
+      <div
+        className={`relative inline-flex shrink-0 ${size === 'fluid' ? 'h-full w-full' : ''} ${className}`.trim()}
+      >
         {face}
         <button
           type="button"
@@ -86,7 +101,12 @@ export function StudentAvatar({
           aria-label="Edit avatar"
           title="Choose avatar"
         >
-          <Pencil size={size === 'lg' ? 10 : 8} strokeWidth={2.5} fill="none" />
+          <Pencil
+            size={size === 'lg' || size === 'fluid' ? 10 : 8}
+            className={size === 'fluid' ? 'h-[55%] w-[55%]' : undefined}
+            strokeWidth={2.5}
+            fill="none"
+          />
         </button>
       </div>
 

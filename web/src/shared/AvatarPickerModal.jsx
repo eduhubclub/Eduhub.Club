@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ImagePlus, Search, X } from 'lucide-react';
+import { ImagePlus, Link2, Search, X } from 'lucide-react';
 import {
   AVATAR_IMAGE_LIBRARY,
   AVATAR_MODE_OPTIONS,
@@ -13,10 +13,12 @@ import {
   normalizeAvatar,
   searchEmojiAvatars,
 } from '../data/classes/avatar';
+import { AvatarCropStage } from './AvatarCropStage';
 import { Modal } from './Modal';
 import { ModalPrimaryButton } from './ModalPrimaryButton';
 import { StudentAvatar } from './StudentAvatar';
 import { TYPE } from './typography';
+import { studentDisplayName } from '../data/students/displayName';
 
 /**
  * Avatar picker with mode slider: Initials · Emoji · Upload · Library
@@ -36,6 +38,12 @@ export function AvatarPickerModal({
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
 
+  const [dragOver, setDragOver] = useState(false);
+  const [cropSource, setCropSource] = useState(null);
+  const [imageLink, setImageLink] = useState('');
+  const [linkError, setLinkError] = useState('');
+  const [linkLoading, setLinkLoading] = useState(false);
+
   useEffect(() => {
     if (isOpen) {
       const next = normalizeAvatar(student);
@@ -43,6 +51,11 @@ export function AvatarPickerModal({
       setMode(next.type || AVATAR_TYPES.initials);
       setQuery('');
       setActiveCategory('all');
+      setDragOver(false);
+      setCropSource(null);
+      setImageLink('');
+      setLinkError('');
+      setLinkLoading(false);
     }
   }, [isOpen, student]);
 
@@ -70,6 +83,7 @@ export function AvatarPickerModal({
 
   const selectMode = (nextMode) => {
     setMode(nextMode);
+    setCropSource(null);
     if (nextMode === AVATAR_TYPES.initials) {
       setDraft(createDefaultAvatar());
     }
@@ -79,17 +93,95 @@ export function AvatarPickerModal({
 
   const pickLibrary = (item) => setDraft(createLibraryAvatar(item.id, item.imageUrl));
 
-  const onFileChange = (e) => {
-    const file = e.target.files?.[0];
+  const applyImageFile = (file) => {
     if (!file || !file.type.startsWith('image/')) return;
     const reader = new FileReader();
     reader.onload = () => {
       if (typeof reader.result === 'string') {
-        setDraft(createUploadAvatar(reader.result));
+        setCropSource(reader.result);
+        setLinkError('');
       }
     };
     reader.readAsDataURL(file);
+  };
+
+  const applyImageLink = async () => {
+    const raw = imageLink.trim();
+    setLinkError('');
+    if (!raw) {
+      setLinkError('Paste an image URL first.');
+      return;
+    }
+    let parsed;
+    try {
+      parsed = new URL(raw);
+    } catch {
+      setLinkError('Enter a valid image link (https://…).');
+      return;
+    }
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      setLinkError('Link must start with http:// or https://.');
+      return;
+    }
+
+    setLinkLoading(true);
+    try {
+      const res = await fetch(parsed.href, { mode: 'cors' });
+      if (!res.ok) throw new Error('bad status');
+      const blob = await res.blob();
+      if (!blob.type.startsWith('image/')) {
+        setLinkError('That link doesn’t look like an image.');
+        return;
+      }
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      if (typeof dataUrl === 'string') {
+        setCropSource(dataUrl);
+        setLinkError('');
+      }
+    } catch {
+      // Fall back to direct URL — crop may still work if the host allows CORS.
+      setCropSource(parsed.href);
+      setLinkError('');
+    } finally {
+      setLinkLoading(false);
+    }
+  };
+
+  const applyCroppedUpload = (dataUrl) => {
+    setDraft(createUploadAvatar(dataUrl, cropSource || dataUrl));
+    setCropSource(null);
+  };
+
+  const onFileChange = (e) => {
+    applyImageFile(e.target.files?.[0]);
     e.target.value = '';
+  };
+
+  const onDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(false);
+    const file = e.dataTransfer?.files?.[0];
+    applyImageFile(file);
+  };
+
+  const onDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!dragOver) setDragOver(true);
+  };
+
+  const onDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only clear when leaving the drop zone itself, not child nodes.
+    if (e.currentTarget.contains(e.relatedTarget)) return;
+    setDragOver(false);
   };
 
   const handleSave = () => {
@@ -128,7 +220,7 @@ export function AvatarPickerModal({
           <StudentAvatar student={previewStudent} theme={theme} size="lg" />
           <div className="min-w-0">
             <p className={`${TYPE.titleSm} ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-              {student?.name || 'Student'}
+              {studentDisplayName(student)}
             </p>
             <p className={`${TYPE.bodySm} mt-0.5 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
               {statusLabel()}
@@ -140,7 +232,7 @@ export function AvatarPickerModal({
         <div
           role="tablist"
           aria-label="Avatar type"
-          className={`grid grid-cols-4 p-1 rounded-xl border ${
+          className={`grid grid-cols-5 p-1 rounded-xl border ${
             isDarkMode ? 'bg-slate-900 border-slate-600' : 'bg-slate-100 border-slate-300'
           }`}
         >
@@ -310,26 +402,150 @@ export function AvatarPickerModal({
               className="hidden"
               onChange={onFileChange}
             />
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              className={`w-full flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-10 transition-colors ${
-                isDarkMode
-                  ? 'border-slate-600 hover:bg-slate-800/60 text-slate-300'
-                  : 'border-slate-300 hover:bg-slate-50 text-slate-600'
-              }`}
-            >
-              <ImagePlus size={28} strokeWidth={2} className={theme.text} />
-              <span className={TYPE.titleSm}>Upload an image</span>
-              <span className={`${TYPE.bodySm} ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
-                PNG, JPG, or WebP from your device
-              </span>
-            </button>
-            {draft.type === AVATAR_TYPES.upload && draft.imageUrl ? (
-              <p className={`${TYPE.bodySm} text-center ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                Image selected — preview updates above. Save to keep it.
-              </p>
-            ) : null}
+            {cropSource ? (
+              <AvatarCropStage
+                src={cropSource}
+                theme={theme}
+                isDarkMode={isDarkMode}
+                onApply={applyCroppedUpload}
+                onPickDifferent={() => {
+                  setCropSource(null);
+                  fileRef.current?.click();
+                }}
+              />
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  onDragOver={onDragOver}
+                  onDragEnter={onDragOver}
+                  onDragLeave={onDragLeave}
+                  onDrop={onDrop}
+                  className={`edu-control w-full flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-10 transition-colors ${
+                    dragOver
+                      ? isDarkMode
+                        ? 'border-cyan-400 bg-cyan-500/10 text-slate-200'
+                        : 'border-cyan-500 bg-cyan-50 text-slate-700'
+                      : isDarkMode
+                        ? 'border-slate-600 hover:bg-slate-800/60 text-slate-300'
+                        : 'border-slate-300 hover:bg-slate-50 text-slate-600'
+                  }`}
+                >
+                  <ImagePlus size={28} strokeWidth={2} className={theme.text} />
+                  <span className={TYPE.titleSm}>
+                    {dragOver ? 'Drop image to upload' : 'Upload an image'}
+                  </span>
+                  <span
+                    className={`${TYPE.bodySm} ${
+                      isDarkMode ? 'text-slate-500' : 'text-slate-400'
+                    }`}
+                  >
+                    Drag and drop, or click — PNG, JPG, or WebP
+                  </span>
+                </button>
+                {draft.type === AVATAR_TYPES.upload && draft.imageUrl ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <button
+                      type="button"
+                      className={`edu-control rounded-xl px-3 py-1.5 ${TYPE.labelMd} ${
+                        isDarkMode
+                          ? 'text-slate-300 hover:bg-slate-800'
+                          : 'text-slate-600 hover:bg-slate-100'
+                      }`}
+                      onClick={() =>
+                        setCropSource(draft.sourceUrl || draft.imageUrl)
+                      }
+                    >
+                      Adjust crop
+                    </button>
+                  </div>
+                ) : null}
+              </>
+            )}
+          </div>
+        )}
+
+        {mode === AVATAR_TYPES.link && (
+          <div className="space-y-3">
+            {cropSource ? (
+              <AvatarCropStage
+                src={cropSource}
+                theme={theme}
+                isDarkMode={isDarkMode}
+                onApply={applyCroppedUpload}
+                onPickDifferent={() => setCropSource(null)}
+              />
+            ) : (
+              <div className="space-y-2">
+                <label
+                  className={`flex items-center gap-1.5 ${TYPE.labelMd} ${
+                    isDarkMode ? 'text-slate-400' : 'text-slate-600'
+                  }`}
+                  htmlFor="avatar-image-link"
+                >
+                  <Link2 size={14} strokeWidth={2.25} aria-hidden />
+                  Image link
+                </label>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <input
+                    id="avatar-image-link"
+                    type="url"
+                    inputMode="url"
+                    autoComplete="off"
+                    placeholder="https://…"
+                    value={imageLink}
+                    onChange={(e) => {
+                      setImageLink(e.target.value);
+                      if (linkError) setLinkError('');
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        applyImageLink();
+                      }
+                    }}
+                    className={`edu-control min-w-0 flex-1 rounded-xl border-[1.5px] px-3 py-2 ${TYPE.bodyMd} ${theme.colorSurface} ${theme.colorOutline} ${theme.colorOnSurface} focus:outline-none focus-visible:ring-2 ${theme.ring}`}
+                  />
+                  <button
+                    type="button"
+                    className={`edu-control shrink-0 rounded-xl px-4 py-2 ${TYPE.labelLg} ${theme.colorPrimary} ${theme.colorOnPrimary} disabled:opacity-50`}
+                    onClick={applyImageLink}
+                    disabled={linkLoading}
+                  >
+                    {linkLoading ? 'Loading…' : 'Use link'}
+                  </button>
+                </div>
+                {linkError ? (
+                  <p className={`${TYPE.bodySm} text-rose-500`}>{linkError}</p>
+                ) : (
+                  <p
+                    className={`${TYPE.bodySm} ${
+                      isDarkMode ? 'text-slate-500' : 'text-slate-400'
+                    }`}
+                  >
+                    Paste a direct image URL, then crop it like an upload.
+                  </p>
+                )}
+                {draft.type === AVATAR_TYPES.upload && draft.imageUrl ? (
+                  <div className="flex flex-col items-center gap-2 pt-1">
+                    <button
+                      type="button"
+                      className={`edu-control rounded-xl px-3 py-1.5 ${TYPE.labelMd} ${
+                        isDarkMode
+                          ? 'text-slate-300 hover:bg-slate-800'
+                          : 'text-slate-600 hover:bg-slate-100'
+                      }`}
+                      onClick={() =>
+                        setCropSource(draft.sourceUrl || draft.imageUrl)
+                      }
+                    >
+                      Adjust crop
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            )}
           </div>
         )}
 

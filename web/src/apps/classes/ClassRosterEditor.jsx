@@ -9,6 +9,7 @@ import {
 } from '../../data/classes/guardians';
 import { getDistrictAuthMethod } from '../../data/students/districtAuth';
 import { EMPTY_ADD_STUDENT_FORM } from '../../data/students/seed';
+import { normalizeAppDisplayName } from '../../data/students/displayName';
 import { ModalPrimaryButton } from '../../shared/ModalPrimaryButton';
 import { AddStudentModal } from '../students/AddStudentModal';
 import { APP_GRID_CARD } from '../../shared/layout';
@@ -223,10 +224,12 @@ export function ClassRosterEditor({
           Object.entries(rest).filter(([k]) => !/^g\d+_/.test(k))
         );
         const guardians = mergeGridGuardians(row, _gridGuardians);
+        const nickname = (row.nickname || '').trim();
         return {
           ...cleaned,
           name: (row.name || '').trim() || row.name,
-          nickname: (row.nickname || '').trim(),
+          nickname,
+          appDisplayName: normalizeAppDisplayName(row.appDisplayName, nickname),
           studentId: (row.studentId || '').trim(),
           email: (row.email || '').trim(),
           password: (row.password || '').trim(),

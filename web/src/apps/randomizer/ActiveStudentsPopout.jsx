@@ -3,6 +3,7 @@ import { ChevronDown } from 'lucide-react';
 import { StudentAvatar } from '../../shared/StudentAvatar';
 import { toolBtnClass } from '../../shared/toolBtn';
 import { TYPE } from '../../shared/typography';
+import { studentDisplayName } from '../../data/students/displayName';
 
 /**
  * Toolbar control listing students still in the active pool.
@@ -70,7 +71,7 @@ export function ActiveStudentsPopout({
                 }`}
               >
                 <StudentAvatar student={s} theme={theme} size="sm" isDarkMode={isDarkMode} />
-                <span className={`${TYPE.titleSm} truncate`}>{s.name}</span>
+                <span className={`${TYPE.titleSm} truncate`}>{studentDisplayName(s)}</span>
               </div>
             ))}
             {activeStudents.length === 0 ? (
