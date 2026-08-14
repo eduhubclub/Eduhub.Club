@@ -19,6 +19,8 @@ import { mathToolsApp } from './mathTools/config';
 import { attendanceApp } from './attendance/config';
 import { storeApp } from './store/config';
 import { calendarApp } from './calendar/config';
+import { paperApp } from './paper/config';
+import { dictionaryApp } from './dictionary/config';
 
 export { launcherApps } from './launcher';
 
@@ -45,6 +47,8 @@ export const apps = {
   [attendanceApp.id]: attendanceApp,
   [storeApp.id]: storeApp,
   [calendarApp.id]: calendarApp,
+  [paperApp.id]: paperApp,
+  [dictionaryApp.id]: dictionaryApp,
 };
 
 /** Hub is the default entry app. */

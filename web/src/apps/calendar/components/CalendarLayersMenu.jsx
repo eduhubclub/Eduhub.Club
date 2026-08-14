@@ -3,13 +3,15 @@ import { Check, ChevronDown } from 'lucide-react';
 import { TYPE } from '../../../shared/typography';
 
 /**
- * Multi-select overlay menu: Holidays, Birthdays, Specialist (more later).
+ * Multi-select overlay menu: Holidays, Fun Days, Birthdays, Specialist.
  */
 export function CalendarLayersMenu({
   theme,
   isDarkMode,
   showHolidays,
   onShowHolidaysChange,
+  showFunDays,
+  onShowFunDaysChange,
   showBirthdays,
   onShowBirthdaysChange,
   specialistVisible,
@@ -40,6 +42,12 @@ export function CalendarLayersMenu({
       label: 'Holidays',
       checked: Boolean(showHolidays),
       onToggle: () => onShowHolidaysChange(!showHolidays),
+    },
+    {
+      id: 'fun-days',
+      label: 'Fun Days',
+      checked: Boolean(showFunDays),
+      onToggle: () => onShowFunDaysChange(!showFunDays),
     },
     {
       id: 'birthdays',

@@ -31,17 +31,21 @@ export const hubApp = {
     { id: 'dash', name: 'Dashboard', icon: Home, type: 'link' },
     { id: 'apps', name: 'Apps', icon: LayoutGrid, type: 'link' },
     {
+      // Hidden for now — restore by removing `hidden: true`
       id: 'analytics',
       name: 'Analytics',
       icon: BarChart2,
       type: 'accordion',
+      hidden: true,
       subItems: ['Performance', 'Engagement', 'Retention'],
     },
     {
+      // Hidden for now — restore by removing `hidden: true`
       id: 'resources',
       name: 'Resources',
       icon: Library,
       type: 'panel',
+      hidden: true,
       panelTitle: 'Resources',
       panelContent: [
         { label: 'Inbox', icon: Inbox, desc: 'Access files' },
@@ -52,10 +56,12 @@ export const hubApp = {
       ],
     },
     {
+      // Hidden for now — restore by removing `hidden: true`
       id: 'district',
       name: 'District',
       icon: Users,
       type: 'popout',
+      hidden: true,
       actions: [
         { name: 'Add Member', icon: Plus },
         { name: 'Edit Group', icon: Edit },
@@ -63,8 +69,7 @@ export const hubApp = {
         { name: 'Delete', icon: Trash2, color: 'text-rose-500' },
       ],
     },
-    { id: 'rooms', name: 'Classrooms', icon: Layers, type: 'link' },
-    { id: 'help', name: 'Help Center', icon: HelpCircle, type: 'link' },
+    { id: 'rooms', name: 'Classrooms', icon: Layers, type: 'link' },    { id: 'help', name: 'Help Center', icon: HelpCircle, type: 'link' },
   ],
   View: HubApp,
 };

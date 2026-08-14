@@ -61,10 +61,11 @@ function cloneNav(nav) {
   }));
 }
 
-/** Hide Store embeds unless the matching Connect toggle is on. */
+/** Hide Store embeds unless the matching Connect toggle is on; skip `hidden` nav items. */
 function filterAppNav(appId, nav) {
   const settings = readStoreSettings();
   return nav.filter((item) => {
+    if (item.hidden) return false;
     if (item.id !== 'store') return true;
     if (appId === 'bank') return settings.connectBank;
     if (appId === 'behavior') return settings.connectBehavior;
@@ -139,7 +140,9 @@ export function AppShell() {
     right: 0,
   });
 
-  const [navItems, setNavItems] = useState(() => cloneNav(currentApp.nav));
+  const [navItems, setNavItems] = useState(() =>
+    filterAppNav(currentAppId, cloneNav(currentApp.nav)),
+  );
   const [shellFooterActive, setShellFooterActive] = useState(false);
 
   const handleShellFooterActiveChange = useCallback((active) => {
@@ -484,6 +487,7 @@ export function AppShell() {
       activeTab !== 'Create Calendar' &&
       activeTab !== 'Saved Calendar' &&
       activeTab !== 'Countdown') ||
+    (currentAppId === 'paper' && activeTab !== 'Saved') ||
     (currentAppId === 'brand' && activeTab === 'Color Test') ||
     (currentAppId === 'timer' &&
       activeTab !== 'Local Time' &&

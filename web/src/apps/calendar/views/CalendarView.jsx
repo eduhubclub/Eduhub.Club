@@ -15,9 +15,14 @@ import {
   parseIsoDate,
   toIsoDate,
 } from '../../../data/calendar/calendarModel';
-import { isSessionDay, sessionDayHoliday } from '../../../data/calendar/sessionDays';
+import { isSessionDay, sessionDayHoliday, academicYearMarker, breakOn } from '../../../data/calendar/sessionDays';
 import { readAcademic, readClosures } from '../../../data/calendar/calendarStorage';
 import { expandStudentBirthdays } from '../../../data/calendar/studentBirthdays';
+import { expandFunDays } from '../../../data/calendar/funDays';
+import {
+  buildMonthWeekSpans,
+  isMultiDayOccurrence,
+} from '../../../data/calendar/monthEventSpans';
 import { getStudents } from '../../../data/classes/seed';
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -94,6 +99,7 @@ export function CalendarView({ isDarkMode, theme }) {
   const weekStartsOn = prefs.weekStartsOn === 1 ? 1 : 0;
   const cursor = prefs.cursorDate || toIsoDate(new Date());
   const showHolidays = prefs.showHolidays !== false;
+  const showFunDays = prefs.showFunDays !== false;
   const showBirthdays = prefs.showBirthdays !== false;
   const classFilterValue = useMemo(() => {
     const visible = new Set((prefs.visibleClassIds || []).map(String));
@@ -162,6 +168,19 @@ export function CalendarView({ isDarkMode, theme }) {
     });
   }, [showBirthdays, prefs.visibleClassIds, classes, range.start, range.end]);
 
+  const funDayByDate = useMemo(() => {
+    if (!showFunDays) return {};
+    const map = {};
+    for (const row of expandFunDays({
+      rangeStart: range.start,
+      rangeEnd: range.end,
+    })) {
+      if (!map[row.date]) map[row.date] = [];
+      map[row.date].push(row);
+    }
+    return map;
+  }, [showFunDays, range.start, range.end]);
+
   const byDate = useMemo(() => {
     const map = {};
     for (const row of [...occurrences, ...birthdayOccurrences]) {
@@ -182,6 +201,10 @@ export function CalendarView({ isDarkMode, theme }) {
     return out;
   }, [range]);
 
+  const monthWeeks = useMemo(
+    () => buildMonthWeekSpans(days, [...occurrences, ...birthdayOccurrences]).weeks,
+    [days, occurrences, birthdayOccurrences],
+  );
   const openNewEvent = (dateIso) => {
     setDraft({
       title: '',
@@ -257,6 +280,8 @@ export function CalendarView({ isDarkMode, theme }) {
           isDarkMode={isDarkMode}
           showHolidays={showHolidays}
           onShowHolidaysChange={(next) => updatePrefs({ showHolidays: next })}
+          showFunDays={showFunDays}
+          onShowFunDaysChange={(next) => updatePrefs({ showFunDays: next })}
           showBirthdays={showBirthdays}
           onShowBirthdaysChange={(next) => updatePrefs({ showBirthdays: next })}
           specialistVisible={specialistVisible}
@@ -315,87 +340,183 @@ export function CalendarView({ isDarkMode, theme }) {
               </div>
             ))}
           </div>
-          <div className="grid min-h-0 flex-1 grid-cols-7 grid-rows-6">
-            {days.map((iso, index) => {
-              const d = parseIsoDate(iso);
-              const inMonth =
-                d &&
-                parseIsoDate(cursor) &&
-                d.getMonth() === parseIsoDate(cursor).getMonth();
-              const session = isSessionDay(iso, academic, closures);
-              const holiday = sessionDayHoliday(iso, academic);
-              const isWorkingDow = Boolean(
-                d && (academic.workingDays || []).includes(d.getDay()),
-              );
-              // Shade snow/breaks/holidays on workdays only — not ordinary weekends.
-              const closedWorkday = inMonth && isWorkingDow && !session;
-              const items = byDate[iso] || [];
-              const col = index % 7;
-              const isLastRow = index >= days.length - 7;
+          <div className="flex min-h-0 flex-1 flex-col">
+            {monthWeeks.map((week, weekIndex) => {
+              const lanePad = week.laneCount > 0 ? week.laneCount * 18 + 4 : 0;
+              const isLastWeek = weekIndex === monthWeeks.length - 1;
               return (
-                <button
-                  key={iso}
-                  type="button"
-                  onClick={() => openNewEvent(iso)}
-                  className={`edu-control flex h-full min-h-0 w-full flex-col items-start justify-start overflow-hidden p-1.5 text-left ${theme.colorOutline} ${
-                    col < 6 ? 'border-r' : ''
-                  } ${isLastRow ? '' : 'border-b'} ${
-                    !inMonth
-                      ? theme.colorSurfaceVariant
-                      : closedWorkday
-                        ? 'bg-slate-50 dark:bg-slate-900/40'
-                        : ''
+                <div
+                  key={week.weekIndex}
+                  className={`relative grid min-h-0 flex-1 grid-cols-7 ${
+                    isLastWeek ? '' : `border-b ${theme.colorOutline}`
                   }`}
                 >
-                  <span
-                    className={`inline-flex h-6 w-6 shrink-0 items-center justify-center self-start rounded-full text-xs font-semibold leading-none ${
-                      iso === toIsoDate(new Date())
-                        ? `${theme.colorPrimary} ${theme.colorOnPrimary}`
-                        : !inMonth
-                          ? theme.colorOnSurfaceVariant
-                          : theme.colorOnSurface
-                    }`}
-                  >
-                    {d?.getDate()}
-                  </span>
-                  {showHolidays && holiday && inMonth ? (
-                    <p
-                      className={`mt-0.5 w-full truncate text-[10px] font-semibold leading-tight ${theme.colorOnSurfaceVariant}`}
-                      title={holiday.label}
-                    >
-                      {holiday.label}
-                    </p>
-                  ) : null}
-                  <ul className="mt-1 min-h-0 w-full flex-1 space-y-0.5 self-stretch overflow-hidden">
-                    {items.slice(0, 3).map((row) => {
-                      const on = bestOnColor(row.color || '#6366f1');
-                      return (
-                        <li
-                          key={row.id}
-                          className="truncate rounded px-1 py-0.5 text-[10px] font-semibold leading-tight"
-                          style={{
-                            backgroundColor: row.color,
-                            color: on.hex,
-                          }}
-                          title={`${row.title} · ${row.className}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelected(row);
-                          }}
-                        >
-                          {row.title}
-                        </li>
-                      );
-                    })}
-                    {items.length > 3 ? (
-                      <li
-                        className={`text-[10px] ${theme.colorOnSurfaceVariant}`}
+                  {week.days.map((iso, col) => {
+                    const d = parseIsoDate(iso);
+                    const inMonth =
+                      d &&
+                      parseIsoDate(cursor) &&
+                      d.getMonth() === parseIsoDate(cursor).getMonth();
+                    const session = isSessionDay(iso, academic, closures);
+                    const holiday = sessionDayHoliday(iso, academic);
+                    const yearMarker = academicYearMarker(iso, academic);
+                    const breakDay = breakOn(iso, academic);
+                    const funDays = funDayByDate[iso] || [];
+                    const isWorkingDow = Boolean(
+                      d && (academic.workingDays || []).includes(d.getDay()),
+                    );
+                    const closedWorkday = inMonth && isWorkingDow && !session;
+                    const items = (byDate[iso] || []).filter(
+                      (row) => !isMultiDayOccurrence(row),
+                    );
+                    return (
+                      <button
+                        key={iso}
+                        type="button"
+                        onClick={() => openNewEvent(iso)}
+                        className={`edu-control flex h-full min-h-0 w-full flex-col items-start justify-start overflow-hidden p-1.5 text-left ${theme.colorOutline} ${
+                          col < 6 ? 'border-r' : ''
+                        } ${
+                          !inMonth
+                            ? theme.colorSurfaceVariant
+                            : closedWorkday
+                              ? 'bg-slate-50 dark:bg-slate-900/40'
+                              : ''
+                        }`}
                       >
-                        +{items.length - 3} more
-                      </li>
-                    ) : null}
-                  </ul>
-                </button>
+                        <span
+                          className={`inline-flex h-6 w-6 shrink-0 items-center justify-center self-start rounded-full text-xs font-semibold leading-none ${
+                            iso === toIsoDate(new Date())
+                              ? `${theme.colorPrimary} ${theme.colorOnPrimary}`
+                              : !inMonth
+                                ? theme.colorOnSurfaceVariant
+                                : theme.colorOnSurface
+                          }`}
+                        >
+                          {d?.getDate()}
+                        </span>
+                        {lanePad > 0 ? (
+                          <div
+                            className="mt-0.5 w-full shrink-0"
+                            style={{ height: lanePad }}
+                            aria-hidden
+                          />
+                        ) : null}
+                        {yearMarker && inMonth ? (
+                          <p
+                            className={`mt-0.5 w-full truncate text-[10px] font-semibold leading-tight ${theme.colorOnSurface}`}
+                            title={yearMarker.label}
+                          >
+                            {yearMarker.label}
+                          </p>
+                        ) : null}
+                        {breakDay && inMonth ? (
+                          <p
+                            className={`mt-0.5 w-full truncate text-[10px] font-semibold leading-tight ${theme.colorOnSurfaceVariant}`}
+                            title={breakDay.label}
+                          >
+                            {breakDay.label}
+                          </p>
+                        ) : null}
+                        {showHolidays && holiday && inMonth ? (
+                          <p
+                            className={`mt-0.5 w-full truncate text-[10px] font-semibold leading-tight ${theme.colorOnSurfaceVariant}`}
+                            title={holiday.label}
+                          >
+                            {holiday.label}
+                          </p>
+                        ) : null}
+                        {showFunDays && funDays.length > 0 && inMonth
+                          ? funDays.slice(0, 2).map((fd) => (
+                              <p
+                                key={fd.id}
+                                className={`mt-0.5 w-full truncate text-[10px] font-medium leading-tight ${theme.colorOnSurfaceVariant}`}
+                                title={funDays.map((f) => f.title).join(' · ')}
+                              >
+                                {fd.title}
+                              </p>
+                            ))
+                          : null}
+                        <ul className="mt-1 min-h-0 w-full flex-1 space-y-0.5 self-stretch overflow-hidden">
+                          {items.slice(0, 3).map((row) => {
+                            const on = bestOnColor(row.color || '#6366f1');
+                            return (
+                              <li
+                                key={row.id}
+                                className="truncate rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-tight"
+                                style={{
+                                  backgroundColor: row.color,
+                                  color: on.hex,
+                                }}
+                                title={`${row.title} · ${row.className}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelected(row);
+                                }}
+                              >
+                                {row.title}
+                              </li>
+                            );
+                          })}
+                          {items.length > 3 ? (
+                            <li
+                              className={`text-[10px] ${theme.colorOnSurfaceVariant}`}
+                            >
+                              +{items.length - 3} more
+                            </li>
+                          ) : null}
+                        </ul>
+                      </button>
+                    );
+                  })}
+
+                  {week.spans.length > 0 ? (
+                    <div
+                      className="pointer-events-none absolute inset-x-0 z-10"
+                      style={{
+                        top: '1.875rem',
+                        height: Math.max(lanePad, 18),
+                      }}
+                    >
+                      {week.spans.map((span) => {
+                        const on = bestOnColor(span.color || '#6366f1');
+                        const left = (span.startCol / 7) * 100;
+                        const width =
+                          ((span.endCol - span.startCol + 1) / 7) * 100;
+                        const radius = span.continuesBefore
+                          ? span.continuesAfter
+                            ? '0'
+                            : '0 9999px 9999px 0'
+                          : span.continuesAfter
+                            ? '9999px 0 0 9999px'
+                            : '9999px';
+                        return (
+                          <button
+                            key={span.id}
+                            type="button"
+                            className="edu-control pointer-events-auto absolute truncate px-1.5 text-left text-[10px] font-semibold leading-[16px]"
+                            style={{
+                              left: `calc(${left}% + 2px)`,
+                              width: `calc(${width}% - 4px)`,
+                              top: (span.lane || 0) * 18,
+                              height: 16,
+                              backgroundColor: span.color,
+                              color: on.hex,
+                              borderRadius: radius,
+                            }}
+                            title={`${span.title} · ${span.className}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelected(span);
+                            }}
+                          >
+                            {span.title}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+                </div>
               );
             })}
           </div>
@@ -414,32 +535,59 @@ export function CalendarView({ isDarkMode, theme }) {
             const holiday = showHolidays
               ? sessionDayHoliday(iso, academic)
               : null;
+            const yearMarker = academicYearMarker(iso, academic);
+            const breakDay = breakOn(iso, academic);
+            const funDays = funDayByDate[iso] || [];
             return (
               <div
                 key={iso}
                 className={`rounded-xl border-[1.5px] ${APP_BOARD_PAD} ${theme.colorSurface} ${theme.colorOutline}`}
               >
                 <div className="mb-2 flex items-center justify-between gap-2">
-                  <p className={`${TYPE.titleSm} ${theme.colorOnSurface}`}>
-                    {parseIsoDate(iso)?.toLocaleDateString(undefined, {
-                      weekday: 'short',
-                      month: 'short',
-                      day: 'numeric',
-                    })}
-                    {holiday ? (
-                      <span
-                        className={`ml-2 ${TYPE.labelMicro} ${theme.colorOnSurfaceVariant}`}
+                  <div className="min-w-0">
+                    <p className={`${TYPE.titleSm} ${theme.colorOnSurface}`}>
+                      {parseIsoDate(iso)?.toLocaleDateString(undefined, {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                      {yearMarker ? (
+                        <span
+                          className={`ml-2 ${TYPE.labelMicro} ${theme.colorOnSurface}`}
+                        >
+                          {yearMarker.label}
+                        </span>
+                      ) : null}
+                      {breakDay ? (
+                        <span
+                          className={`ml-2 ${TYPE.labelMicro} ${theme.colorOnSurfaceVariant}`}
+                        >
+                          {breakDay.label}
+                        </span>
+                      ) : null}
+                      {holiday ? (
+                        <span
+                          className={`ml-2 ${TYPE.labelMicro} ${theme.colorOnSurfaceVariant}`}
+                        >
+                          {holiday.label}
+                        </span>
+                      ) : !session && !yearMarker && !breakDay ? (
+                        <span
+                          className={`ml-2 ${TYPE.labelMicro} ${theme.colorOnSurfaceVariant}`}
+                        >
+                          Non-session
+                        </span>
+                      ) : null}
+                    </p>
+                    {showFunDays && funDays.length > 0 ? (
+                      <p
+                        className={`mt-0.5 truncate ${TYPE.labelMicro} ${theme.colorOnSurfaceVariant}`}
+                        title={funDays.map((f) => f.title).join(' · ')}
                       >
-                        {holiday.label}
-                      </span>
-                    ) : !session ? (
-                      <span
-                        className={`ml-2 ${TYPE.labelMicro} ${theme.colorOnSurfaceVariant}`}
-                      >
-                        Non-session
-                      </span>
+                        {funDays.map((f) => f.title).join(' · ')}
+                      </p>
                     ) : null}
-                  </p>
+                  </div>
                   <button
                     type="button"
                     className={`edu-control rounded-lg px-2 py-1 ${TYPE.labelMd} ${theme.colorPrimaryContainer} ${theme.colorOnPrimaryContainer}`}
@@ -456,6 +604,18 @@ export function CalendarView({ isDarkMode, theme }) {
                   <ul className="space-y-2">
                     {items.map((row) => {
                       const on = bestOnColor(row.color || '#6366f1');
+                      const rangeLabel =
+                        isMultiDayOccurrence(row) &&
+                        row.eventStart &&
+                        row.eventEnd
+                          ? (() => {
+                              const a = parseIsoDate(row.eventStart);
+                              const b = parseIsoDate(row.eventEnd);
+                              if (!a || !b) return '';
+                              const opts = { month: 'short', day: 'numeric' };
+                              return `${a.toLocaleDateString(undefined, opts)}–${b.toLocaleDateString(undefined, opts)}`;
+                            })()
+                          : '';
                       return (
                         <li key={row.id}>
                           <button
@@ -471,7 +631,11 @@ export function CalendarView({ isDarkMode, theme }) {
                               {row.title}
                               {multiClass ? ` · ${row.className}` : ''}
                             </span>
-                            {row.startTime ? (
+                            {rangeLabel ? (
+                              <span className="shrink-0 text-xs opacity-90">
+                                {rangeLabel}
+                              </span>
+                            ) : row.startTime ? (
                               <span className="shrink-0 text-xs opacity-90">
                                 {row.startTime}
                               </span>
@@ -523,7 +687,11 @@ export function CalendarView({ isDarkMode, theme }) {
             ) : null}
             <p>
               <span className={theme.colorOnSurfaceVariant}>Date · </span>
-              {selected.date}
+              {selected.eventStart &&
+              selected.eventEnd &&
+              selected.eventStart !== selected.eventEnd
+                ? `${selected.eventStart} → ${selected.eventEnd}`
+                : selected.date}
             </p>
             {selected.notes ? <p>{selected.notes}</p> : null}
           </div>

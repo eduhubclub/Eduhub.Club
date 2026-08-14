@@ -48,11 +48,12 @@ export function addDaysIso(iso, delta) {
 
 export function defaultAcademicYear(now = new Date()) {
   const year = now.getFullYear();
-  const month = now.getMonth(); // 0-based; before Aug → previous Sept start
+  const month = now.getMonth(); // 0-based; before Aug → previous school-year start
   const startYear = month < 7 ? year - 1 : year;
   return {
-    startDate: `${startYear}-09-01`,
-    endDate: `${startYear + 1}-06-15`,
+    // Late-August / mid-June aligns with common US district calendars.
+    startDate: `${startYear}-08-26`,
+    endDate: `${startYear + 1}-06-16`,
     workingDays: [1, 2, 3, 4, 5],
     breaks: [],
     observeNationalHolidays: true,
@@ -199,9 +200,10 @@ export function normalizeUiPrefs(raw, classIds = []) {
     defaultView,
     cursorDate,
     weekStartsOn,
-    // Overlay toggles for the Calendars menu (display only for holidays / birthdays).
+    // Overlay toggles for the Calendars menu (display only).
     showHolidays: s.showHolidays !== false,
     showBirthdays: s.showBirthdays !== false,
+    showFunDays: s.showFunDays !== false,
   };
 }
 

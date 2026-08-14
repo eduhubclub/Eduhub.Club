@@ -54,6 +54,7 @@ import {
   STORE_SETTINGS_UPDATED_EVENT,
 } from '../data/store/storeSettings';
 import { CalendarSettingsCards } from '../apps/calendar/CalendarSettingsCards';
+import { DictionarySettingsCards } from '../apps/dictionary/DictionarySettingsCards';
 
 function SettingsCard({ title, description, isDarkMode, defaultOpen = true, children }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -201,6 +202,7 @@ export function SettingsPage({
   const isAttendance = currentApp?.id === 'attendance';
   const isStore = currentApp?.id === 'store';
   const isCalendar = currentApp?.id === 'calendar';
+  const isDictionary = currentApp?.id === 'dictionary';
   const [behaviorSyncToBank, setBehaviorSyncToBank] = useState(readBehaviorSyncToBank);
   const [behaviorShowNeedsWork, setBehaviorShowNeedsWork] = useState(
     readBehaviorShowNeedsWork,
@@ -951,6 +953,14 @@ export function SettingsPage({
 
         {isCalendar ? (
           <CalendarSettingsCards
+            theme={theme}
+            isDarkMode={isDarkMode}
+            Card={SettingsCard}
+          />
+        ) : null}
+
+        {isDictionary ? (
+          <DictionarySettingsCards
             theme={theme}
             isDarkMode={isDarkMode}
             Card={SettingsCard}

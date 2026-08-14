@@ -118,6 +118,8 @@ export function expandOccurrencesForRange({
           endTime: event.endTime,
           notes: event.notes,
           sourceEventId: event.id,
+          eventStart: event.startDate,
+          eventEnd: event.endDate || event.startDate,
         });
       }
     }

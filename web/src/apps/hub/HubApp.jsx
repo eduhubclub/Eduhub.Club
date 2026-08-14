@@ -29,6 +29,8 @@ import { toolBtnClass } from '../../shared/toolBtn';
 import { appFabEdgeClass } from '../../shared/layout';
 import { useAppThemePreferences } from '../../data/settings/AppThemePreferencesContext';
 import { TYPE } from '../../shared/typography';
+import { ClassesApp } from '../classes/ClassesApp';
+import { HubMiniCalendar } from './HubMiniCalendar';
 
 const FOLDERS_KEY = 'eduHub.appFolders';
 const HIDDEN_KEY = 'eduHub.hiddenApps';
@@ -1513,11 +1515,25 @@ export function HubApp({
           description="Your teaching home base. Jump into Apps anytime from the sidebar."
           isDarkMode={isDarkMode}
         />
-        <EmptyState
-          isDarkMode={isDarkMode}
-          message="Dashboard widgets are coming soon. Use Apps in the sidebar to open your tools."
-        />
+        <div className="flex flex-wrap gap-4 sm:gap-6">
+          <HubMiniCalendar
+            isDarkMode={isDarkMode}
+            theme={theme}
+            onOpenCalendar={() => onOpenApp?.('calendar')}
+          />
+        </div>
       </AppPageShell>
+    );
+  }
+
+  if (activeTab === 'Classrooms') {
+    return (
+      <ClassesApp
+        activeTab="Classes"
+        isDarkMode={isDarkMode}
+        theme={theme}
+        isLeft={isLeft}
+      />
     );
   }
 

@@ -6,7 +6,15 @@ import { toolBtnClass } from '../../../shared/toolBtn';
 import { TYPE } from '../../../shared/typography';
 import { useAnnounce } from '../../../shared/LiveAnnouncer';
 import { fetchDefinition } from './definitions';
-import { HEART_WORDS, pickRandomWord, wordsForLength } from './wordBank';
+import {
+  DEFAULT_WORD_LIST_IDS,
+  HEART_WORDS,
+  firstLengthWithWords,
+  normalizeListIds,
+  normalizePuzzleWord,
+  pickRandomWord,
+  wordsForLength,
+} from './wordBank';
 import {
   KEYBOARD_ROWS,
   evaluateGuess,
@@ -15,16 +23,57 @@ import {
 } from './wordleLogic';
 import { WordleSettingsModal } from './WordleSettingsModal';
 
-const STORAGE_KEY = 'eduHub.games.wordle.wordLength';
+const LENGTH_KEY = 'eduHub.games.wordle.wordLength';
+const LISTS_KEY = 'eduHub.games.wordle.lists';
+const DAILY_KEY = 'eduHub.games.wordle.daily';
 
-function loadWordLength() {
+function todayIso() {
+  const d = new Date();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${m}-${day}`;
+}
+
+function loadListIds() {
   try {
-    const n = Number(localStorage.getItem(STORAGE_KEY));
-    if (n >= 2 && n <= 8 && wordsForLength(n).length) return n;
+    const raw = JSON.parse(localStorage.getItem(LISTS_KEY) || 'null');
+    return normalizeListIds(raw);
+  } catch {
+    return [...DEFAULT_WORD_LIST_IDS];
+  }
+}
+
+function loadDailyWord() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(DAILY_KEY) || 'null');
+    if (!raw || raw.date !== todayIso()) return '';
+    return normalizePuzzleWord(raw.word);
+  } catch {
+    return '';
+  }
+}
+
+function saveDailyWord(raw) {
+  const word = normalizePuzzleWord(raw);
+  try {
+    if (!word) localStorage.removeItem(DAILY_KEY);
+    else localStorage.setItem(DAILY_KEY, JSON.stringify({ date: todayIso(), word }));
   } catch {
     /* ignore */
   }
-  return 5;
+  return word;
+}
+
+function loadWordLength(listIds = loadListIds()) {
+  const daily = loadDailyWord();
+  if (daily) return daily.length;
+  try {
+    const n = Number(localStorage.getItem(LENGTH_KEY));
+    if (n >= 2 && n <= 8 && wordsForLength(n, listIds).length) return n;
+  } catch {
+    /* ignore */
+  }
+  return firstLengthWithWords(listIds, 5);
 }
 
 function statusTileClass(status, isDarkMode) {
@@ -52,14 +101,21 @@ function keyClass(status, isDarkMode) {
 }
 
 /**
- * Classroom Wordle — high-frequency & heart words, adjustable length 2–8.
+ * Classroom Wordle — selectable Fry, Dolch, and UFLI lists, length 2–8.
  */
 export function WordleView({ isDarkMode, theme }) {
   const announce = useAnnounce();
   const toolBtn = toolBtnClass(isDarkMode);
 
-  const [wordLength, setWordLength] = useState(loadWordLength);
-  const [answer, setAnswer] = useState(() => pickRandomWord(loadWordLength()) || 'said');
+  const [listIds, setListIds] = useState(loadListIds);
+  const [dailyWord, setDailyWord] = useState(loadDailyWord);
+  const [wordLength, setWordLength] = useState(() => loadWordLength());
+  const [answer, setAnswer] = useState(() => {
+    const lists = loadListIds();
+    const daily = loadDailyWord();
+    if (daily) return daily;
+    return pickRandomWord(loadWordLength(lists), lists) || 'said';
+  });
   const [guesses, setGuesses] = useState([]);
   const [current, setCurrent] = useState('');
   const [keyStatuses, setKeyStatuses] = useState({});
@@ -70,17 +126,22 @@ export function WordleView({ isDarkMode, theme }) {
   const [definitionLoading, setDefinitionLoading] = useState(false);
 
   const maxGuesses = maxGuessesForLength(wordLength);
-  const bank = useMemo(() => new Set(wordsForLength(wordLength)), [wordLength]);
+  const bank = useMemo(() => {
+    const next = new Set(wordsForLength(wordLength, listIds));
+    if (answer) next.add(answer);
+    return next;
+  }, [wordLength, listIds, answer]);
   const isHeart = HEART_WORDS.has(answer);
 
   const startNewGame = useCallback(
-    (len = wordLength) => {
-      const next = pickRandomWord(len);
+    (len = wordLength, lists = listIds, forcedWord = '') => {
+      const next = normalizePuzzleWord(forcedWord) || pickRandomWord(len, lists);
       if (!next) {
         setMessage(`No ${len}-letter words in the bank.`);
         return;
       }
       setAnswer(next);
+      setWordLength(next.length);
       setGuesses([]);
       setCurrent('');
       setKeyStatuses({});
@@ -90,17 +151,25 @@ export function WordleView({ isDarkMode, theme }) {
       setDefinitionLoading(false);
       announce('New Wordle puzzle');
     },
-    [announce, wordLength],
+    [announce, listIds, wordLength],
   );
 
-  const applyLength = (len) => {
+  const applySettings = (len, lists, dailyRaw) => {
+    const nextLists = normalizeListIds(lists);
+    const nextDaily = saveDailyWord(dailyRaw);
+    const nextLen = nextDaily
+      ? nextDaily.length
+      : firstLengthWithWords(nextLists, len);
     try {
-      localStorage.setItem(STORAGE_KEY, String(len));
+      localStorage.setItem(LENGTH_KEY, String(nextLen));
+      localStorage.setItem(LISTS_KEY, JSON.stringify(nextLists));
     } catch {
       /* ignore */
     }
-    setWordLength(len);
-    startNewGame(len);
+    setListIds(nextLists);
+    setDailyWord(nextDaily);
+    setWordLength(nextLen);
+    startNewGame(nextLen, nextLists, nextDaily);
   };
 
   // Load definition when the round ends.
@@ -240,7 +309,7 @@ export function WordleView({ isDarkMode, theme }) {
         className={`relative w-full flex-1 min-h-0 ${APP_STATIC_BOARD} ${surface} flex flex-col overflow-hidden`}
       >
         <div className={`flex-1 min-h-0 flex flex-col gap-2 ${APP_STAGE_PAD} overflow-hidden`}>
-          <div className="flex-1 min-h-0 flex flex-row items-center justify-center gap-3 sm:gap-5 overflow-hidden">
+          <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-3 sm:gap-4 overflow-hidden">
             {/* Guess board */}
             <div className="flex flex-col items-center gap-1.5 shrink-0 min-w-0">
               <div className="flex items-center gap-2">
@@ -312,7 +381,7 @@ export function WordleView({ isDarkMode, theme }) {
             </div>
 
             {/* Keyboard */}
-            <div className="flex flex-col justify-center gap-1 min-w-0 shrink">
+            <div className="flex flex-col justify-center gap-1 min-w-0 shrink-0">
               {KEYBOARD_ROWS.map((row) => (
                 <div
                   key={row.join('-')}
@@ -423,7 +492,9 @@ export function WordleView({ isDarkMode, theme }) {
         theme={theme}
         isDarkMode={isDarkMode}
         wordLength={wordLength}
-        onApply={applyLength}
+        listIds={listIds}
+        dailyWord={dailyWord}
+        onApply={applySettings}
       />
     </div>
   );

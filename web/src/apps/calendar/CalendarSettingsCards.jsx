@@ -14,6 +14,7 @@ import {
   writeClosures,
   writeUiPrefs,
 } from '../../data/calendar/calendarStorage';
+import { SchoolCalendarImportCard } from './components/SchoolCalendarImportCard';
 
 const DOW = [
   { id: 0, label: 'Sun' },
@@ -164,6 +165,19 @@ export function CalendarSettingsCards({ theme, isDarkMode, Card }) {
           </div>
         </div>
       </Card>
+
+      <SchoolCalendarImportCard
+        theme={theme}
+        isDarkMode={isDarkMode}
+        Card={Card}
+        classId={classId}
+        academic={academic}
+        closures={closures}
+        onApplied={({ academic: nextAcademic, closures: nextClosures }) => {
+          persistAcademic(nextAcademic);
+          persistClosures(nextClosures);
+        }}
+      />
 
       <Card
         title="Academic year"

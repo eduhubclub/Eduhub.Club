@@ -18,6 +18,7 @@ import {
   Timer,
   Palette,
   BookOpenCheck,
+  BookA,
   Gamepad2,
   Joystick,
   Landmark,
@@ -28,6 +29,7 @@ import {
   ClipboardCheck,
   ShoppingBag,
   Calendar,
+  NotebookPen,
 } from 'lucide-react';
 
 /**
@@ -118,6 +120,14 @@ export const launcherApps = [
     color: 'bg-sky-500',
     description:
       'Phonics tools — blending board, word work mat, and more for early reading.',
+  },
+  {
+    id: 'dictionary',
+    name: 'Dictionary',
+    icon: BookA,
+    color: 'bg-sky-500',
+    description:
+      'Look up a word even if the spelling is off — definitions and public-domain pictures.',
   },
   {
     id: 'games',
@@ -218,6 +228,13 @@ export const launcherApps = [
     color: 'bg-sky-500',
     description:
       'Class schedules, specialist rotations, snow-day pause, and countdowns.',
+  },
+  {
+    id: 'paper',
+    name: 'Paper',
+    icon: NotebookPen,
+    color: 'bg-sky-600',
+    description: 'Print lined, dotted, grid, and other classroom paper.',
   },
   {
     id: 'files',

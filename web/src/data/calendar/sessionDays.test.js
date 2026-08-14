@@ -4,6 +4,11 @@ import {
   isSessionDay,
   rotationIndexForDate,
   rotationSlotForDate,
+  academicYearMarker,
+  breakOn,
+  breakWorkingDaysInYear,
+  schoolDaysInYear,
+  schoolDaysRemaining,
 } from './sessionDays.js';
 
 const academic = {
@@ -32,6 +37,89 @@ describe('isSessionDay', () => {
     expect(
       isSessionDay('2026-09-02', academic, [{ date: '2026-09-02', label: 'Snow' }]),
     ).toBe(false);
+  });
+});
+
+describe('academicYearMarker', () => {
+  it('labels First Day and Last Day from academic settings', () => {
+    expect(academicYearMarker('2026-09-01', academic)?.label).toBe('First Day');
+    expect(academicYearMarker('2027-06-15', academic)?.label).toBe('Last Day');
+    expect(academicYearMarker('2026-09-02', academic)).toBe(null);
+  });
+
+  it('combines when start and end are the same date', () => {
+    expect(
+      academicYearMarker('2026-09-01', {
+        ...academic,
+        startDate: '2026-09-01',
+        endDate: '2026-09-01',
+      })?.label,
+    ).toBe('First & Last Day');
+  });
+});
+
+describe('defaultAcademicYear', () => {
+  it('uses late-August through mid-June for the current cycle', async () => {
+    const { defaultAcademicYear } = await import('./calendarModel.js');
+    const y = defaultAcademicYear(new Date(2026, 7, 10)); // Aug 10, 2026
+    expect(y.startDate).toBe('2026-08-26');
+    expect(y.endDate).toBe('2027-06-16');
+  });
+});
+
+describe('schoolDaysRemaining', () => {
+  it('counts session days left through Last Day, inclusive of today', () => {
+    // Short year: Mon–Fri Sep 1–5 2026 only (Tue–Fri = 4 session days; Sep 1 is Tue)
+    const short = {
+      ...academic,
+      startDate: '2026-09-01',
+      endDate: '2026-09-04', // Tue–Fri
+    };
+    expect(schoolDaysInYear(short, [])).toBe(4);
+    expect(schoolDaysRemaining(short, [], '2026-09-01')).toBe(4);
+    expect(schoolDaysRemaining(short, [], '2026-09-03')).toBe(2);
+    expect(schoolDaysRemaining(short, [], '2026-09-05')).toBe(0);
+  });
+
+  it('before First Day returns the full year total', () => {
+    expect(schoolDaysRemaining(academic, [], '2026-08-01')).toBe(
+      schoolDaysInYear(academic, []),
+    );
+  });
+
+  it('matches Demo Class dates with breaks and holidays', () => {
+    const demo = {
+      startDate: '2026-08-26',
+      endDate: '2027-06-16',
+      workingDays: [1, 2, 3, 4, 5],
+      observeNationalHolidays: true,
+      breaks: [
+        {
+          id: 'winter',
+          name: 'Winter Break',
+          startDate: '2026-12-21',
+          endDate: '2027-01-01',
+        },
+        {
+          id: 'mid',
+          name: 'Mid Winter Break',
+          startDate: '2027-02-15',
+          endDate: '2027-02-19',
+        },
+        {
+          id: 'spring',
+          name: 'Spring Break',
+          startDate: '2027-04-05',
+          endDate: '2027-04-23',
+        },
+      ],
+    };
+    expect(schoolDaysInYear(demo, [])).toBe(174);
+    expect(schoolDaysRemaining(demo, [], '2026-08-10')).toBe(174);
+    expect(breakWorkingDaysInYear(demo)).toBeGreaterThan(0);
+    expect(breakOn('2026-12-22', demo)?.label).toBe('Winter Break');
+    expect(breakOn('2027-04-10', demo)?.label).toBe('Spring Break');
+    expect(breakOn('2026-09-01', demo)).toBe(null);
   });
 });
 

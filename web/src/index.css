@@ -288,9 +288,9 @@ html[data-edu-underline-links='true'] a:not(.edu-skip-link) {
     margin: 0;
   }
 
-  html,
-  body,
-  #root {
+  html:not(:has(.edu-paper-print)),
+  html:not(:has(.edu-paper-print)) body,
+  html:not(:has(.edu-paper-print)) #root {
     height: auto !important;
     overflow: visible !important;
     background: white !important;
@@ -331,5 +331,20 @@ html[data-edu-underline-links='true'] a:not(.edu-skip-link) {
   .edu-print-group {
     break-inside: avoid;
     page-break-inside: avoid;
+  }
+}
+
+/* Hidden on screen; PaperPrintPortal sizes it to Letter in @media print. */
+.edu-paper-print {
+  display: none;
+}
+
+@media print {
+  body:has(.edu-paper-print) > *:not(.edu-paper-print) {
+    display: none !important;
+  }
+
+  body:has(.edu-paper-print) .edu-paper-print {
+    display: block !important;
   }
 }

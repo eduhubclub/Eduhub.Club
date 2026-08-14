@@ -311,6 +311,19 @@ export const PRIMARY_SOLID_HEX = {
   Brown: '#b45309',
 };
 
+/** Print-safe dark step (≈ *-800) for each primary. */
+export const PRIMARY_DARK_HEX = {
+  Red: '#991b1b',
+  Orange: '#9a3412',
+  Amber: '#92400e',
+  Emerald: '#065f46',
+  Blue: '#1e40af',
+  Indigo: '#3730a3',
+  Purple: '#6b21a8',
+  Pink: '#9f1239',
+  Brown: '#4e342e',
+};
+
 /** Board neutrals for annotate / fill pickers. */
 export const BOARD_NEUTRAL_HEX = {
   slate: '#64748b', // slate-500
@@ -356,6 +369,8 @@ export const appThemes = {
   Attendance: { ...primaryPalettes.Emerald },
   Store: { ...primaryPalettes.Orange },
   Calendar: { ...primaryPalettes.Blue },
+  Paper: { ...primaryPalettes.Blue },
+  Dictionary: { ...primaryPalettes.Blue },
 };
 
 /** Default primary key for each appThemes / themeKey name. */
@@ -384,6 +399,8 @@ export const appThemePrimaryKeys = {
   Attendance: 'Emerald',
   Store: 'Orange',
   Calendar: 'Blue',
+  Paper: 'Blue',
+  Dictionary: 'Blue',
 };
 
 /**
