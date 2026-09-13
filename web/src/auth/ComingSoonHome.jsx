@@ -12,18 +12,16 @@ export function ComingSoonHome() {
   const background = resolveShellBackgroundClass(undefined, false);
 
   useEffect(() => {
-    document.title = 'Coming soon · Edu.Hub';
+    document.title = 'Eduhub Club';
   }, []);
 
   return (
     <div
       className={`flex min-h-dvh flex-col items-center justify-center px-6 text-center ${background} ${theme.colorOnBackground}`}
     >
-      <LogoHorizontal className="h-10 w-auto" />
-      <h1 className={`mt-6 ${TYPE.titleLg}`}>Coming soon</h1>
-      <p className={`mt-3 max-w-md ${TYPE.bodyMd} ${theme.colorOnSurfaceVariant}`}>
-        Edu.Hub isn’t open for sign-in yet. Check back soon.
-      </p>
+      <LogoHorizontal className="h-12 w-auto" />
+      <h1 className={`mt-8 ${TYPE.titleLg}`}>Eduhub Club</h1>
+      <p className={`mt-3 ${TYPE.titleMd} ${theme.colorOnSurfaceVariant}`}>Coming soon</p>
     </div>
   );
 }
