@@ -1,8 +1,9 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import {
   DEFAULT_DICTIONARY_AGE,
-  flagWord,
   filterBlockedWords,
+  filterDefinitionForAge,
+  flagWord,
   imageLooksAdult,
   isBlockedDefinition,
   isBlockedWord,
@@ -49,6 +50,32 @@ describe('dictionary age filter', () => {
       ),
     ).toBe(true);
     expect(isBlockedDefinition('A round fruit that grows on trees.', 'k5')).toBe(false);
+  });
+
+  it('keeps kid-safe senses when filtering a multi-sense definition', () => {
+    const filtered = filterDefinitionForAge(
+      {
+        word: 'bought',
+        partOfSpeech: 'verb',
+        definition: 'Past tense of buy.',
+        example: null,
+        senses: [
+          {
+            partOfSpeech: 'verb',
+            definition: 'Past tense of buy; got by paying money.',
+            example: null,
+          },
+          {
+            partOfSpeech: 'noun',
+            definition: 'Sexual activity, usually sexual intercourse.',
+            example: null,
+          },
+        ],
+      },
+      'k5',
+    );
+    expect(filtered?.senses).toHaveLength(1);
+    expect(filtered?.definition).toMatch(/Past tense of buy/);
   });
 
   it('flags adult picture titles', () => {

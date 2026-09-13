@@ -30,6 +30,9 @@ import {
   ShoppingBag,
   Calendar,
   NotebookPen,
+  Sun,
+  Library,
+  GalleryVertical,
 } from 'lucide-react';
 
 /**
@@ -127,7 +130,39 @@ export const launcherApps = [
     icon: BookA,
     color: 'bg-sky-500',
     description:
-      'Look up a word even if the spelling is off — definitions and public-domain pictures.',
+      'Look up words with spelling help, Word of the Day, and class student dictionaries.',
+  },
+  {
+    id: 'morningMeeting',
+    name: 'MorningMeeting',
+    icon: Sun,
+    color: 'bg-orange-400',
+    description:
+      'Walk-in classroom board — pin date, instructions, attendance, lunch, jobs, and timer widgets.',
+  },
+  {
+    id: 'ofTheDay',
+    name: 'OfTheDay',
+    icon: Sparkles,
+    color: 'bg-violet-500',
+    description:
+      'Joke, Art, Animal, Word, Quote, Fact, and Song of the Day — save a set and reuse it in every class.',
+  },
+  {
+    id: 'library',
+    name: 'Library',
+    icon: Library,
+    color: 'bg-teal-500',
+    description:
+      'Scan ISBNs onto your classroom shelf, print copy labels, and check books out to students.',
+  },
+  {
+    id: 'slides',
+    name: 'Slides',
+    icon: GalleryVertical,
+    color: 'bg-pink-500',
+    description:
+      'Build 16:9 lesson decks, present on the classroom display, and import PDF or PowerPoint.',
   },
   {
     id: 'games',

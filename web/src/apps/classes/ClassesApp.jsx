@@ -28,6 +28,7 @@ import { classesEmptyStates } from './emptyState';
 import { StudentImportPanel } from './StudentImportPanel';
 import { ClassRosterEditor } from './ClassRosterEditor';
 import { StudentProfileCard } from './StudentProfileCard';
+import { StudentLibraryCard } from '../library/StudentLibraryCard';
 import { AppPageShell } from '../../shared/AppPageShell';
 import { appFabClass, APP_GRID_CARD } from '../../shared/layout';
 import { TYPE } from '../../shared/typography';
@@ -172,6 +173,15 @@ export function ClassesApp({ activeTab, isDarkMode, theme, isLeft }) {
             updateDirectoryStudent(selectedStudent.id, patch);
           }}
         />
+
+        <div className="mt-6">
+          <h2
+            className={`${TYPE.titleSm} mb-3 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}
+          >
+            Library
+          </h2>
+          <StudentLibraryCard student={selectedStudent} theme={theme} />
+        </div>
       </AppPageShell>
     );
   }

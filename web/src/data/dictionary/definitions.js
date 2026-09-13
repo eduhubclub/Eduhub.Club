@@ -1,9 +1,18 @@
 /**
- * Definitions via Datamuse (WordNet + Wiktionary), with Free Dictionary API fallback.
- * https://www.datamuse.com/api/
+ * Definitions via Free Dictionary API, with Datamuse (WordNet) fallback.
+ * https://dictionaryapi.dev/ · https://www.datamuse.com/api/
  */
 
+import {
+  formatPronunciation,
+  formatPronunciationLine,
+  formatRespelling,
+} from './respelling';
+
+export { formatPronunciation, formatPronunciationLine, formatRespelling };
+
 const cache = new Map();
+const MAX_SENSES = 6;
 
 const POS = {
   n: 'noun',
@@ -13,11 +22,39 @@ const POS = {
 };
 
 /**
- * @typedef {{ word: string, partOfSpeech: string | null, definition: string, example: string | null, pronunciation?: string | null }} WordDefinition
+ * @typedef {{ partOfSpeech: string | null, definition: string, example: string | null }} WordSense
+ * @typedef {{
+ *   word: string,
+ *   partOfSpeech: string | null,
+ *   definition: string,
+ *   example: string | null,
+ *   pronunciation?: string | null,
+ *   senses: WordSense[],
+ * }} WordDefinition
  */
 
 function skipDef(text) {
   return /^(a surname|obsolete|archaic)\b/i.test(text) || /\(obsolete\)|\(archaic\)/i.test(text);
+}
+
+/**
+ * @param {WordSense[]} senses
+ * @param {string} word
+ * @param {string | null} [pronunciation]
+ * @returns {WordDefinition | null}
+ */
+function packDefinition(senses, word, pronunciation = null) {
+  const list = (senses || []).filter((s) => s?.definition);
+  if (!list.length) return null;
+  const first = list[0];
+  return {
+    word,
+    partOfSpeech: first.partOfSpeech,
+    definition: first.definition,
+    example: first.example,
+    pronunciation,
+    senses: list.slice(0, MAX_SENSES),
+  };
 }
 
 /**
@@ -30,20 +67,21 @@ function fromDatamuse(data, key) {
   const hit =
     rows.find((row) => String(row?.word || '').toLowerCase() === key) || rows[0];
   const defs = Array.isArray(hit?.defs) ? hit.defs : [];
+  const senses = [];
   for (const raw of defs) {
     const text = String(raw || '');
     const tab = text.indexOf('\t');
     const posCode = tab >= 0 ? text.slice(0, tab).trim() : '';
     const definition = (tab >= 0 ? text.slice(tab + 1) : text).trim();
     if (!definition || skipDef(definition)) continue;
-    return {
-      word: hit.word || key,
+    senses.push({
       partOfSpeech: POS[posCode] || posCode || null,
       definition,
       example: null,
-    };
+    });
+    if (senses.length >= MAX_SENSES) break;
   }
-  return null;
+  return packDefinition(senses, hit?.word || key);
 }
 
 /**
@@ -62,27 +100,39 @@ function phoneticFromFreeDictionary(data) {
   return null;
 }
 
+/**
+ * @param {unknown} data
+ * @param {string} key
+ * @returns {WordDefinition | null}
+ */
 function fromFreeDictionary(data, key) {
   const entry = Array.isArray(data) ? data[0] : null;
   const meanings = entry?.meanings || [];
+  const senses = [];
   for (const meaning of meanings) {
-    const def = meaning.definitions?.[0];
-    if (!def?.definition) continue;
-    return {
-      word: entry.word || key,
-      partOfSpeech: meaning.partOfSpeech || null,
-      definition: def.definition,
-      example: def.example || null,
-      pronunciation: phoneticFromFreeDictionary(data),
-    };
+    const defs = Array.isArray(meaning?.definitions) ? meaning.definitions : [];
+    for (const def of defs) {
+      if (!def?.definition || skipDef(def.definition)) continue;
+      senses.push({
+        partOfSpeech: meaning.partOfSpeech || null,
+        definition: def.definition,
+        example: def.example || null,
+      });
+      if (senses.length >= MAX_SENSES) break;
+    }
+    if (senses.length >= MAX_SENSES) break;
   }
-  return null;
+  return packDefinition(
+    senses,
+    entry?.word || key,
+    phoneticFromFreeDictionary(data),
+  );
 }
 
 const pronunciationCache = new Map();
 
 /**
- * Dictionary.com-style pronunciation string when Free Dictionary has one.
+ * Pronunciation string when Free Dictionary has one (often IPA).
  * @param {string} word
  * @returns {Promise<string | null>}
  */
@@ -108,12 +158,29 @@ export async function fetchPronunciation(word) {
 }
 
 /**
+ * All kid-readable senses for a word (primary first).
+ * Prefers Free Dictionary for multiple everyday meanings.
  * @param {string} word
  * @returns {Promise<WordDefinition | null>}
  */
 export async function fetchDefinition(word) {
   const key = word.toLowerCase();
   if (cache.has(key)) return cache.get(key);
+
+  try {
+    const res = await fetch(
+      `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(key)}`,
+    );
+    if (res.ok) {
+      const parsed = fromFreeDictionary(await res.json(), key);
+      if (parsed) {
+        cache.set(key, parsed);
+        return parsed;
+      }
+    }
+  } catch {
+    /* fall through */
+  }
 
   try {
     const datamuse = await fetch(
@@ -130,19 +197,6 @@ export async function fetchDefinition(word) {
     /* fall through */
   }
 
-  try {
-    const res = await fetch(
-      `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(key)}`,
-    );
-    if (!res.ok) {
-      cache.set(key, null);
-      return null;
-    }
-    const parsed = fromFreeDictionary(await res.json(), key);
-    cache.set(key, parsed);
-    return parsed;
-  } catch {
-    cache.set(key, null);
-    return null;
-  }
+  cache.set(key, null);
+  return null;
 }

@@ -4,20 +4,16 @@ import { APP_GRID_CARD } from '../../shared/layout';
 import { TYPE } from '../../shared/typography';
 import {
   DICTIONARY_AGE_EVENT,
-  DICTIONARY_FLAGS_EVENT,
   readDictionaryAge,
 } from '../../data/dictionary/ageFilter';
 import {
   formatWordOfTheDayDate,
   loadWordOfTheDay,
+  localDateKey,
 } from '../../data/dictionary/wordOfTheDay';
-
-function formatPhonetic(text) {
-  const t = String(text || '').trim();
-  if (!t) return null;
-  if (t.startsWith('[') || t.startsWith('(') || t.startsWith('/')) return t;
-  return `[ ${t} ]`;
-}
+import { OF_THE_DAY_UPDATED_EVENT } from '../../data/ofTheDay/types';
+import { readDayPicks } from '../../data/ofTheDay/storage';
+import { formatPronunciationLine } from '../../data/dictionary/definitions';
 
 /**
  * Square Word of the Day card — picture, word, part of speech, pronunciation, definition.
@@ -27,29 +23,43 @@ export function WordOfTheDayCard({ theme, isDarkMode, onSelectWord, className = 
   const [entry, setEntry] = useState(null);
   const [loading, setLoading] = useState(true);
   const [ageId, setAgeId] = useState(readDictionaryAge);
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
     const onAge = (e) => {
       setAgeId(e?.detail?.id || readDictionaryAge());
     };
+    const bump = () => setTick((n) => n + 1);
     window.addEventListener(DICTIONARY_AGE_EVENT, onAge);
-    return () => window.removeEventListener(DICTIONARY_AGE_EVENT, onAge);
+    window.addEventListener(OF_THE_DAY_UPDATED_EVENT, bump);
+    return () => {
+      window.removeEventListener(DICTIONARY_AGE_EVENT, onAge);
+      window.removeEventListener(OF_THE_DAY_UPDATED_EVENT, bump);
+    };
   }, []);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    loadWordOfTheDay({ ageId }).then((next) => {
-      if (cancelled) return;
-      setEntry(next);
-      setLoading(false);
-    });
+    const override = readDayPicks(localDateKey()).word;
+    const forcedWord = override ? String(override).replace(/^word:/, '') : undefined;
+    loadWordOfTheDay({ ageId, forcedWord })
+      .then((next) => {
+        if (cancelled) return;
+        setEntry(next);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setEntry(null);
+        setLoading(false);
+      });
     return () => {
       cancelled = true;
     };
-  }, [ageId]);
+  }, [ageId, tick]);
 
-  const phonetic = formatPhonetic(entry?.pronunciation);
+  const phonetic = formatPronunciationLine(entry?.pronunciation);
   const word = entry?.word || '';
   const pos = entry?.definition?.partOfSpeech;
   const definition = entry?.definition?.definition;

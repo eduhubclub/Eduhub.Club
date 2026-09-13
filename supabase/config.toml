@@ -1,0 +1,7 @@
+project_id = "edu-hub"
+
+[functions.classroom-login]
+verify_jwt = false
+
+[functions.classroom-roster]
+verify_jwt = true

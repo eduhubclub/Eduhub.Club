@@ -238,8 +238,7 @@ export function BankStudentDetail({ student, isDarkMode, theme, onBack }) {
             isDarkMode={isDarkMode}
           />
           <p className={`${TYPE.bodySm} ${theme.colorOnSurfaceVariant}`}>
-            Print or save this card for classroom login. PIN is entered after
-            scanning.
+            Print or save this card. A lost card reprints the same code.
           </p>
         </div>
       </Modal>

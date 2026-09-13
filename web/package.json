@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@material/material-color-utilities": "^0.4.0",
+    "@supabase/supabase-js": "^2.116.0",
     "lucide-react": "^1.24.0",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^4.10.38",

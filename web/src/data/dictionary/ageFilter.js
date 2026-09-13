@@ -243,6 +243,40 @@ export function isBlockedDefinition(text, levelId = readDictionaryAge()) {
 }
 
 /**
+ * Drop adult senses; keep kid-safe ones. Null if none remain.
+ * @param {import('./definitions.js').WordDefinition | null | undefined} def
+ * @param {string} [levelId]
+ */
+export function filterDefinitionForAge(def, levelId = readDictionaryAge()) {
+  if (!def) return null;
+  const raw =
+    Array.isArray(def.senses) && def.senses.length
+      ? def.senses
+      : [
+          {
+            partOfSpeech: def.partOfSpeech,
+            definition: def.definition,
+            example: def.example,
+          },
+        ];
+  const senses = raw.filter(
+    (sense) =>
+      sense?.definition &&
+      !isBlockedDefinition(sense.definition, levelId) &&
+      !isBlockedDefinition(sense.example, levelId),
+  );
+  if (!senses.length) return null;
+  const first = senses[0];
+  return {
+    ...def,
+    partOfSpeech: first.partOfSpeech,
+    definition: first.definition,
+    example: first.example,
+    senses,
+  };
+}
+
+/**
  * @param {string[]} words
  * @param {string} [levelId]
  */

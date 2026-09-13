@@ -9,6 +9,7 @@ import {
   Settings,
   HelpCircle,
   FileText,
+  KeyRound,
   Monitor,
   Star,
   BarChart2,
@@ -19,6 +20,8 @@ import {
 import { NAV_HEIGHT } from '../shared/theme';
 import { TYPE } from '../shared/typography';
 import { launcherApps } from '../apps';
+import { useAuth } from '../data/auth/AuthContext';
+import { OwnerFacetSwitch } from '../auth/OwnerFacetSwitch';
 import { useAppThemePreferences } from '../data/settings/AppThemePreferencesContext';
 
 const LAUNCHER_ORDER_KEY = 'eduHub.launcherAppOrder.v2';
@@ -116,7 +119,12 @@ export function Header({
   onToggleAccountMenu,
   onCloseMenus,
   onOpenMobileNav,
+  account = null,
+  onSignOut,
+  onOpenClassroom,
+  showApps = true,
 }) {
+  const { switchView } = useAuth();
   const { getLauncherColor } = useAppThemePreferences();
   const [orderedApps, setOrderedApps] = useState(loadOrderedApps);
   const [isEditingApps, setIsEditingApps] = useState(false);
@@ -313,6 +321,7 @@ export function Header({
         </div>
 
         <div className="flex items-center space-x-1 sm:space-x-2 shrink-0">
+          {showApps ? (
           <div className="relative">
             <button
               ref={appsButtonRef}
@@ -467,6 +476,7 @@ export function Header({
               </div>
             )}
           </div>
+          ) : null}
 
           <div className="relative">
             <button
@@ -618,17 +628,51 @@ export function Header({
                       <User size={20} className="text-sky-600" />
                     </div>
                     <div className="flex-1 overflow-hidden">
-                      <p className={`${TYPE.titleSm} truncate ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                        Admin User
-                      </p>
-                      <p className={`${TYPE.bodySm} truncate ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                        admin@eduhub.com
-                      </p>
+                    <p className={`${TYPE.titleSm} truncate ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                      {account?.displayName || 'Account'}
+                    </p>
+                    <p className={`${TYPE.bodySm} truncate ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                      {account?.email || ''}
+                    </p>
+                    {account?.owner ? (
+                      <p className={`${TYPE.labelMicro} ${theme.colorOnSurfaceVariant}`}>Owner</p>
+                    ) : null}
                     </div>
                   </div>
                 </div>
 
+                {account?.owner ? (
+                  <div className={`border-b px-4 py-3 ${isDarkMode ? 'border-slate-700' : 'border-slate-200'}`}>
+                    <OwnerFacetSwitch
+                      activeRole={account.role}
+                      theme={theme}
+                      onSwitch={(role) => {
+                        onCloseMenus?.();
+                        switchView(role);
+                      }}
+                    />
+                  </div>
+                ) : null}
+
                 <div className="py-2">
+                  {account?.role === 'teacher' && onOpenClassroom ? (
+                    <button
+                      type="button"
+                      className={`w-full flex items-center px-4 py-2.5 ${TYPE.bodyMd} transition-colors ${
+                        isDarkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-700 hover:bg-slate-50'
+                      }`}
+                      onClick={() => {
+                        onCloseMenus?.();
+                        onOpenClassroom();
+                      }}
+                    >
+                      <KeyRound
+                        size={16}
+                        className={`mr-3 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
+                      />
+                      Classroom sign-in
+                    </button>
+                  ) : null}
                   {[
                     { name: 'Your Profile', icon: User },
                     { name: 'Preferences', icon: Settings },
@@ -655,7 +699,10 @@ export function Header({
                     className={`w-full flex items-center justify-center px-2 py-2 ${TYPE.labelLg} rounded-lg transition-colors text-rose-500 ${
                       isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-rose-50'
                     }`}
-                    onClick={onCloseMenus}
+                    onClick={() => {
+                      onCloseMenus?.();
+                      onSignOut?.();
+                    }}
                   >
                     <LogOut size={16} className="mr-2" />
                     Sign Out

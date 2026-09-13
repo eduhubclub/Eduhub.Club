@@ -21,6 +21,10 @@ import { storeApp } from './store/config';
 import { calendarApp } from './calendar/config';
 import { paperApp } from './paper/config';
 import { dictionaryApp } from './dictionary/config';
+import { morningMeetingApp } from './morningMeeting/config';
+import { ofTheDayApp } from './ofTheDay/config';
+import { libraryApp } from './library/config';
+import { slidesApp } from './slides/config';
 
 export { launcherApps } from './launcher';
 
@@ -49,6 +53,10 @@ export const apps = {
   [calendarApp.id]: calendarApp,
   [paperApp.id]: paperApp,
   [dictionaryApp.id]: dictionaryApp,
+  [morningMeetingApp.id]: morningMeetingApp,
+  [ofTheDayApp.id]: ofTheDayApp,
+  [libraryApp.id]: libraryApp,
+  [slidesApp.id]: slidesApp,
 };
 
 /** Hub is the default entry app. */

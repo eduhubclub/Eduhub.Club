@@ -213,14 +213,17 @@ function writeCache(entry) {
 
 /**
  * Cached daily word + definition + picture for the class age band.
- * @param {{ dateKey?: string, ageId?: string }} [opts]
+ * OfTheDay may pass `forcedWord` after a teacher reshuffle.
+ * @param {{ dateKey?: string, ageId?: string, forcedWord?: string }} [opts]
  * @returns {Promise<WordOfTheDay | null>}
  */
 export async function loadWordOfTheDay(opts = {}) {
   const date = opts.dateKey || localDateKey();
   const ageId = normalizeAgeLevel(opts.ageId || readDictionaryAge());
+  const forced = String(opts.forcedWord || '').trim().toLowerCase();
   const cached = readCache();
   if (
+    !forced &&
     cached?.date === date &&
     cached?.ageId === ageId &&
     cached?.word &&
@@ -230,10 +233,13 @@ export async function loadWordOfTheDay(opts = {}) {
     return cached;
   }
 
-  const candidates = pickWordCandidates(date, ageId);
+  let candidates = pickWordCandidates(date, ageId);
+  if (forced) {
+    candidates = [forced, ...candidates.filter((w) => w !== forced)];
+  }
   let fallback = null;
 
-  for (const word of candidates.slice(0, MAX_TRIES)) {
+  for (const word of candidates.slice(0, forced ? MAX_TRIES + 1 : MAX_TRIES)) {
     const [def, pic, pronunciation] = await Promise.all([
       fetchDefinition(word),
       fetchWordImage(word),

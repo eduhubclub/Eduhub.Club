@@ -44,13 +44,13 @@ export function Modal({
     >
       <button
         type="button"
-        className="absolute inset-0 cursor-default"
+        className="absolute inset-0 z-0 cursor-default"
         aria-label="Close dialog"
         onClick={onClose}
       />
 
       <div
-        className={`relative w-full ${maxWidth} flex flex-col max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden ${theme.colorSurface} ${
+        className={`relative z-10 w-full ${maxWidth} flex flex-col max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden ${theme.colorSurface} ${
           isDarkMode ? `border ${theme.colorOutline}` : ''
         }`}
       >

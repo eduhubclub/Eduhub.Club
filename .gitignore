@@ -12,3 +12,5 @@ Thumbs.db
 
 # Cursor / local
 .cursor/
+.tmp-gh-pages/
+.tmp-novelty-*

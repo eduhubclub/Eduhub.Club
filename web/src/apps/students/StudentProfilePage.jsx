@@ -11,6 +11,7 @@ import { StudentBankQr } from '../../shared/StudentBankQr';
 import { APP_BOARD_PAD, APP_GRID_CARD } from '../../shared/layout';
 import { TYPE } from '../../shared/typography';
 import { StudentInsightsPanel } from './StudentInsightsPanel';
+import { StudentLibraryCard } from '../library/StudentLibraryCard';
 import { studentDisplayName } from '../../data/students/displayName';
 
 const SECTION_OPTIONS = [
@@ -19,6 +20,7 @@ const SECTION_OPTIONS = [
   { id: 'login', label: 'Logins & sign-in' },
   { id: 'family', label: 'Family information' },
   { id: 'bankCard', label: 'ClassBank card' },
+  { id: 'library', label: 'Library' },
   { id: 'insights', label: 'Insights & highlights' },
 ];
 
@@ -79,6 +81,14 @@ function sectionsMatchingQuery(student, allStudents, query) {
       'scan',
       student.name,
       student.studentId,
+    ]),
+    library: includes([
+      'library',
+      'book',
+      'checkout',
+      'due',
+      'loan',
+      'overdue',
     ]),
     insights: includes([
       'insight',
@@ -367,12 +377,24 @@ export function StudentProfilePage({
                     </p>
                   ) : null}
                   <p className={`mt-3 ${TYPE.bodySm} ${theme.colorOnSurfaceVariant}`}>
-                    Print or laminate this QR for the student’s ClassBank card.
-                    Scanning identifies the student; their PIN is entered after.
+                    Print or laminate this card. Scanning signs the student in.
+                    A lost card reprints this same code. New code replaces it.
                   </p>
                 </div>
               </div>
             </div>
+          </section>
+        ) : null}
+
+        {sectionVisibility.library !== false ? (
+          <section aria-labelledby="student-library-heading">
+            <h2
+              id="student-library-heading"
+              className={`${TYPE.titleSm} mb-3 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}
+            >
+              Library
+            </h2>
+            <StudentLibraryCard student={student} theme={theme} />
           </section>
         ) : null}
 

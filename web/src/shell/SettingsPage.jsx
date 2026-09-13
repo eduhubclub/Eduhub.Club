@@ -55,6 +55,10 @@ import {
 } from '../data/store/storeSettings';
 import { CalendarSettingsCards } from '../apps/calendar/CalendarSettingsCards';
 import { DictionarySettingsCards } from '../apps/dictionary/DictionarySettingsCards';
+import { MorningMeetingSettingsCards } from '../apps/morningMeeting/MorningMeetingSettingsCards';
+import { OfTheDaySettingsCards } from '../apps/ofTheDay/OfTheDaySettingsCards';
+import { LibrarySettingsCards } from '../apps/library/LibrarySettingsCards';
+import { SlidesSettingsCards } from '../apps/slides/SlidesSettingsCards';
 
 function SettingsCard({ title, description, isDarkMode, defaultOpen = true, children }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -135,8 +139,9 @@ export function SettingsPage({
   } = useAccessibilityPreferences();
   const { syncActivePools, setSyncActivePools } = useRandomizerPoolSettings();
   const { selectedClass } = useClasses();
-  const { isBankOpen, setBankOpen } = useBankAccess();
+  const { isBankOpen, setBankOpen, requireCardPin, setRequireCardPin } = useBankAccess();
   const bankOpenForSelected = isBankOpen(selectedClass?.id);
+  const cardPinRequired = requireCardPin(selectedClass?.id);
   const {
     soundId,
     setSoundId,
@@ -203,6 +208,10 @@ export function SettingsPage({
   const isStore = currentApp?.id === 'store';
   const isCalendar = currentApp?.id === 'calendar';
   const isDictionary = currentApp?.id === 'dictionary';
+  const isMorningMeeting = currentApp?.id === 'morningMeeting';
+  const isOfTheDay = currentApp?.id === 'ofTheDay';
+  const isLibrary = currentApp?.id === 'library';
+  const isSlides = currentApp?.id === 'slides';
   const [behaviorSyncToBank, setBehaviorSyncToBank] = useState(readBehaviorSyncToBank);
   const [behaviorShowNeedsWork, setBehaviorShowNeedsWork] = useState(
     readBehaviorShowNeedsWork,
@@ -559,6 +568,62 @@ export function SettingsPage({
                   <span
                     className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
                       bankOpenForSelected ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+          </SettingsCard>
+
+          <SettingsCard
+            title="Card PIN"
+            description="Sign-in stays one scan. This only asks for a PIN in the bank after the card is read."
+            isDarkMode={isDarkMode}
+          >
+            <div className="px-5 sm:px-6 py-5 sm:py-6">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0 pr-2">
+                  <p className={`${TYPE.titleSm} ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                    Ask for a PIN after a card scan
+                  </p>
+                  <p
+                    className={`${TYPE.bodySm} mt-1 ${
+                      isDarkMode ? 'text-slate-500' : 'text-slate-400'
+                    }`}
+                  >
+                    {cardPinRequired
+                      ? 'On — the bank waits for the student PIN before it continues.'
+                      : 'Off — a card scan is enough. Turn this on when you want the extra check.'}
+                    {!selectedClass
+                      ? ' Select a class in Bank to change this setting.'
+                      : ''}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={cardPinRequired}
+                  aria-label={
+                    cardPinRequired
+                      ? 'Stop asking for a PIN after a card scan'
+                      : 'Ask for a PIN after a card scan'
+                  }
+                  disabled={!selectedClass}
+                  onClick={() =>
+                    selectedClass &&
+                    setRequireCardPin(selectedClass.id, !cardPinRequired)
+                  }
+                  className={`edu-control relative shrink-0 w-11 h-6 rounded-full transition-colors disabled:opacity-40 ${
+                    cardPinRequired
+                      ? theme.colorPrimary
+                      : isDarkMode
+                        ? 'bg-slate-700'
+                        : 'bg-slate-300'
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                      cardPinRequired ? 'translate-x-5' : 'translate-x-0'
                     }`}
                   />
                 </button>
@@ -961,6 +1026,38 @@ export function SettingsPage({
 
         {isDictionary ? (
           <DictionarySettingsCards
+            theme={theme}
+            isDarkMode={isDarkMode}
+            Card={SettingsCard}
+          />
+        ) : null}
+
+        {isMorningMeeting ? (
+          <MorningMeetingSettingsCards
+            theme={theme}
+            isDarkMode={isDarkMode}
+            Card={SettingsCard}
+          />
+        ) : null}
+
+        {isOfTheDay ? (
+          <OfTheDaySettingsCards
+            theme={theme}
+            isDarkMode={isDarkMode}
+            Card={SettingsCard}
+          />
+        ) : null}
+
+        {isLibrary ? (
+          <LibrarySettingsCards
+            theme={theme}
+            isDarkMode={isDarkMode}
+            Card={SettingsCard}
+          />
+        ) : null}
+
+        {isSlides ? (
+          <SlidesSettingsCards
             theme={theme}
             isDarkMode={isDarkMode}
             Card={SettingsCard}

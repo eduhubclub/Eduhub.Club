@@ -371,6 +371,10 @@ export const appThemes = {
   Calendar: { ...primaryPalettes.Blue },
   Paper: { ...primaryPalettes.Blue },
   Dictionary: { ...primaryPalettes.Blue },
+  MorningMeeting: { ...primaryPalettes.Orange },
+  OfTheDay: { ...primaryPalettes.Purple },
+  Library: { ...primaryPalettes.Emerald },
+  Slides: { ...primaryPalettes.Pink },
 };
 
 /** Default primary key for each appThemes / themeKey name. */
@@ -401,6 +405,10 @@ export const appThemePrimaryKeys = {
   Calendar: 'Blue',
   Paper: 'Blue',
   Dictionary: 'Blue',
+  MorningMeeting: 'Orange',
+  OfTheDay: 'Purple',
+  Library: 'Emerald',
+  Slides: 'Pink',
 };
 
 /**

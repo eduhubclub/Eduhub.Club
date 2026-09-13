@@ -40,6 +40,8 @@ import { SettingsPage } from './SettingsPage';
 import { ShellPaddingBand, ShellPaddingOverlay } from './ShellPaddingBand';
 import { AppInfoProvider } from '../shared/AppInfo';
 import { SkipLink } from '../shared/SkipLink';
+import { useAuth } from '../data/auth/AuthContext';
+import { ClassroomSignInModal } from '../auth/ClassroomSignInModal';
 import {
   readStoreSettings,
   STORE_SETTINGS_UPDATED_EVENT,
@@ -127,6 +129,8 @@ export function AppShell() {
   const [pinnedWidgetIds, setPinnedWidgetIds] = useState(loadPinnedWidgets);
   const [activeWidgetId, setActiveWidgetId] = useState(null);
   const [isAddWidgetModalOpen, setIsAddWidgetModalOpen] = useState(false);
+  const [isClassroomOpen, setIsClassroomOpen] = useState(false);
+  const { session, signOut } = useAuth();
   const [newItemName, setNewItemName] = useState('');
   const [newItemDesc, setNewItemDesc] = useState('');
   const [newItemIcon, setNewItemIcon] = useState('Folder');
@@ -492,6 +496,9 @@ export function AppShell() {
     (currentAppId === 'timer' &&
       activeTab !== 'Local Time' &&
       activeTab !== 'World Clock') ||
+    (currentAppId === 'morningMeeting' && activeTab === 'Board') ||
+    (currentAppId === 'slides' &&
+      (activeTab === 'Edit' || activeTab === 'Present' || activeTab === 'Follow')) ||
     (currentAppId === 'bank' && activeTab === 'Learning') ||
     currentAppId === 'mathTools' ||
     activeTab === 'Static board' ||
@@ -797,6 +804,20 @@ export function AppShell() {
           }}
           onCloseMenus={closeHeaderMenus}
           onOpenMobileNav={() => setIsMobileNavOpen(true)}
+          account={
+            session
+              ? {
+                  displayName: session.displayName,
+                  email: session.email,
+                  role: session.role,
+                  owner: session.owner,
+                }
+              : null
+          }
+          onSignOut={signOut}
+          onOpenClassroom={
+            session?.role === 'teacher' ? () => setIsClassroomOpen(true) : undefined
+          }
         />
 
         {/* z-0 traps app stacking (e.g. whiteboard canvas z-60) so Header popouts stay clickable.
@@ -979,6 +1000,14 @@ export function AppShell() {
           pinnedIds={pinnedWidgetIds}
           onPin={pinWidget}
           onUnpin={unpinWidget}
+        />
+      ) : null}
+
+      {isClassroomOpen ? (
+        <ClassroomSignInModal
+          theme={theme}
+          isDarkMode={isDarkMode}
+          onClose={() => setIsClassroomOpen(false)}
         />
       ) : null}
     </div>

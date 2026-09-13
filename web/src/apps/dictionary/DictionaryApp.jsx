@@ -1,20 +1,24 @@
 import { useEffect, useRef, useState } from 'react';
-import { BookA, HandHelping, Search, Sparkles } from 'lucide-react';
+import { HandHelping, Search, Sparkles, X } from 'lucide-react';
 import { AppPageShell } from '../../shared/AppPageShell';
+import { ButtonRow, ButtonRowLabel } from '../../shared/ButtonRow';
 import { PageHeader } from '../../shared/PageHeader';
 import { APP_GRID_CARD } from '../../shared/layout';
+import { toolBtnClass } from '../../shared/toolBtn';
 import { TYPE } from '../../shared/typography';
 import {
   DICTIONARY_AGE_EVENT,
   DICTIONARY_AGE_LEVELS,
-  isBlockedDefinition,
+  filterDefinitionForAge,
   isBlockedWord,
   readDictionaryAge,
 } from '../../data/dictionary/ageFilter';
-import { fetchDefinition } from '../../data/dictionary/definitions';
+import { fetchDefinition, fetchPronunciation, formatPronunciationLine } from '../../data/dictionary/definitions';
 import { fetchWordImage } from '../../data/dictionary/images';
 import { normalizeLookup, recordSpelling } from '../../data/dictionary/spellingBank';
 import { fetchSuggestions, quickSuggestions } from '../../data/dictionary/suggest';
+import { SuggestionList } from './SuggestionList';
+import { StudentDictionariesView } from './StudentDictionariesView';
 import { TeacherHelpModal } from './TeacherHelpModal';
 import { WordOfTheDayCard } from './WordOfTheDayCard';
 
@@ -27,6 +31,7 @@ export function DictionaryApp({ activeTab, isDarkMode, theme, onSetActiveTab }) 
   const [suggesting, setSuggesting] = useState(false);
   const [selected, setSelected] = useState('');
   const [definition, setDefinition] = useState(null);
+  const [pronunciation, setPronunciation] = useState(null);
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [missing, setMissing] = useState(false);
@@ -78,6 +83,7 @@ export function DictionaryApp({ activeTab, isDarkMode, theme, onSetActiveTab }) 
     setSuggestions([]);
     setMissing(false);
     setDefinition(null);
+    setPronunciation(null);
     setImage(null);
     if (isBlockedWord(word, age)) {
       setBlocked(true);
@@ -88,19 +94,26 @@ export function DictionaryApp({ activeTab, isDarkMode, theme, onSetActiveTab }) 
     setBlocked(false);
     setLoading(true);
     const id = (lookupId.current += 1);
-    Promise.all([fetchDefinition(word), fetchWordImage(word)]).then(([def, pic]) => {
+    Promise.all([
+      fetchDefinition(word),
+      fetchWordImage(word),
+      fetchPronunciation(word),
+    ]).then(([def, pic, sound]) => {
       if (id !== lookupId.current) return;
-      if (isBlockedDefinition(def?.definition, age) || isBlockedDefinition(def?.example, age)) {
+      const safe = filterDefinitionForAge(def, age);
+      if (def && !safe) {
         setBlocked(true);
         setDefinition(null);
+        setPronunciation(null);
         setImage(null);
         setMissing(false);
         setLoading(false);
         return;
       }
-      setDefinition(def);
+      setDefinition(safe);
+      setPronunciation(sound || safe?.pronunciation || null);
       setImage(pic);
-      setMissing(!def);
+      setMissing(!safe);
       setLoading(false);
     });
   };
@@ -130,9 +143,33 @@ export function DictionaryApp({ activeTab, isDarkMode, theme, onSetActiveTab }) 
 
   const helpAttempt = normalizeLookup(kidAttempt || query);
   const showTeacherHelp = helpAttempt.length >= 2;
+  const spoken = formatPronunciationLine(pronunciation);
 
-  const inputClass = `edu-control w-full rounded-2xl border-[1.5px] py-4 pl-12 pr-4 ${TYPE.titleMd} outline-none ${theme.colorSurface} ${theme.colorOutline} ${theme.colorOnSurface}`;
+  const clearSearch = () => {
+    setQuery('');
+    setKidAttempt('');
+    setSuggestions([]);
+    setSuggesting(false);
+    setSelected('');
+    setDefinition(null);
+    setImage(null);
+    setMissing(false);
+    setBlocked(false);
+    setPronunciation(null);
+    setLearnedNote('');
+    setLoading(false);
+    lookupId.current += 1;
+  };
+
+  const inputClass = `edu-control w-full rounded-2xl border-[1.5px] py-4 pl-12 ${
+    query ? 'pr-12' : 'pr-4'
+  } ${TYPE.titleMd} outline-none ${theme.colorSurface} ${theme.colorOutline} ${theme.colorOnSurface}`;
   const isWordOfTheDay = activeTab === 'Word of the Day';
+  const isStudentDictionaries = activeTab === 'Student Dictionaries';
+
+  if (isStudentDictionaries) {
+    return <StudentDictionariesView isDarkMode={isDarkMode} theme={theme} />;
+  }
 
   if (isWordOfTheDay) {
     return (
@@ -164,18 +201,19 @@ export function DictionaryApp({ activeTab, isDarkMode, theme, onSetActiveTab }) 
 
   return (
     <AppPageShell variant="page">
-      <PageHeader
-        title="Dictionary"
-        description={`Type a word — even if the spelling is off. We’ll guess from how it sounds. Age filter: ${ageLabel} (Settings).`}
-        isDarkMode={isDarkMode}
-        leading={
-          <div
-            className={`p-2.5 rounded-xl ${theme.colorPrimaryContainer} ${theme.colorOnPrimaryContainer}`}
-          >
-            <BookA size={20} />
-          </div>
-        }
-      />
+      <ButtonRow>
+        <button
+          type="button"
+          onClick={() => setTeacherOpen(true)}
+          disabled={!showTeacherHelp}
+          title="Ask a teacher"
+          aria-label="Ask a teacher"
+          className={`${toolBtnClass(isDarkMode)} disabled:opacity-50 disabled:pointer-events-none`}
+        >
+          <HandHelping size={16} strokeWidth={2.5} />
+          <ButtonRowLabel>Ask a teacher</ButtonRowLabel>
+        </button>
+      </ButtonRow>
 
       <form onSubmit={onSubmit} className="max-w-2xl">
         <label htmlFor="dictionary-search" className="sr-only">
@@ -200,51 +238,32 @@ export function DictionaryApp({ activeTab, isDarkMode, theme, onSetActiveTab }) 
             placeholder="Type a word…"
             className={inputClass}
           />
+          {query ? (
+            <button
+              type="button"
+              onClick={clearSearch}
+              title="Clear"
+              aria-label="Clear search"
+              className={`edu-control absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-xl flex items-center justify-center ${theme.colorOnSurfaceVariant}`}
+            >
+              <X size={18} strokeWidth={2.25} />
+            </button>
+          ) : null}
         </div>
       </form>
 
       {suggestions.length > 0 ? (
-        <div className="mt-3 flex flex-wrap gap-2 max-w-2xl">
-          {suggestions.map((word) => {
-            const active = word === selected;
-            return (
-              <button
-                key={word}
-                type="button"
-                onClick={() => lookup(word, kidAttempt || query)}
-                className={`edu-control rounded-xl border-[1.5px] px-3 py-2 ${TYPE.labelLg} transition-colors ${
-                  active
-                    ? `${theme.colorPrimary} ${theme.colorOnPrimary} border-transparent`
-                    : isDarkMode
-                      ? 'bg-slate-800 text-slate-200 border-slate-600 hover:bg-slate-700'
-                      : `${theme.colorSurface} ${theme.colorOutline} ${theme.colorOnSurface} hover:bg-slate-50`
-                }`}
-              >
-                {word}
-              </button>
-            );
-          })}
-        </div>
+        <SuggestionList
+          words={suggestions}
+          selected={selected}
+          onPick={(word) => lookup(word, kidAttempt || query)}
+          theme={theme}
+          isDarkMode={isDarkMode}
+        />
       ) : suggesting ? (
         <p className={`${TYPE.bodySm} mt-3 ${theme.colorOnSurfaceVariant}`}>
           Looking for spellings…
         </p>
-      ) : null}
-
-      {showTeacherHelp ? (
-        <div className="mt-3 max-w-2xl">
-          <button
-            type="button"
-            onClick={() => setTeacherOpen(true)}
-            className={`edu-control inline-flex items-center gap-2 rounded-xl border-[1.5px] px-3 py-2 ${TYPE.labelLg} ${theme.colorSurface} ${theme.colorOutline} ${theme.colorOnSurface}`}
-          >
-            <HandHelping size={18} strokeWidth={2.25} />
-            Ask a teacher
-          </button>
-          <p className={`${TYPE.bodySm} mt-1.5 ${theme.colorOnSurfaceVariant}`}>
-            A teacher can type the real word. Next time, this spelling will find it.
-          </p>
-        </div>
       ) : null}
 
       {learnedNote ? (
@@ -290,9 +309,20 @@ export function DictionaryApp({ activeTab, isDarkMode, theme, onSetActiveTab }) 
                   >
                     {selected}
                   </p>
-                  {definition?.partOfSpeech ? (
-                    <p className={`${TYPE.labelMicro} mt-2 ${theme.colorOnSurfaceVariant}`}>
-                      {definition.partOfSpeech}
+                  {definition?.partOfSpeech || spoken ? (
+                    <p className={`${TYPE.bodySm} mt-2 ${theme.colorOnSurfaceVariant}`}>
+                      {spoken ? (
+                        <>
+                          {spoken}
+                          {definition?.senses?.length > 1
+                            ? ` · ${definition.senses.length} meanings`
+                            : null}
+                        </>
+                      ) : definition?.senses?.length > 1 ? (
+                        `${definition.senses.length} meanings`
+                      ) : definition?.partOfSpeech ? (
+                        <span className="italic">{definition.partOfSpeech}</span>
+                      ) : null}
                     </p>
                   ) : null}
                   {loading ? (
@@ -300,22 +330,41 @@ export function DictionaryApp({ activeTab, isDarkMode, theme, onSetActiveTab }) 
                       Looking up this word…
                     </p>
                   ) : definition ? (
-                    <>
-                      <p
-                        className={`${TYPE.bodyMd} mt-3 ${
-                          isDarkMode ? 'text-slate-200' : 'text-slate-700'
-                        }`}
-                      >
-                        {definition.definition}
-                      </p>
-                      {definition.example ? (
-                        <p
-                          className={`${TYPE.bodySm} mt-2 italic ${theme.colorOnSurfaceVariant}`}
-                        >
-                          “{definition.example}”
-                        </p>
-                      ) : null}
-                    </>
+                    <ol className="mt-3 space-y-3 list-none">
+                      {(definition.senses?.length
+                        ? definition.senses
+                        : [
+                            {
+                              partOfSpeech: definition.partOfSpeech,
+                              definition: definition.definition,
+                              example: definition.example,
+                            },
+                          ]
+                      ).map((sense, index) => (
+                        <li key={`${sense.partOfSpeech}-${index}`}>
+                          <p className={`${TYPE.bodySm} ${theme.colorOnSurfaceVariant}`}>
+                            <span className="tabular-nums font-semibold">{index + 1}.</span>
+                            {sense.partOfSpeech ? (
+                              <span className="italic ml-1.5">{sense.partOfSpeech}</span>
+                            ) : null}
+                          </p>
+                          <p
+                            className={`${TYPE.bodyMd} mt-1 ${
+                              isDarkMode ? 'text-slate-200' : 'text-slate-700'
+                            }`}
+                          >
+                            {sense.definition}
+                          </p>
+                          {sense.example ? (
+                            <p
+                              className={`${TYPE.bodySm} mt-1 italic ${theme.colorOnSurfaceVariant}`}
+                            >
+                              “{sense.example}”
+                            </p>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ol>
                   ) : missing ? (
                     <p className={`${TYPE.bodyMd} mt-3 ${theme.colorOnSurfaceVariant}`}>
                       No definition found — try another spelling.

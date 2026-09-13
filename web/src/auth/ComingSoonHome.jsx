@@ -1,13 +1,14 @@
 import { useEffect } from 'react';
+import { StaffDoor } from './StaffDoorButton';
 import { LogoHorizontal } from '../shared/Logo';
 import { getTheme, resolveShellBackgroundClass } from '../shared/theme';
 import { TYPE } from '../shared/typography';
 
 /**
  * Public entry while sign-in is closed.
- * Do not add role cards or a login modal here.
+ * The corner control is the only way through.
  */
-export function ComingSoonHome() {
+export function ComingSoonHome({ onUnlock }) {
   const theme = getTheme('Blue', false);
   const background = resolveShellBackgroundClass(undefined, false);
 
@@ -22,6 +23,7 @@ export function ComingSoonHome() {
       <LogoHorizontal className="h-12 w-auto" />
       <h1 className={`mt-8 ${TYPE.titleLg}`}>Eduhub Club</h1>
       <p className={`mt-3 ${TYPE.titleMd} ${theme.colorOnSurfaceVariant}`}>Coming soon</p>
+      <StaffDoor theme={theme} isDarkMode={false} onUnlock={onUnlock} />
     </div>
   );
 }

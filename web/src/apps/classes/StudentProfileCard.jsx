@@ -649,7 +649,7 @@ export function StudentProfileCard({
                     isDarkMode ? 'text-slate-500' : 'text-slate-400'
                   }`}
                 >
-                  Scan to log in to ClassBank
+                  Scan to sign in. A lost card reprints this same code.
                 </p>
               </div>
             ) : null}

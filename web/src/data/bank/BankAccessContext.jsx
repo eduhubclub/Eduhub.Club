@@ -8,19 +8,24 @@ import {
 } from 'react';
 
 const STORAGE_KEY = 'eduHub.bank.openByClass';
+const PIN_KEY = 'eduHub.bank.requireCardPin';
 
 /** Default: bank is open until a teacher closes it. */
 const DEFAULT_OPEN = true;
 
-function readMap() {
+function readMapFrom(key) {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(key);
     if (!raw) return {};
     const parsed = JSON.parse(raw);
     return parsed && typeof parsed === 'object' ? parsed : {};
   } catch {
     return {};
   }
+}
+
+function readMap() {
+  return readMapFrom(STORAGE_KEY);
 }
 
 const BankAccessContext = createContext(null);
@@ -31,6 +36,7 @@ const BankAccessContext = createContext(null);
  */
 export function BankAccessProvider({ children }) {
   const [openByClass, setOpenByClass] = useState(readMap);
+  const [requirePinByClass, setRequirePinByClass] = useState(() => readMapFrom(PIN_KEY));
 
   useEffect(() => {
     try {
@@ -39,6 +45,14 @@ export function BankAccessProvider({ children }) {
       /* ignore */
     }
   }, [openByClass]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(PIN_KEY, JSON.stringify(requirePinByClass));
+    } catch {
+      /* ignore */
+    }
+  }, [requirePinByClass]);
 
   const isBankOpen = useCallback(
     (classId) => {
@@ -69,13 +83,28 @@ export function BankAccessProvider({ children }) {
     });
   }, []);
 
+  const requireCardPin = useCallback(
+    (classId) => {
+      if (!classId) return false;
+      return Boolean(requirePinByClass[String(classId)]);
+    },
+    [requirePinByClass],
+  );
+
+  const setRequireCardPin = useCallback((classId, required) => {
+    if (!classId) return;
+    setRequirePinByClass((prev) => ({ ...prev, [String(classId)]: Boolean(required) }));
+  }, []);
+
   const value = useMemo(
     () => ({
       isBankOpen,
       setBankOpen,
       toggleBankOpen,
+      requireCardPin,
+      setRequireCardPin,
     }),
-    [isBankOpen, setBankOpen, toggleBankOpen],
+    [isBankOpen, setBankOpen, toggleBankOpen, requireCardPin, setRequireCardPin],
   );
 
   return (
