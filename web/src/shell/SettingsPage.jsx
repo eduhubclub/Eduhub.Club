@@ -25,7 +25,12 @@ import { PRIMARY_KEYS, primaryPalettes, SHELL_BACKGROUNDS } from '../shared/them
 import { WidgetCatalogPicker } from '../apps/dashboard/widgets/WidgetCatalogPicker';
 import { useRandomizerPoolSettings } from '../data/randomizer/RandomizerPoolContext';
 import { useBankAccess } from '../data/bank/BankAccessContext';
+import { useAuth } from '../data/auth/AuthContext';
 import { useClasses } from '../data/classes/ClassContext';
+import { StudentAppsCard } from './StudentAppsCard';
+import { MfaSettingsCard } from './MfaSettingsCard';
+import { InvitesCard } from './InvitesCard';
+import { isStudentApp, STUDENT_APP_NAMES, appParts, partsHeading } from '../data/access/studentApps';
 import {
   readBehaviorSyncToBank,
   writeBehaviorSyncToBank,
@@ -139,6 +144,8 @@ export function SettingsPage({
   } = useAccessibilityPreferences();
   const { syncActivePools, setSyncActivePools } = useRandomizerPoolSettings();
   const { selectedClass } = useClasses();
+  const { session } = useAuth();
+  const showStudentApps = session?.role === 'teacher' || session?.owner;
   const { isBankOpen, setBankOpen, requireCardPin, setRequireCardPin } = useBankAccess();
   const bankOpenForSelected = isBankOpen(selectedClass?.id);
   const cardPinRequired = requireCardPin(selectedClass?.id);
@@ -314,6 +321,24 @@ export function SettingsPage({
 
       <div className="flex flex-col gap-4 max-w-2xl">
         <SettingsCard
+          title="Sign-in security"
+          description="Optional authenticator app for this account. Off until you turn it on."
+          isDarkMode={isDarkMode}
+        >
+          <MfaSettingsCard theme={theme} isDarkMode={isDarkMode} session={session} />
+        </SettingsCard>
+
+        {session?.role === 'teacher' || session?.role === 'admin' || session?.owner ? (
+          <SettingsCard
+            title="Invites"
+            description="Let a parent, teacher, or admin create the right kind of account."
+            isDarkMode={isDarkMode}
+          >
+            <InvitesCard theme={theme} session={session} />
+          </SettingsCard>
+        ) : null}
+
+        <SettingsCard
           title="Demo data"
           description="Sample class and students used while exploring the platform."
           isDarkMode={isDarkMode}
@@ -353,6 +378,20 @@ export function SettingsPage({
             </div>
           </div>
         </SettingsCard>
+
+        {showStudentApps && isStudentApp(currentApp?.id) ? (
+          <SettingsCard
+            title={`${STUDENT_APP_NAMES[currentApp.id]} for students`}
+            description={
+              appParts(currentApp.id).length
+                ? `Turn ${STUDENT_APP_NAMES[currentApp.id]} on or off, and choose which ${partsHeading(currentApp.id).toLowerCase()} students can open. Days and the time limit apply to the whole app.`
+                : `Turn ${STUDENT_APP_NAMES[currentApp.id]} on or off for students, and set the days and time limit.`
+            }
+            isDarkMode={isDarkMode}
+          >
+            <StudentAppsCard theme={theme} appIds={[currentApp.id]} />
+          </SettingsCard>
+        ) : null}
 
         {currentApp && selected ? (
           <SettingsCard

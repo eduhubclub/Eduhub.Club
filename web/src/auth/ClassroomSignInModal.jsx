@@ -1,7 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { renderSVG } from 'uqr';
+import { ClassJoinCode } from '../apps/classes/ClassJoinCode';
 import { buildLoginQrPayload, isValidPin } from '../data/auth/codes';
 import { addClassroomStudent, loadClassroomRoster, mintClassroomQr } from '../data/auth/classroom';
+import { useClasses } from '../data/classes/ClassContext';
+import { classroomFromClass } from '../data/classes/joinCode';
 import { Modal } from '../shared/Modal';
 import { TYPE } from '../shared/typography';
 import { AuthError, AuthField, primaryButtonClass } from './AuthFields';
@@ -34,6 +37,18 @@ function QrPlate({ token, name }) {
 }
 
 export function ClassroomSignInModal({ theme, isDarkMode, onClose }) {
+  const { classes, selectedClass } = useClasses();
+  const classList = useMemo(
+    () => (classes || []).filter((cls) => !cls.isArchived),
+    [classes],
+  );
+  const [classId, setClassId] = useState(
+    () => selectedClass?.id ?? classList[0]?.id ?? '',
+  );
+  const currentClass =
+    classList.find((cls) => String(cls.id) === String(classId)) || classList[0] || null;
+  const classroom = classroomFromClass(currentClass);
+
   const [roster, setRoster] = useState(null);
   const [name, setName] = useState('');
   const [pin, setPin] = useState('');
@@ -42,8 +57,14 @@ export function ClassroomSignInModal({ theme, isDarkMode, onClose }) {
   const [qr, setQr] = useState(null);
 
   useEffect(() => {
+    if (classId != null && classId !== '') return;
+    const nextId = selectedClass?.id ?? classList[0]?.id;
+    if (nextId != null) setClassId(nextId);
+  }, [classId, classList, selectedClass]);
+
+  useEffect(() => {
     let active = true;
-    loadClassroomRoster()
+    loadClassroomRoster(classroom)
       .then((next) => {
         if (active) setRoster(next);
       })
@@ -53,7 +74,7 @@ export function ClassroomSignInModal({ theme, isDarkMode, onClose }) {
     return () => {
       active = false;
     };
-  }, []);
+  }, [classroom.joinCode, classroom.name]);
 
   async function onAdd(event) {
     event.preventDefault();
@@ -64,7 +85,11 @@ export function ClassroomSignInModal({ theme, isDarkMode, onClose }) {
     setBusy(true);
     setError('');
     try {
-      const next = await addClassroomStudent({ displayName: name, pin });
+      const next = await addClassroomStudent({
+        displayName: name,
+        pin,
+        ...classroom,
+      });
       setRoster(next);
       setName('');
       setPin('');
@@ -79,7 +104,7 @@ export function ClassroomSignInModal({ theme, isDarkMode, onClose }) {
     setBusy(true);
     setError('');
     try {
-      const next = await mintClassroomQr(member.id);
+      const next = await mintClassroomQr(member.id, classroom);
       if (next?.needsNewCode) {
         setError(next.error || 'New code makes one you can print again.');
         return;
@@ -97,7 +122,7 @@ export function ClassroomSignInModal({ theme, isDarkMode, onClose }) {
     setBusy(true);
     setError('');
     try {
-      const next = await mintClassroomQr(member.id, { rotate: true });
+      const next = await mintClassroomQr(member.id, { rotate: true, ...classroom });
       setRoster(next);
       setQr({ token: next.qrToken, name: member.displayName });
     } catch (err) {
@@ -106,6 +131,8 @@ export function ClassroomSignInModal({ theme, isDarkMode, onClose }) {
       setBusy(false);
     }
   }
+
+  const joinCode = classroom.joinCode || roster?.class?.joinCode || '';
 
   return (
     <Modal
@@ -119,14 +146,32 @@ export function ClassroomSignInModal({ theme, isDarkMode, onClose }) {
       <div className="space-y-5 px-6 py-5">
         <p className={`${TYPE.bodySm} ${theme.colorOnSurfaceVariant}`}>
           Students sign in with this class code and their PIN, or by scanning a QR code.
+          Each class card in Edu.Classes shows the same code.
         </p>
 
-        <div className={`rounded-2xl border-[1.5px] px-4 py-4 ${theme.colorOutline} ${theme.colorSurfaceVariant}`}>
-          <p className={`${TYPE.labelMicro} ${theme.colorOnSurfaceVariant}`}>Class code</p>
-          <p className={`mt-1 tracking-[0.2em] ${TYPE.titleLg} ${theme.colorOnSurface}`}>
-            {roster?.class?.joinCode || '…'}
-          </p>
-        </div>
+        {classList.length > 1 ? (
+          <label className="block">
+            <span className={`${TYPE.labelMicro} ${theme.colorOnSurfaceVariant}`}>Class</span>
+            <select
+              className={`edu-control mt-1 w-full rounded-xl border-[1.5px] px-3 py-2 ${TYPE.bodyMd} ${theme.colorOutline} ${theme.colorSurface} ${theme.colorOnSurface}`}
+              value={String(currentClass?.id ?? '')}
+              onChange={(event) => {
+                setClassId(event.target.value);
+                setRoster(null);
+                setQr(null);
+                setError('');
+              }}
+            >
+              {classList.map((cls) => (
+                <option key={cls.id} value={String(cls.id)}>
+                  {cls.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+
+        <ClassJoinCode joinCode={joinCode} theme={theme} size="lg" />
 
         <form className="space-y-3" onSubmit={onAdd}>
           <AuthField

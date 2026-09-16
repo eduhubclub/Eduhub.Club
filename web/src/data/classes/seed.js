@@ -116,6 +116,7 @@ export const SEED_CLASSES = [
     grade: '3rd Grade',
     icon: 'BookOpen',
     isArchived: false,
+    joinCode: 'DEM3RD',
     appCodes: {},
     studentList: buildDummyStudentList(),
   },

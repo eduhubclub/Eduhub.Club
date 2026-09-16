@@ -29,6 +29,7 @@ import { StudentImportPanel } from './StudentImportPanel';
 import { ClassRosterEditor } from './ClassRosterEditor';
 import { StudentProfileCard } from './StudentProfileCard';
 import { StudentLibraryCard } from '../library/StudentLibraryCard';
+import { ClassJoinCode } from './ClassJoinCode';
 import { AppPageShell } from '../../shared/AppPageShell';
 import { appFabClass, APP_GRID_CARD } from '../../shared/layout';
 import { TYPE } from '../../shared/typography';
@@ -235,26 +236,31 @@ export function ClassesApp({ activeTab, isDarkMode, theme, isLeft }) {
         />
 
         {!isEditingRoster && (
-          <div className="flex flex-wrap gap-2 mb-4 -mt-1">
-            {selectedClass.subject && (
-              <span
-                className={`px-2.5 py-1 ${TYPE.labelMd} rounded-md ${
-                  isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'
-                }`}
-              >
-                {selectedClass.subject}
-              </span>
-            )}
-            {selectedClass.grade && (
-              <span
-                className={`px-2.5 py-1 ${TYPE.labelMd} rounded-md ${
-                  isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'
-                }`}
-              >
-                {selectedClass.grade}
-              </span>
-            )}
-          </div>
+          <>
+            <div className="mb-4 -mt-1 max-w-xs">
+              <ClassJoinCode joinCode={selectedClass.joinCode} theme={theme} />
+            </div>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {selectedClass.subject && (
+                <span
+                  className={`px-2.5 py-1 ${TYPE.labelMd} rounded-md ${
+                    isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'
+                  }`}
+                >
+                  {selectedClass.subject}
+                </span>
+              )}
+              {selectedClass.grade && (
+                <span
+                  className={`px-2.5 py-1 ${TYPE.labelMd} rounded-md ${
+                    isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'
+                  }`}
+                >
+                  {selectedClass.grade}
+                </span>
+              )}
+            </div>
+          </>
         )}
 
         {isEditingRoster ? (
@@ -497,6 +503,13 @@ export function ClassesApp({ activeTab, isDarkMode, theme, isLeft }) {
                   >
                     {cls.name}
                   </h3>
+                  <div
+                    className="mb-3"
+                    onClick={(event) => event.stopPropagation()}
+                    onMouseDown={(event) => event.stopPropagation()}
+                  >
+                    <ClassJoinCode joinCode={cls.joinCode} theme={theme} />
+                  </div>
                   <p className={`${TYPE.bodySm} mb-3 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
                     {cls.studentList?.length || 0} students
                   </p>

@@ -4,6 +4,7 @@ import { LogoHorizontal } from '../shared/Logo';
 import { resolveShellBackgroundClass } from '../shared/theme';
 import { AppShell } from '../shell/AppShell';
 import { LandingPage } from './LandingPage';
+import { MfaChallengePage } from './MfaChallengePage';
 import { passwordResetWasRequested } from './passwordReset';
 import { ResetLinkFailed, SetPasswordPage } from './SetPasswordPage';
 import { RoleShell } from './RoleShell';
@@ -20,11 +21,12 @@ function Splash() {
 }
 
 export function AuthGate() {
-  const { ready, session, recovery, signOut } = useAuth();
+  const { ready, session, recovery, mfaPending, signOut } = useAuth();
   if (!ready) return <Splash />;
   if (recovery && session) return <SetPasswordPage />;
   if (passwordResetWasRequested() && !session) return <ResetLinkFailed onSignOut={signOut} />;
   if (!session) return <LandingPage />;
+  if (mfaPending) return <MfaChallengePage />;
 
   const view = sessionForShell(session);
   const shell = shellForRole(view.role);

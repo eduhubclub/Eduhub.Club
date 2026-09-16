@@ -1,11 +1,13 @@
 import { CARD_GAMES } from '../config';
 import '../solitaire/Solitaire.css';
+import { useStudentParts } from '../../../data/access/StudentPartAccess';
 
 /**
  * Cards selection board — pixel cabinets for card titles.
  */
 export function CardsView({ isDarkMode, onOpenGame }) {
   const felt = isDarkMode ? 'arcade-felt-dark' : 'arcade-felt';
+  const parts = useStudentParts();
 
   return (
     <div
@@ -26,11 +28,12 @@ export function CardsView({ isDarkMode, onOpenGame }) {
           <div className="flex flex-wrap content-start gap-4">
             {CARD_GAMES.map((game) => {
               const Icon = game.icon;
+              const closed = parts.isClosed('arcade', game.tab);
               return (
                 <button
                   key={game.id}
                   type="button"
-                  onClick={() => onOpenGame?.(game.tab)}
+                  onClick={() => (closed ? parts.explain(game.name) : onOpenGame?.(game.tab))}
                   className="edu-control arcade-btn arcade-btn-primary flex w-[200px] flex-col items-start gap-3 p-4 text-left"
                 >
                   <span className="flex h-12 w-12 items-center justify-center border-3 border-[#1a1a1a] bg-[#0a6b3c] text-[#f7f3e8]">
@@ -38,7 +41,7 @@ export function CardsView({ isDarkMode, onOpenGame }) {
                   </span>
                   <span className="text-[11px]">{game.name}</span>
                   <span className="text-[8px] leading-relaxed text-[#422006]">
-                    {game.blurb}
+                    {closed ? 'Closed' : game.blurb}
                   </span>
                 </button>
               );

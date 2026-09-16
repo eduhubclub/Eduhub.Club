@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { clearPendingRole, consumePendingRole, isValidRole, passwordError, rememberPendingRole } from './codes';
+import { clearPendingRole, consumePendingRole, canSelfServeSignup, isValidRole, passwordError, rememberPendingRole } from './codes';
 import { applyDemoRole, DEMO_EMAIL, DEMO_PASSWORD, localDemoSession } from '../../auth/demoAccount';
 import { applyOwnerView, isAccountView } from './ownerView';
 import {
@@ -9,6 +9,7 @@ import {
 } from '../../auth/passwordReset';
 import { sessionForShell, sessionFromUser, shellForRole } from './session';
 import { getSupabase, invokeFunction, isAuthConfigured, isCleverConfigured } from './supabaseClient';
+import { sessionNeedsMfaChallenge, verifyTotpChallenge } from './mfa';
 
 const AuthContext = createContext(null);
 
@@ -116,7 +117,18 @@ function sessionNeedsPasswordReset(user) {
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [recovery, setRecovery] = useState(passwordResetWasRequested);
+  const [mfaPending, setMfaPending] = useState(false);
   const [ready, setReady] = useState(!isAuthConfigured());
+
+  const refreshMfaPending = useCallback(async (user) => {
+    if (!user || user.id === 'demo') {
+      setMfaPending(false);
+      return false;
+    }
+    const needs = await sessionNeedsMfaChallenge();
+    setMfaPending(needs);
+    return needs;
+  }, []);
 
   useEffect(() => {
     const supabase = getSupabase();
@@ -127,6 +139,7 @@ export function AuthProvider({ children }) {
       const next = await loadSession(supabase, data.session?.user);
       if (active) {
         setSession(sessionForCurrentView(next));
+        await refreshMfaPending(data.session?.user);
         setReady(true);
       }
     });
@@ -136,12 +149,15 @@ export function AuthProvider({ children }) {
         setRecovery(true);
       }
       if (!nextSession?.user && demoViewRole) {
-        if (active) setSession(localDemoSession(demoViewRole));
+        if (active) {
+          setMfaPending(false);
+          setSession(localDemoSession(demoViewRole));
+        }
         return;
       }
       // Wait until the auth callback finishes. A profile read inside it can miss the session.
       setTimeout(() => {
-        loadSession(supabase, nextSession?.user).then((next) => {
+        loadSession(supabase, nextSession?.user).then(async (next) => {
           if (!active) return;
           setSession((current) => {
             const resolved = sessionForCurrentView(next);
@@ -155,6 +171,7 @@ export function AuthProvider({ children }) {
             }
             return resolved;
           });
+          await refreshMfaPending(nextSession?.user);
         });
       }, 0);
     });
@@ -163,7 +180,7 @@ export function AuthProvider({ children }) {
       active = false;
       subscription.subscription.unsubscribe();
     };
-  }, []);
+  }, [refreshMfaPending]);
 
   const signIn = useCallback(async ({ email, password, viewRole }) => {
     const supabase = getSupabase();
@@ -177,6 +194,12 @@ export function AuthProvider({ children }) {
     if (error) throw new Error(error.message || 'That email or password is not right.');
     const next = await loadSession(supabase, data.session?.user || data.user);
     setSession(sessionForCurrentView(next));
+    await refreshMfaPending(data.session?.user || data.user);
+  }, [refreshMfaPending]);
+
+  const verifyMfa = useCallback(async (code) => {
+    await verifyTotpChallenge(code);
+    setMfaPending(false);
   }, []);
 
   const requestPasswordReset = useCallback(async (email) => {
@@ -208,19 +231,38 @@ export function AuthProvider({ children }) {
     setRecovery(false);
   }, []);
 
-  const signUp = useCallback(async ({ email, password, displayName, role }) => {
+  const signUp = useCallback(async ({ email, password, displayName, role, inviteToken }) => {
     const supabase = getSupabase();
     if (!supabase) throw notConnected();
     if (!isValidRole(role)) throw new Error('Choose a role to create an account.');
+    const token = String(inviteToken || '').trim();
+    if (!canSelfServeSignup(role) && !token) {
+      if (role === 'student') {
+        throw new Error('Students sign in with a class code and PIN, or a student card.');
+      }
+      throw new Error('That account type needs an invite.');
+    }
     const { data, error } = await supabase.auth.signUp({
       email: String(email || '').trim(),
       password,
       options: {
-        data: { role, display_name: String(displayName || '').trim() },
+        data: {
+          role,
+          display_name: String(displayName || '').trim(),
+          ...(token ? { invite_token: token } : {}),
+        },
         emailRedirectTo: window.location.origin,
       },
     });
-    if (error) throw new Error(error.message || 'Could not create that account.');
+    if (error) {
+      const message = error.message || '';
+      if (/confirmation email|sending confirmation/i.test(message)) {
+        throw new Error(
+          'Could not send the confirmation email. In Supabase, leave Confirm email off for now, or send only to an address verified in Amazon SES while the account is in the sandbox.',
+        );
+      }
+      throw new Error(message || 'Could not create that account.');
+    }
     if (!data.session) {
       const pending = new Error('Check your email to confirm, then sign in.');
       pending.code = 'confirm_email';
@@ -343,6 +385,7 @@ export function AuthProvider({ children }) {
     setOwnerView('');
     finishPasswordResetArrival();
     setRecovery(false);
+    setMfaPending(false);
     const supabase = getSupabase();
     setSession(null);
     if (supabase) await supabase.auth.signOut();
@@ -354,8 +397,10 @@ export function AuthProvider({ children }) {
       configured: isAuthConfigured(),
       session,
       recovery,
+      mfaPending,
       requestPasswordReset,
       updatePassword,
+      verifyMfa,
       signIn,
       signUp,
       signInWithClassCode,
@@ -371,8 +416,10 @@ export function AuthProvider({ children }) {
       ready,
       session,
       recovery,
+      mfaPending,
       requestPasswordReset,
       updatePassword,
+      verifyMfa,
       signIn,
       signUp,
       signInWithClassCode,

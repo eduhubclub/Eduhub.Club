@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { passwordError } from '../data/auth/codes';
+import { canSelfServeSignup, passwordError } from '../data/auth/codes';
 import { useAuth } from '../data/auth/AuthContext';
 import { DEMO_EMAIL } from './demoAccount';
 import { Modal } from '../shared/Modal';
@@ -12,7 +12,7 @@ const COPY = {
   admin: {
     title: 'Admin sign in',
     signupTitle: 'Create an admin account',
-    blurb: 'Email and password for school administrators.',
+    blurb: 'Email and password for school administrators. New admin accounts need an invite.',
   },
   teacher: {
     title: 'Teacher sign in',
@@ -22,7 +22,7 @@ const COPY = {
   student: {
     title: 'Student sign in',
     signupTitle: 'Create a student account',
-    blurb: '',
+    blurb: 'Use your class code and PIN, or a student card. Ask your teacher if you need an account.',
   },
   parent: {
     title: 'Parent sign in',
@@ -38,11 +38,15 @@ export function RoleLoginModal({
   initialMode = 'login',
   initialEmail = '',
   initialPassword = '',
+  inviteToken = '',
 }) {
   const auth = useAuth();
   const theme = themeForRole(role, isDarkMode);
   const copy = COPY[role];
-  const [mode, setMode] = useState(initialMode === 'signup' ? 'signup' : 'login');
+  const signupAllowed = canSelfServeSignup(role) || Boolean(inviteToken);
+  const [mode, setMode] = useState(
+    initialMode === 'signup' && signupAllowed ? 'signup' : 'login',
+  );
   const [sent, setSent] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState(initialEmail);
@@ -164,7 +168,7 @@ export function RoleLoginModal({
               }
               run(() =>
                 signup
-                  ? auth.signUp({ email, password, displayName, role })
+                  ? auth.signUp({ email, password, displayName, role, inviteToken })
                   : submitSignIn(),
               );
             }}
@@ -191,6 +195,7 @@ export function RoleLoginModal({
               onChange={(event) => setEmail(event.target.value)}
               autoComplete="username"
               required
+              readOnly={Boolean(inviteToken && signup)}
             />
             <AuthField
               id={`${role}-password`}
@@ -238,6 +243,7 @@ export function RoleLoginModal({
           </form>
         )}
 
+        {forgot || signupAllowed ? (
         <p className={`text-center ${TYPE.bodySm} ${theme.colorOnSurfaceVariant}`}>
           {forgot ? 'Remembered it?' : signup ? 'Already have an account?' : 'New here?'}{' '}
           <button
@@ -252,6 +258,15 @@ export function RoleLoginModal({
             {forgot || signup ? 'Sign in' : 'Create an account'}
           </button>
         </p>
+        ) : role === 'student' ? (
+          <p className={`text-center ${TYPE.bodySm} ${theme.colorOnSurfaceVariant}`}>
+            Your teacher gives you a class code and PIN, or a student card.
+          </p>
+        ) : (
+          <p className={`text-center ${TYPE.bodySm} ${theme.colorOnSurfaceVariant}`}>
+            New admin accounts need an invite from the school.
+          </p>
+        )}
       </div>
     </Modal>
   );

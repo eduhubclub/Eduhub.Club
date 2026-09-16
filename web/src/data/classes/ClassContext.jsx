@@ -1,6 +1,8 @@
 import { createContext, useContext, useMemo, useState, useEffect, useCallback } from 'react';
 import { SEED_CLASSES, SEED_REVISION, findClassById, getStudentNames, getStudents } from './seed';
 import { isDemoClassId, useDemoData } from '../settings/DemoDataContext';
+import { assignClassJoinCodes } from './joinCode';
+import { makeClassroomJoinCode, normalizeJoinCode } from '../auth/codes';
 
 const ClassContext = createContext(null);
 
@@ -20,7 +22,7 @@ function withDemoClasses(list) {
 export function ClassProvider({ children }) {
   const { showDemoData } = useDemoData();
   const [classes, setClasses] = useState(() =>
-    showDemoData ? [...SEED_CLASSES] : []
+    assignClassJoinCodes(showDemoData ? [...SEED_CLASSES] : [])
   );
   const [selectedClassId, setSelectedClassId] = useState(null);
   const [selectedStudentId, setSelectedStudentId] = useState(null);
@@ -29,7 +31,9 @@ export function ClassProvider({ children }) {
   useEffect(() => {
     setClasses((prev) => {
       const userClasses = withoutDemoClasses(prev);
-      return showDemoData ? [...SEED_CLASSES, ...userClasses] : userClasses;
+      return assignClassJoinCodes(
+        showDemoData ? [...SEED_CLASSES, ...userClasses] : userClasses,
+      );
     });
     setSelectedClassId(null);
     setSelectedStudentId(null);
@@ -39,13 +43,19 @@ export function ClassProvider({ children }) {
 
   // Toggle demo class on/off without wiping teacher-created classes
   useEffect(() => {
-    setClasses((prev) => (showDemoData ? withDemoClasses(prev) : withoutDemoClasses(prev)));
+    setClasses((prev) =>
+      assignClassJoinCodes(showDemoData ? withDemoClasses(prev) : withoutDemoClasses(prev)),
+    );
     setSelectedClassId((id) => (id && isDemoClassId(id) && !showDemoData ? null : id));
     setSelectedStudentId((id) => {
       if (showDemoData) return id;
       return id && String(id).startsWith('demo-') ? null : id;
     });
   }, [showDemoData]);
+
+  useEffect(() => {
+    setClasses((prev) => assignClassJoinCodes(prev));
+  }, []);
 
   const selectedClass = useMemo(
     () => findClassById(classes, selectedClassId),
@@ -80,7 +90,15 @@ export function ClassProvider({ children }) {
   }, []);
 
   const addClass = useCallback((cls) => {
-    setClasses((prev) => [...prev, cls]);
+    setClasses((prev) => {
+      const used = new Set(
+        prev.map((row) => normalizeJoinCode(row.joinCode)).filter(Boolean),
+      );
+      const requested = normalizeJoinCode(cls.joinCode);
+      const joinCode =
+        requested && !used.has(requested) ? requested : makeClassroomJoinCode(used);
+      return [...prev, { ...cls, joinCode }];
+    });
   }, []);
 
   const removeClass = useCallback((classId) => {

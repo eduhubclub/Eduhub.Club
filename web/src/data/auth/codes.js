@@ -4,9 +4,11 @@
  */
 
 export const JOIN_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+export const CLASSROOM_JOIN_CODE_LENGTH = 6;
 export const QR_PREFIX = 'eduhub-login:';
 export const MIN_PASSWORD_LENGTH = 8;
 export const ROLES = ['admin', 'teacher', 'student', 'parent'];
+export const SELF_SERVE_SIGNUP_ROLES = ['teacher', 'parent'];
 export const AGE_BANDS = ['k2', 'grades35', 'secondary'];
 
 const PENDING_ROLE_KEY = 'edu.auth.pendingRole';
@@ -17,12 +19,30 @@ export function normalizeJoinCode(value) {
     .replace(/[^A-Z0-9]/g, '');
 }
 
+/** Six-character class code. Avoids 0/O/1/I so students can type it from a card. */
+export function makeClassroomJoinCode(used = new Set()) {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    const bytes = new Uint8Array(CLASSROOM_JOIN_CODE_LENGTH);
+    crypto.getRandomValues(bytes);
+    const code = Array.from(
+      bytes,
+      (byte) => JOIN_ALPHABET[byte % JOIN_ALPHABET.length],
+    ).join('');
+    if (!used.has(code)) return code;
+  }
+  throw new Error('Could not make a class code.');
+}
+
 export function isValidPin(value) {
   return /^\d{4,6}$/.test(String(value || '').trim());
 }
 
 export function isValidRole(value) {
   return ROLES.includes(value);
+}
+
+export function canSelfServeSignup(role) {
+  return SELF_SERVE_SIGNUP_ROLES.includes(role);
 }
 
 export function isValidAgeBand(value) {

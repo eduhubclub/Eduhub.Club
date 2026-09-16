@@ -3,7 +3,7 @@
  * credentials, then opens the role that was selected.
  */
 export const DEMO_EMAIL = 'demo@eduhub.club';
-export const DEMO_PASSWORD = 'password';
+export const DEMO_PASSWORD = 'EduHub-demo-2026';
 
 const LABELS = {
   admin: 'Admin',

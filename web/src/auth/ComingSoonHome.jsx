@@ -5,8 +5,9 @@ import { getTheme, resolveShellBackgroundClass } from '../shared/theme';
 import { TYPE } from '../shared/typography';
 
 /**
- * Public entry while sign-in is closed.
- * The corner control is the only way through.
+ * Public homepage while the product is still being polished.
+ * Staff door, localhost, invite links, password reset, and signed-in sessions
+ * open the working app. Ordinary visitors stay on Coming soon.
  */
 export function ComingSoonHome({ onUnlock }) {
   const theme = getTheme('Blue', false);

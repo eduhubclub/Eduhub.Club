@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
+  CLASSROOM_JOIN_CODE_LENGTH,
+  JOIN_ALPHABET,
   buildLoginQrPayload,
+  canSelfServeSignup,
   isValidPin,
+  makeClassroomJoinCode,
   normalizeJoinCode,
   parseLoginQr,
   passwordError,
@@ -11,6 +15,12 @@ import { sessionForShell, sessionFromUser, shellForRole } from './session';
 describe('auth codes', () => {
   it('normalizes join codes and rejects lookalike punctuation', () => {
     expect(normalizeJoinCode(' ab-12 ')).toBe('AB12');
+  });
+
+  it('makes a six-character classroom code from the join alphabet', () => {
+    const code = makeClassroomJoinCode();
+    expect(code).toHaveLength(CLASSROOM_JOIN_CODE_LENGTH);
+    expect([...code].every((ch) => JOIN_ALPHABET.includes(ch))).toBe(true);
   });
 
   it('accepts a 4 to 6 digit PIN only', () => {
@@ -40,6 +50,13 @@ describe('auth codes', () => {
   it('requires an 8 character password', () => {
     expect(passwordError('short')).toMatch(/8/);
     expect(passwordError('longenough')).toBe('');
+  });
+
+  it('lets teachers and parents create an account, not admin or student', () => {
+    expect(canSelfServeSignup('teacher')).toBe(true);
+    expect(canSelfServeSignup('parent')).toBe(true);
+    expect(canSelfServeSignup('admin')).toBe(false);
+    expect(canSelfServeSignup('student')).toBe(false);
   });
 });
 

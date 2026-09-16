@@ -480,9 +480,11 @@ export function AppShell() {
     activeTab === 'Live View' &&
     liveSpaceDebug;
   const showShellPaddingViz = showAppShellPattern;
-  /** Fill-height tools — main locks; scrollable pages use overflow on <main> (edge scrollbar). */
+  /** Fill-height tools — main locks; scrollable pages use overflow on <main> (edge scrollbar).
+      Settings is a scrolling page, even when the app underneath is a locked stage. */
   const lockMainScroll =
-    showAppShellPattern ||
+    !isSettingsOpen &&
+    (showAppShellPattern ||
     isDashboardApp ||
     currentAppId === 'noisemeter' ||
     currentAppId === 'arcade' ||
@@ -508,7 +510,7 @@ export function AppShell() {
     activeTab === 'Pick A Number' ||
     activeTab === 'Coin Toss' ||
     activeTab === 'Pick A Card' ||
-    activeTab === 'Random Tiebreaker';
+    activeTab === 'Random Tiebreaker');
   const pinnedWidgets = useMemo(
     () =>
       pinnedWidgetIds

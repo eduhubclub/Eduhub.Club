@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
-import { isValidPin } from '../_shared/codes.js';
+import { isValidPin, normalizeJoinCode } from '../_shared/codes.js';
 import { json, preflight } from '../_shared/http.js';
 import { hashPin, randomSalt, randomToken, sha256 } from '../_shared/pin.js';
 
@@ -47,7 +47,33 @@ async function requireTeacher(req, admin) {
   return { userId: userData.user.id };
 }
 
-async function ensureClass(admin, teacherId) {
+async function ensureClass(admin, teacherId, options = {}) {
+  const wanted = normalizeJoinCode(options.joinCode);
+  const className = String(options.name || '').trim().slice(0, 80) || 'My class';
+
+  if (wanted) {
+    const { data: byCode } = await admin
+      .from('classes')
+      .select('id, name, join_code, teacher_id')
+      .eq('join_code', wanted)
+      .maybeSingle();
+    if (byCode) {
+      if (byCode.teacher_id !== teacherId) return null;
+      if (className !== 'My class' && byCode.name !== className) {
+        await admin.from('classes').update({ name: className }).eq('id', byCode.id);
+        return { ...byCode, name: className };
+      }
+      return byCode;
+    }
+    const { data, error } = await admin
+      .from('classes')
+      .insert({ teacher_id: teacherId, join_code: wanted, name: className })
+      .select('id, name, join_code')
+      .single();
+    if (!error && data) return data;
+    return null;
+  }
+
   const { data: existing } = await admin
     .from('classes')
     .select('id, name, join_code')
@@ -61,7 +87,7 @@ async function ensureClass(admin, teacherId) {
     const joinCode = makeJoinCode();
     const { data, error } = await admin
       .from('classes')
-      .insert({ teacher_id: teacherId, join_code: joinCode, name: 'My class' })
+      .insert({ teacher_id: teacherId, join_code: joinCode, name: className })
       .select('id, name, join_code')
       .single();
     if (!error && data) return data;
@@ -193,7 +219,10 @@ Deno.serve(async (req) => {
     body = {};
   }
 
-  const classroom = await ensureClass(admin, teacher.userId);
+  const classroom = await ensureClass(admin, teacher.userId, {
+    joinCode: body.joinCode,
+    name: body.name,
+  });
   if (!classroom) return json({ error: 'Could not create a class code. Try again.' }, 500);
 
   if (body.action === 'addStudent') {

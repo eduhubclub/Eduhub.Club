@@ -13,18 +13,20 @@ async function roster(body) {
   return invokeFunction('classroom-roster', body, token);
 }
 
-export function loadClassroomRoster() {
-  return roster({ action: 'list' });
+export function loadClassroomRoster(classroom = {}) {
+  return roster({ action: 'list', ...classroom });
 }
 
-export function addClassroomStudent({ displayName, pin }) {
-  return roster({ action: 'addStudent', displayName, pin });
+export function addClassroomStudent({ displayName, pin, joinCode, name }) {
+  return roster({ action: 'addStudent', displayName, pin, joinCode, name });
 }
 
-export function mintClassroomQr(memberId, { rotate = false } = {}) {
+export function mintClassroomQr(memberId, { rotate = false, joinCode, name } = {}) {
   return roster({
     action: rotate ? 'rotateQr' : 'ensureQr',
     memberId,
+    joinCode,
+    name,
   });
 }
 

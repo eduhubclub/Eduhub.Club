@@ -28,6 +28,8 @@ import { ButtonRow } from '../../shared/ButtonRow';
 import { toolBtnClass } from '../../shared/toolBtn';
 import { appFabEdgeClass } from '../../shared/layout';
 import { useAppThemePreferences } from '../../data/settings/AppThemePreferencesContext';
+import { useAuth } from '../../data/auth/AuthContext';
+import { StudentAppsCard } from '../../shell/StudentAppsCard';
 import { TYPE } from '../../shared/typography';
 import { ClassesApp } from '../classes/ClassesApp';
 import { HubMiniCalendar } from './HubMiniCalendar';
@@ -480,6 +482,8 @@ function FolderCard({
 }
 
 function AppsPage({ isDarkMode, theme, onOpenApp, isAppAvailable, isLeft, isSidebarOpen = true }) {
+  const { session } = useAuth();
+  const canSetStudentAccess = session?.role === 'teacher' || session?.owner;
   const { getLauncherColor } = useAppThemePreferences();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -724,6 +728,19 @@ function AppsPage({ isDarkMode, theme, onOpenApp, isAppAvailable, isLeft, isSide
         description="Open any Edu.Hub app from here — same tools as the header launcher."
         isDarkMode={isDarkMode}
       />
+
+      {canSetStudentAccess ? (
+        <section className={`mb-6 rounded-2xl border-[1.5px] ${theme.colorSurface} ${theme.colorOutline}`}>
+          <div className={`border-b-[1.5px] px-5 py-5 sm:px-6 ${theme.colorOutline}`}>
+            <h2 className={`${TYPE.titleSm} ${theme.colorOnSurface}`}>Student access</h2>
+            <p className={`${TYPE.bodySm} mt-0.5 ${theme.colorOnSurfaceVariant}`}>
+              Turn apps and their parts on or off for this class. Days, the clock window, and the
+              daily limit stay on each app. An individual app&apos;s settings only control that app.
+            </p>
+          </div>
+          <StudentAppsCard theme={theme} />
+        </section>
+      ) : null}
 
       <ButtonRow>
         {searchOpen ? (

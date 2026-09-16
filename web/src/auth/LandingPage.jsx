@@ -10,12 +10,17 @@ import { DemoSection } from './landing/DemoSection';
 import { ensureLandingHandFont, paperCanvas } from './landing/landingStyle';
 import { readSignInRole, rememberSignInRole } from './signinPreference';
 import { DEMO_EMAIL, DEMO_PASSWORD } from './demoAccount';
+import { parseInviteToken } from './inviteArrival';
+import { peekAccountInvite } from '../data/auth/inviteApi';
 
 export function LandingPage() {
   const page = comingSoonPage(window.location.pathname);
   const [role, setRole] = useState(null);
   const [authMode, setAuthMode] = useState('login');
   const [demoPrefill, setDemoPrefill] = useState(false);
+  const [inviteToken, setInviteToken] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState('');
   const [scrolled, setScrolled] = useState(false);
   const mainRef = useRef(null);
   const theme = getTheme('Blue', false);
@@ -36,11 +41,33 @@ export function LandingPage() {
   }, []);
 
   useEffect(() => {
+    const token = parseInviteToken();
+    if (!token) return undefined;
+    let cancelled = false;
+    peekAccountInvite(token)
+      .then((invite) => {
+        if (cancelled || !invite?.role) return;
+        rememberSignInRole(invite.role);
+        setInviteToken(token);
+        setInviteEmail(invite.email || '');
+        setInviteRole(invite.role);
+        setAuthMode('signup');
+        setDemoPrefill(false);
+        setRole(invite.role);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     if (page) {
       document.title = `${page.title} · Edu.Hub`;
       return undefined;
     }
     document.title = 'Edu.Hub';
+    if (parseInviteToken()) return undefined;
     const hash = window.location.hash.replace('#', '');
     if (hash === 'sign-up') setAuthMode('signup');
     const id = hash === 'sign-up' ? 'sign-in' : hash;
@@ -103,12 +130,13 @@ export function LandingPage() {
 
       {role ? (
         <RoleLoginModal
-          key={`${role}-${demoPrefill ? 'demo' : 'account'}`}
+          key={`${role}-${demoPrefill ? 'demo' : inviteToken || 'account'}`}
           role={role}
           isDarkMode={false}
           initialMode={authMode}
-          initialEmail={demoPrefill ? DEMO_EMAIL : ''}
+          initialEmail={demoPrefill ? DEMO_EMAIL : role === inviteRole ? inviteEmail : ''}
           initialPassword={demoPrefill ? DEMO_PASSWORD : ''}
+          inviteToken={role === inviteRole ? inviteToken : ''}
           onClose={() => {
             setDemoPrefill(false);
             setRole(null);
