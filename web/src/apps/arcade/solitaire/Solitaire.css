@@ -47,19 +47,18 @@
 
 /*
  * Fit 7 tableau columns (+ gaps) into the play width.
- * Caps keep phone / tablet / desktop feel without horizontal scroll.
+ * Never floor above what fits — use min(max, calc) so columns cannot overflow.
  */
 .arcade-play-board {
   --arcade-gap: clamp(4px, 1.2cqi, 12px);
   --arcade-deal-gap: clamp(6px, 1.5cqi, 12px);
-  --arcade-card-w: clamp(
-    48px,
-    calc((100cqi - 8px - var(--arcade-gap) * 6) / 7),
-    94px
+  --arcade-card-w: min(
+    94px,
+    calc((100cqi - 8px - var(--arcade-gap) * 6) / 7)
   );
   --arcade-card-h: calc(var(--arcade-card-w) * 130 / 94);
   --arcade-peek: clamp(10px, calc(var(--arcade-card-w) * 0.24), 22px);
-  --arcade-waste-peek: calc(var(--arcade-card-w) * 0.3);
+  --arcade-waste-peek: calc(var(--arcade-card-w) * 0.28);
   --arcade-card-radius: clamp(3px, calc(var(--arcade-card-w) * 0.064), 6px);
   --arcade-card-border: clamp(2px, calc(var(--arcade-card-w) * 0.032), 3px);
   --arcade-card-shadow: clamp(2px, calc(var(--arcade-card-w) * 0.032), 3px);
@@ -78,14 +77,13 @@
 .arcade-play-board-spider {
   --arcade-gap: clamp(2px, 0.8cqi, 8px);
   --arcade-deal-gap: clamp(4px, 1cqi, 10px);
-  --arcade-card-w: clamp(
-    36px,
-    calc((100cqi - 8px - var(--arcade-gap) * 9) / 10),
-    78px
+  --arcade-card-w: min(
+    78px,
+    calc((100cqi - 8px - var(--arcade-gap) * 9) / 10)
   );
   --arcade-card-h: calc(var(--arcade-card-w) * 130 / 94);
   --arcade-peek: clamp(8px, calc(var(--arcade-card-w) * 0.22), 18px);
-  --arcade-waste-peek: calc(var(--arcade-card-w) * 0.3);
+  --arcade-waste-peek: calc(var(--arcade-card-w) * 0.28);
   --arcade-card-radius: clamp(2px, calc(var(--arcade-card-w) * 0.064), 5px);
   --arcade-card-border: clamp(2px, calc(var(--arcade-card-w) * 0.032), 3px);
   --arcade-card-shadow: clamp(1px, calc(var(--arcade-card-w) * 0.032), 3px);
@@ -217,6 +215,11 @@
   /* Avoid overflow-x:hidden — it forces overflow-y clipping and chops selection outlines. */
   overflow: visible;
   padding-top: 4px;
+  min-width: 0;
+}
+
+.arcade-deal-row > * {
+  min-width: 0;
 }
 
 .arcade-tableau-row {

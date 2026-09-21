@@ -13,6 +13,7 @@ import { CardStyleLiveView } from './CardStyleLiveView';
 import { CardTypeLiveView } from './CardTypeLiveView';
 import { LiveViewPage } from './LiveViewPage';
 import { ModalLiveView } from './ModalLiveView';
+import { StageSizingPlaygroundView } from './StageSizingPlaygroundView';
 import { CARD_EXAMPLE_VIEWS } from './cardExamples';
 import { CARD_STYLE_VIEWS } from './cardStyles';
 import { CARD_TYPE_VIEWS } from './cardTypes';
@@ -21,6 +22,7 @@ import { CARD_TYPE_VIEWS } from './cardTypes';
 const PATTERN_VIEWS = {
   'App Shell': AppShellPatternView,
   'App Layout': AppLayoutPatternView,
+  'Stage Sizing': StageSizingPlaygroundView,
 };
 
 function CardsSectionOverview({ title, blurb, items, isDarkMode, theme }) {

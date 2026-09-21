@@ -1053,7 +1053,7 @@ export function SpiderView({ isDarkMode }) {
           </div>
 
           <div className="arcade-deal-row relative z-10 mb-4 flex flex-nowrap items-start justify-between pb-1 sm:mb-6">
-            <div className="relative flex shrink-0 flex-col items-center">
+            <div className="relative flex min-w-0 flex-col items-center">
               <div className="relative" ref={stockRef}>
                 {game.stock.length ? (
                   <SolitaireCard
@@ -1092,7 +1092,7 @@ export function SpiderView({ isDarkMode }) {
             </div>
 
             <div
-              className="flex shrink-0 flex-nowrap items-start justify-end"
+              className="flex min-w-0 flex-nowrap items-start justify-end"
               style={{ gap: 'var(--arcade-deal-gap)' }}
             >
               {Array.from({ length: 8 }, (_, i) => {

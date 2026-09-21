@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { applyDemoRole, localDemoSession } from './demoAccount';
+import {
+  applyDemoRole,
+  isLocalDemoSession,
+  localDemoSession,
+} from './demoAccount';
 
 describe('demo account', () => {
   it('opens the selected view instead of the account role', () => {
@@ -25,5 +29,39 @@ describe('demo account', () => {
       email: 'demo@eduhub.club',
       demo: true,
     });
+  });
+
+  it('treats site demo and offline preview as local unlock sessions', () => {
+    expect(isLocalDemoSession(localDemoSession('student'))).toBe(true);
+    expect(
+      isLocalDemoSession({
+        userId: 'uuid-1',
+        email: 'demo@eduhub.club',
+        demo: true,
+        role: 'student',
+      }),
+    ).toBe(true);
+    expect(
+      isLocalDemoSession({
+        userId: 'uuid-1',
+        email: 'demo@eduhub.club',
+        role: 'student',
+      }),
+    ).toBe(true);
+    expect(
+      isLocalDemoSession({
+        userId: 'uuid-2',
+        email: 'teacher@school.edu',
+        role: 'student',
+      }),
+    ).toBe(false);
+    expect(
+      isLocalDemoSession({
+        userId: 'owner-1',
+        email: 'owner@eduhub.club',
+        owner: true,
+        role: 'student',
+      }),
+    ).toBe(true);
   });
 });

@@ -22,3 +22,16 @@
 .arcade-ark-pad-launch {
   min-width: 5.5rem;
 }
+
+@media (max-height: 720px) {
+  .arcade-ark-pad {
+    min-width: 2.75rem;
+    min-height: 2.5rem;
+    padding: 0.35rem 0.5rem;
+    font-size: 7px;
+  }
+
+  .arcade-ark-pad-launch {
+    min-width: 4.25rem;
+  }
+}

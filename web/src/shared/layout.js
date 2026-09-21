@@ -2,13 +2,19 @@
  * Canonical layout tokens for Edu.Hub shell and app content.
  * Import these instead of copying class strings across apps.
  *
+ * Prefer shared template components when they fit (structure + theme surface):
+ *   AppBoard, StageToolLayout, InternalScrollBoard, ContentCardGrid, AppFab
+ * Tokens stay the source of chrome numbers; templates compose them.
+ * Try layouts in AppGuide → Patterns → Stage Sizing.
+ *
  * Card types (top-level):
  * 1. Static board — fills the content area (up to APP_MAX_WIDTH), fits the viewport (no scroll)
  * 2. Static medium / small — same height lock + chrome; narrower max-width, centered in the shell
  * 3. Scrolling board — same chrome/width as full static; height follows content. If it stretches past
  *    the bottom of the screen, the regular scrollbar appears (nothing special beyond that).
  * 4. Internal scroll — static board (viewport-locked) whose body scrolls under a header, and/or
- *    horizontally for wide content (tables). Pair APP_STATIC_BOARD + APP_BOARD_BODY_SCROLL.
+ *    horizontally for wide content (tables). Pair APP_STATIC_BOARD + APP_BOARD_BODY_SCROLL
+ *    (or InternalScrollBoard).
  * 5. Multi board scroll — boards stacked vertically (full static and/or content-sized); AppShell scrolls
  * 6. Grid card — content-sized cards in a dynamic grid (ask for min cards per row when building)
  *

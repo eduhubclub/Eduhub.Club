@@ -33,6 +33,7 @@ import {
   Sun,
   Library,
   GalleryVertical,
+  Heart,
 } from 'lucide-react';
 
 /**
@@ -179,6 +180,14 @@ export const launcherApps = [
     color: 'bg-lime-500',
     description:
       'For-fun classic games — Solitaire and more so kids stay in Edu.Hub.',
+  },
+  {
+    id: 'headspace',
+    name: 'Headspace',
+    icon: Heart,
+    color: 'bg-teal-500',
+    description:
+      'SEL journaling for kids — start with Pet Rock Pen Pal: name, decorate, and write each day.',
   },
   {
     id: 'bank',

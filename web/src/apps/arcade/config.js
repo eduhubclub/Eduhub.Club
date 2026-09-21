@@ -2,10 +2,12 @@ import {
   Bomb,
   BrickWall,
   Bug,
+  Calculator,
   Fish,
   Joystick,
   Spade,
   SquareStack,
+  TrainFront,
   Worm,
   Zap,
 } from 'lucide-react';
@@ -13,7 +15,7 @@ import { ArcadeApp } from './ArcadeApp';
 
 /**
  * Edu.Arcade — for-fun classroom games so kids stay in Edu.Hub.
- * Classic, Cards, and Platformers are sibling sidebar panels.
+ * Classic, Cards, Number Games, and Platformers are primary-sidebar accordions.
  */
 export const arcadeApp = {
   id: 'arcade',
@@ -25,75 +27,29 @@ export const arcadeApp = {
       id: 'classic',
       name: 'Classic',
       icon: Joystick,
-      type: 'panel',
-      panelTitle: 'Classic',
-      panelSource: 'arcade-classic',
-      panelContent: [
-        {
-          id: 'snake',
-          label: 'Snake',
-          icon: Worm,
-          desc: 'Grow longer — don’t bite yourself',
-        },
-        {
-          id: 'arkanoid',
-          label: 'Arkanoid',
-          icon: BrickWall,
-          desc: 'Bounce the ball — clear every brick',
-        },
-      ],
+      type: 'accordion',
+      subItems: ['Snake', 'Arkanoid'],
     },
     {
       id: 'cards',
       name: 'Cards',
       icon: SquareStack,
-      type: 'panel',
-      panelTitle: 'Cards',
-      panelSource: 'arcade-cards',
-      panelContent: [
-        {
-          id: 'card-games',
-          label: 'Card Games',
-          icon: SquareStack,
-          desc: 'Solitaire, Spider, Go Fish, and more',
-          subItems: [
-            {
-              id: 'solitaire',
-              label: 'Solitaire',
-              icon: Spade,
-              desc: 'Klondike — Ace to King',
-            },
-            {
-              id: 'spider',
-              label: 'Spider',
-              icon: Bug,
-              desc: '10 columns — clear King to Ace runs',
-            },
-            {
-              id: 'go-fish',
-              label: 'Go Fish',
-              icon: Fish,
-              desc: 'Ask for ranks — 2 to 4 players',
-            },
-          ],
-        },
-      ],
+      type: 'accordion',
+      subItems: ['Solitaire', 'Spider', 'Go Fish'],
+    },
+    {
+      id: 'number-games',
+      name: 'Number Games',
+      icon: Calculator,
+      type: 'accordion',
+      subItems: ['Math Train'],
     },
     {
       id: 'platformers',
       name: 'Platformers',
       icon: Zap,
-      type: 'panel',
-      panelTitle: 'Platformers',
-      panelSource: 'arcade-platformers',
-      panelContent: [
-        {
-          id: 'boom-jump',
-          label: 'Boom Jump',
-          icon: Bomb,
-          desc: 'Hop TNT — outlast the collapse',
-        },
-      ],
+      type: 'accordion',
+      subItems: ['Boom Jump'],
     },
   ],
   View: ArcadeApp,
@@ -114,6 +70,17 @@ export const CLASSIC_GAMES = [
     tab: 'Arkanoid',
     icon: BrickWall,
     blurb: 'Keep the ball alive and clear the bricks.',
+  },
+];
+
+/** Number-game cabinets on the Number Games selection board. */
+export const NUMBER_GAMES = [
+  {
+    id: 'math-train',
+    name: 'Math Train',
+    tab: 'Math Train',
+    icon: TrainFront,
+    blurb: 'Swipe a train of numbers that hits the target.',
   },
 ];
 

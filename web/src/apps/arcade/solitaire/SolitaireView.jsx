@@ -821,7 +821,7 @@ export function SolitaireView({ isDarkMode }) {
           </div>
         ) : null}
         <div className="arcade-deal-row relative z-10 mb-4 flex flex-nowrap items-start justify-between pb-1 sm:mb-6">
-          <div className="flex shrink-0" style={{ gap: 'var(--arcade-deal-gap)' }}>
+          <div className="flex min-w-0" style={{ gap: 'var(--arcade-deal-gap)' }}>
             {game.stock.length ? (
               <SolitaireCard
                 card={{ id: 'stock', faceUp: false }}
@@ -877,7 +877,7 @@ export function SolitaireView({ isDarkMode }) {
             )}
           </div>
 
-          <div className="flex shrink-0" style={{ gap: 'var(--arcade-deal-gap)' }}>
+          <div className="flex min-w-0" style={{ gap: 'var(--arcade-deal-gap)' }}>
             {game.foundations.map((pile, i) => {
               const top = pile[pile.length - 1];
               const drop = {

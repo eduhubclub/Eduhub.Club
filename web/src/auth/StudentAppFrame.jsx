@@ -14,6 +14,7 @@ import {
 } from '../data/access/studentApps';
 import { getTheme } from '../shared/theme';
 import { TYPE } from '../shared/typography';
+import { isLocalDemoSession } from './demoAccount';
 
 /**
  * Thin student chrome around an allowed app.
@@ -37,6 +38,7 @@ export function StudentAppFrame({
   const lockedRef = useRef(onLocked);
   const theme = getTheme(app?.themeKey || 'Blue', false);
   lockedRef.current = onLocked;
+  const localDemo = isLocalDemoSession(session);
 
   useEffect(() => {
     setActiveTab(app?.defaultView || '');
@@ -48,10 +50,9 @@ export function StudentAppFrame({
     let last = Date.now();
 
     async function beat(seconds) {
-      const status =
-        session?.userId === 'demo'
-          ? touchLocalDemoApp(appId, seconds)
-          : await touchStudentApp(appId, seconds);
+      const status = localDemo
+        ? touchLocalDemoApp(appId, seconds)
+        : await touchStudentApp(appId, seconds);
       if (stopped) return;
       last = Date.now();
       setMinutesLeft(status?.daily_minutes == null ? null : status.minutes_left);
@@ -81,10 +82,10 @@ export function StudentAppFrame({
       stopped = true;
       window.clearInterval(id);
       const extra = Math.min(45, Math.round((Date.now() - last) / 1000));
-      if (extra >= 5 && session?.userId !== 'demo') touchStudentApp(appId, extra).catch(() => {});
-      if (extra >= 5 && session?.userId === 'demo') touchLocalDemoApp(appId, extra);
+      if (extra >= 5 && !localDemo) touchStudentApp(appId, extra).catch(() => {});
+      if (extra >= 5 && localDemo) touchLocalDemoApp(appId, extra);
     };
-  }, [appId, session?.userId]);
+  }, [appId, localDemo, session?.userId]);
 
   const View = app?.View;
   const partsForApp = appParts(appId);
@@ -195,6 +196,7 @@ export function StudentAppFrame({
             isLeft
             isDesktop
             onSetActiveTab={chooseTab}
+            session={session}
           />
         ) : (
           <p className={`p-6 ${TYPE.bodyMd}`}>This app is not available yet.</p>

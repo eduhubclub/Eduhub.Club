@@ -64,6 +64,9 @@ const BLOCKS_RAINBOW_ITEM = { key: 'rainbow', label: 'Rainbow' };
 
 export const MINUTE_CHIPS = [1, 5, 10, 15, 30];
 
+/** Design max face size on the Learning desk (CSS px). */
+export const CLOCK_FACE_PX = 864;
+
 /** SVG radius band where a dragged chip snaps onto the face. */
 const CHIP_SNAP_INNER = FACE_R - 24;
 const CHIP_SNAP_OUTER = FACE_R + 40;
@@ -1686,7 +1689,7 @@ export const TeachingClock = forwardRef(function TeachingClock(
     >
       <div
         ref={svgWrapRef}
-        className="relative h-[864px] w-[864px] max-h-[min(864px,90%)] max-w-[min(864px,90%)]"
+        className="relative aspect-square h-[min(864px,100%)] w-auto max-h-[864px] max-w-full"
         role="img"
         aria-label={`Teaching clock showing ${digitalLabel}, ${mode} mode`}
         onPointerDown={beginWedgeMarquee}

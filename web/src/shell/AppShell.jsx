@@ -401,10 +401,16 @@ export function AppShell() {
       if (!isDesktop) setIsMobileNavOpen(false);
     } else if (item.type === 'accordion') {
       if (isDesktop && !isSidebarOpen) setIsSidebarOpen(true);
-      setExpandedItem(expandedItem !== item.id ? item.id : null);
+      const opening = expandedItem !== item.id;
+      setExpandedItem(opening ? item.id : null);
       setPanelItem(null);
       setPopoutItem(null);
       setActiveWidgetId(null);
+      // Category boards (e.g. Arcade Classic / Cards) open with the accordion.
+      if (opening) {
+        setActiveTab(item.name);
+        setIsSettingsOpen(false);
+      }
     } else if (item.type === 'popout') {
       if (popoutItem === item.id) {
         setPopoutItem(null);
@@ -436,21 +442,6 @@ export function AppShell() {
       // Design Cards — open on Card Types overview (expandable accordion in the panel).
       if (isOpening && item.panelSource === 'design-cards') {
         setActiveTab('Card Types');
-        setActiveWidgetId(null);
-      }
-      // Arcade Classic — land on the Classic board.
-      if (isOpening && item.panelSource === 'arcade-classic') {
-        setActiveTab('Classic');
-        setActiveWidgetId(null);
-      }
-      // Arcade Cards — land on Card Games when opening the panel.
-      if (isOpening && item.panelSource === 'arcade-cards') {
-        setActiveTab('Card Games');
-        setActiveWidgetId(null);
-      }
-      // Arcade Platformers — land on the Platformers board.
-      if (isOpening && item.panelSource === 'arcade-platformers') {
-        setActiveTab('Platformers');
         setActiveWidgetId(null);
       }
       if (!isDesktop) setIsMobileNavOpen(false);
@@ -613,6 +604,10 @@ export function AppShell() {
         onItemClick={handleItemClick}
         onSubItemClick={(sub) => {
           setActiveTab(sub);
+          const parent = navItems.find(
+            (i) => i.type === 'accordion' && i.subItems?.includes(sub),
+          );
+          if (parent) setExpandedItem(parent.id);
           if (!isDesktop) setIsMobileNavOpen(false);
         }}
         onShowTooltip={showTooltip}
@@ -682,10 +677,7 @@ export function AppShell() {
             panelNavItem?.panelSource === 'classes' ||
             panelNavItem?.panelSource === 'lessons' ||
             panelNavItem?.panelSource === 'design-patterns' ||
-            panelNavItem?.panelSource === 'design-cards' ||
-            panelNavItem?.panelSource === 'arcade-classic' ||
-            panelNavItem?.panelSource === 'arcade-cards' ||
-            panelNavItem?.panelSource === 'arcade-platformers'
+            panelNavItem?.panelSource === 'design-cards'
           }
           onAddClick={() => setIsAddModalOpen(true)}
           onSelectItem={(sub) => {
@@ -708,10 +700,7 @@ export function AppShell() {
             }
             if (
               panelNavItem?.panelSource === 'design-patterns' ||
-              panelNavItem?.panelSource === 'design-cards' ||
-              panelNavItem?.panelSource === 'arcade-classic' ||
-              panelNavItem?.panelSource === 'arcade-cards' ||
-              panelNavItem?.panelSource === 'arcade-platformers'
+              panelNavItem?.panelSource === 'design-cards'
             ) {
               setActiveTab(sub.label);
               setActiveWidgetId(null);

@@ -1,9 +1,10 @@
 import { Plus, RotateCcw, Settings2 } from 'lucide-react';
+import { AppBoard } from '../../shared/AppBoard';
+import { AppFab } from '../../shared/AppFab';
 import { AppPageShell } from '../../shared/AppPageShell';
 import { ButtonRow } from '../../shared/ButtonRow';
 import { PageBackLink } from '../../shared/PageBackLink';
 import { PageHeader } from '../../shared/PageHeader';
-import { appFabClass, APP_BOARD_PAD, APP_SCROLL_BOARD } from '../../shared/layout';
 import { toolBtnClass } from '../../shared/toolBtn';
 import { TYPE } from '../../shared/typography';
 
@@ -18,7 +19,6 @@ export function AppLayoutPatternView({ isDarkMode, theme, isLeft }) {
   const muted = isDarkMode ? 'text-slate-500' : 'text-slate-400';
   const title = isDarkMode ? 'text-white' : 'text-slate-900';
   const body = isDarkMode ? 'text-slate-300' : 'text-slate-600';
-  const surface = `${theme.colorSurface} ${theme.colorOutline}`;
   const toolBtn = toolBtnClass(isDarkMode);
 
   return (
@@ -46,10 +46,10 @@ export function AppLayoutPatternView({ isDarkMode, theme, isLeft }) {
         </button>
       </ButtonRow>
 
-      <div className={`${APP_SCROLL_BOARD} ${APP_BOARD_PAD} ${surface}`}>
+      <AppBoard mode="scroll" pad="board" theme={theme}>
         <p className={`${TYPE.titleSm} ${title}`}>Board</p>
         <p className={`${TYPE.bodySm} font-mono mt-0.5 ${muted}`}>
-          APP_SCROLL_BOARD · {APP_BOARD_PAD}
+          AppBoard · mode=scroll · pad=board
         </p>
         <p className={`${TYPE.bodyMd} mt-3 ${body}`}>
           Primary content lives on a scrolling board. Shell edge scroll clears the FAB (
@@ -60,15 +60,11 @@ export function AppLayoutPatternView({ isDarkMode, theme, isLeft }) {
           <div className="h-24 rounded-xl border border-dashed opacity-40" aria-hidden />
           <div className="h-24 rounded-xl border border-dashed opacity-40" aria-hidden />
         </div>
-      </div>
+      </AppBoard>
 
-      <button
-        type="button"
-        className={`${appFabClass(isLeft)} ${theme.colorPrimary} ${theme.colorOnPrimary}`}
-        aria-label="Primary action"
-      >
+      <AppFab isLeft={isLeft} theme={theme} aria-label="Primary action">
         <Plus size={24} strokeWidth={2.5} />
-      </button>
+      </AppFab>
     </AppPageShell>
   );
 }

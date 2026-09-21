@@ -18,3 +18,22 @@
 .arcade-boom-pad-jump {
   min-width: 5.5rem;
 }
+
+@media (max-height: 720px) {
+  .arcade-boom-pad-row {
+    margin-top: 0.5rem;
+    gap: 0.5rem;
+    padding-bottom: 0;
+  }
+
+  .arcade-boom-pad {
+    min-width: 2.75rem;
+    min-height: 2.5rem;
+    padding: 0.35rem 0.5rem;
+    font-size: 7px;
+  }
+
+  .arcade-boom-pad-jump {
+    min-width: 4.25rem;
+  }
+}

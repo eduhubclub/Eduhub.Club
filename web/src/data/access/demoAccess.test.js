@@ -1,11 +1,29 @@
 import { describe, expect, it } from 'vitest';
-import { evaluateLocalDemoApp } from './demoAccess';
+import { defaultOpenDemoPolicy, evaluateLocalDemoApp } from './demoAccess';
 
 describe('local demo class rules', () => {
-  it('keeps an app closed until the demo class turns it on', () => {
+  it('opens an app with no stored policy (demo default)', () => {
+    const status = evaluateLocalDemoApp(
+      'arcade',
+      {
+        timezone: 'UTC',
+        policies: {},
+        usage: {},
+      },
+      new Date('2026-09-14T15:00:00Z'),
+    );
+    expect(status.open).toBe(true);
+  });
+
+  it('keeps an app closed when the demo class turns it off', () => {
     const status = evaluateLocalDemoApp('arcade', {
       timezone: 'UTC',
-      policies: {},
+      policies: {
+        arcade: {
+          ...defaultOpenDemoPolicy(),
+          enabled: false,
+        },
+      },
       usage: {},
     });
     expect(status.open).toBe(false);
@@ -29,6 +47,19 @@ describe('local demo class rules', () => {
         usage: {},
       },
       new Date('2026-09-14T15:00:00Z'),
+    );
+    expect(status.open).toBe(true);
+  });
+
+  it('opens Headspace by default for demos', () => {
+    const status = evaluateLocalDemoApp(
+      'headspace',
+      {
+        timezone: 'UTC',
+        policies: {},
+        usage: {},
+      },
+      new Date('2026-09-20T15:00:00Z'), // Sunday
     );
     expect(status.open).toBe(true);
   });

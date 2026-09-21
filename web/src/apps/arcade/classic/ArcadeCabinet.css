@@ -396,3 +396,40 @@
     width: min(100% - 0.75rem, 52rem);
   }
 }
+
+/*
+ * Short stages — keep CRT as the flex grower; collapse decorative deck chrome
+ * so direction pads don't starve the play area.
+ */
+@media (max-height: 720px) {
+  .arcade-cab-marquee {
+    padding: 0.4rem 0.65rem 0.45rem;
+  }
+
+  .arcade-cab-marquee-sub {
+    display: none;
+  }
+
+  .arcade-cab-bezel {
+    margin: 0.4rem 0.45rem 0;
+    padding: 0.3rem;
+  }
+
+  .arcade-cab-deck {
+    margin: 0.35rem 0.45rem 0.45rem;
+    padding: 0.4rem 0.5rem 0.45rem;
+  }
+
+  .arcade-cab-deck-art {
+    display: none;
+  }
+
+  .arcade-cab-deck-controls {
+    gap: 0.35rem;
+  }
+
+  .arcade-cab-btn {
+    padding: 0.4rem 0.55rem;
+    font-size: 7px;
+  }
+}
