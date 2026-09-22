@@ -1,0 +1,140 @@
+.sudoku-stage {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  gap: 0.75rem;
+}
+
+.sudoku-main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.sudoku-board-wrap {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  width: min(100%, min(520px, calc(100dvh - 14rem)));
+  max-height: 100%;
+  max-width: 100%;
+}
+
+.sudoku-grid {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  grid-template-rows: repeat(9, 1fr);
+  width: 100%;
+  height: 100%;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 2px solid currentColor;
+}
+
+.sudoku-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.sudoku-cell:nth-child(9n) {
+  border-right: none;
+}
+
+.sudoku-cell:nth-child(n + 73) {
+  border-bottom: none;
+}
+
+.sudoku-cell--box-r {
+  border-right-width: 2px;
+  border-right-color: currentColor;
+}
+
+.sudoku-cell--box-b {
+  border-bottom-width: 2px;
+  border-bottom-color: currentColor;
+}
+
+.sudoku-cell__digit {
+  font-size: clamp(0.95rem, 3.6cqi, 1.65rem);
+  font-weight: 700;
+}
+
+.sudoku-cell--clue .sudoku-cell__digit {
+  font-weight: 800;
+}
+
+.sudoku-cell__notes {
+  position: absolute;
+  inset: 2px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  font-size: clamp(0.4rem, 1.5cqi, 0.65rem);
+  font-weight: 600;
+  line-height: 1;
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.sudoku-cell__notes span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sudoku-pad {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(2.75rem, 3.25rem));
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.sudoku-pad__btn {
+  aspect-ratio: 1 / 1;
+  min-height: 2.75rem;
+}
+
+.sudoku-win {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, canvas 82%, transparent);
+  backdrop-filter: blur(2px);
+  z-index: 2;
+  text-align: center;
+  padding: 1rem;
+}
+
+@media (max-width: 640px) {
+  .sudoku-main {
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
+  .sudoku-board-wrap {
+    width: min(100%, calc(100dvh - 16rem));
+  }
+
+  .sudoku-pad {
+    grid-template-columns: repeat(5, minmax(2.4rem, 1fr));
+    width: min(100%, 22rem);
+  }
+}

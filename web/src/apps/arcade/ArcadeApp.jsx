@@ -2,6 +2,7 @@ import { AppPageShell } from '../../shared/AppPageShell';
 import { EmptyState } from '../../shared/EmptyState';
 import { ClassicView } from './views/ClassicView';
 import { CardsView } from './views/CardsView';
+import { NumberGamesView } from './views/NumberGamesView';
 import { PlatformersView } from './views/PlatformersView';
 import { SolitaireView } from './solitaire/SolitaireView';
 import { SpiderView } from './spider/SpiderView';
@@ -9,6 +10,8 @@ import { GoFishView } from './gofish/GoFishView';
 import { BoomJumpView } from './boomjump/BoomJumpView';
 import { ArkanoidView } from './arkanoid/ArkanoidView';
 import { SnakeView } from './snake/SnakeView';
+import { MathTrainView } from './mathtrain/MathTrainView';
+import { SudokuView } from './sudoku/SudokuView';
 
 /**
  * Edu.Arcade — pure-fun games hub (pixel classics first).
@@ -49,6 +52,18 @@ export function ArcadeApp({
     );
   }
 
+  if (activeTab === 'Number Games') {
+    return (
+      <AppPageShell variant="stage">
+        <NumberGamesView
+          isDarkMode={isDarkMode}
+          theme={theme}
+          onOpenGame={(tab) => onSetActiveTab?.(tab)}
+        />
+      </AppPageShell>
+    );
+  }
+
   if (activeTab === 'Platformers') {
     return (
       <AppPageShell variant="stage">
@@ -57,6 +72,22 @@ export function ArcadeApp({
           theme={theme}
           onOpenGame={(tab) => onSetActiveTab?.(tab)}
         />
+      </AppPageShell>
+    );
+  }
+
+  if (activeTab === 'Math Train') {
+    return (
+      <AppPageShell variant="stage">
+        <MathTrainView isDarkMode={isDarkMode} theme={theme} isLeft={isLeft} />
+      </AppPageShell>
+    );
+  }
+
+  if (activeTab === 'Sudoku') {
+    return (
+      <AppPageShell variant="stage">
+        <SudokuView isDarkMode={isDarkMode} theme={theme} isLeft={isLeft} />
       </AppPageShell>
     );
   }

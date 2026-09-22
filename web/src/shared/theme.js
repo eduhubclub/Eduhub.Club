@@ -375,6 +375,7 @@ export const appThemes = {
   OfTheDay: { ...primaryPalettes.Purple },
   Library: { ...primaryPalettes.Emerald },
   Slides: { ...primaryPalettes.Pink },
+  Convert: { ...primaryPalettes.Emerald },
 };
 
 /** Default primary key for each appThemes / themeKey name. */
@@ -409,6 +410,7 @@ export const appThemePrimaryKeys = {
   OfTheDay: 'Purple',
   Library: 'Emerald',
   Slides: 'Pink',
+  Convert: 'Emerald',
 };
 
 /**
