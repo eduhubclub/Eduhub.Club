@@ -2,56 +2,32 @@ import {
   Bomb,
   BrickWall,
   Bug,
-  Calculator,
   Fish,
   Grid3x3,
-  Joystick,
   Spade,
-  SquareStack,
   TrainFront,
   Worm,
-  Zap,
 } from 'lucide-react';
 import { ArcadeApp } from './ArcadeApp';
 
 /**
  * Edu.Arcade — for-fun classroom games so kids stay in Edu.Hub.
- * Classic, Cards, Number Games, and Platformers are primary-sidebar accordions.
+ * Flat primary-sidebar tabs (one game per link — no panels or accordions).
  */
 export const arcadeApp = {
   id: 'arcade',
   name: 'Arcade',
   themeKey: 'Arcade',
-  defaultView: 'Card Games',
+  defaultView: 'Solitaire',
   nav: [
-    {
-      id: 'classic',
-      name: 'Classic',
-      icon: Joystick,
-      type: 'accordion',
-      subItems: ['Snake', 'Arkanoid'],
-    },
-    {
-      id: 'cards',
-      name: 'Cards',
-      icon: SquareStack,
-      type: 'accordion',
-      subItems: ['Solitaire', 'Spider', 'Go Fish'],
-    },
-    {
-      id: 'number-games',
-      name: 'Number Games',
-      icon: Calculator,
-      type: 'accordion',
-      subItems: ['Math Train', 'Sudoku'],
-    },
-    {
-      id: 'platformers',
-      name: 'Platformers',
-      icon: Zap,
-      type: 'accordion',
-      subItems: ['Boom Jump'],
-    },
+    { id: 'snake', name: 'Snake', icon: Worm, type: 'link' },
+    { id: 'arkanoid', name: 'Arkanoid', icon: BrickWall, type: 'link' },
+    { id: 'solitaire', name: 'Solitaire', icon: Spade, type: 'link' },
+    { id: 'spider', name: 'Spider', icon: Bug, type: 'link' },
+    { id: 'go-fish', name: 'Go Fish', icon: Fish, type: 'link' },
+    { id: 'math-train', name: 'Math Train', icon: TrainFront, type: 'link' },
+    { id: 'sudoku', name: 'Sudoku', icon: Grid3x3, type: 'link' },
+    { id: 'boom-jump', name: 'Boom Jump', icon: Bomb, type: 'link' },
   ],
   View: ArcadeApp,
 };

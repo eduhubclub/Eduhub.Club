@@ -63,6 +63,8 @@ export const STUDENT_APP_PARTS = {
     { id: 'solitaire', name: 'Solitaire', tab: 'Solitaire' },
     { id: 'spider', name: 'Spider', tab: 'Spider' },
     { id: 'go-fish', name: 'Go Fish', tab: 'Go Fish' },
+    { id: 'math-train', name: 'Math Train', tab: 'Math Train' },
+    { id: 'sudoku', name: 'Sudoku', tab: 'Sudoku' },
     { id: 'boom-jump', name: 'Boom Jump', tab: 'Boom Jump' },
   ],
   games: [{ id: 'wordle', name: 'Wordle', tab: 'Wordle' }],

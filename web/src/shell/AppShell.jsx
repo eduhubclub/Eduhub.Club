@@ -401,16 +401,10 @@ export function AppShell() {
       if (!isDesktop) setIsMobileNavOpen(false);
     } else if (item.type === 'accordion') {
       if (isDesktop && !isSidebarOpen) setIsSidebarOpen(true);
-      const opening = expandedItem !== item.id;
-      setExpandedItem(opening ? item.id : null);
+      setExpandedItem(expandedItem !== item.id ? item.id : null);
       setPanelItem(null);
       setPopoutItem(null);
       setActiveWidgetId(null);
-      // Category boards (e.g. Arcade Classic / Cards) open with the accordion.
-      if (opening) {
-        setActiveTab(item.name);
-        setIsSettingsOpen(false);
-      }
     } else if (item.type === 'popout') {
       if (popoutItem === item.id) {
         setPopoutItem(null);
