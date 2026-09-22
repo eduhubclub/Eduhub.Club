@@ -2,6 +2,7 @@
 export const STUDENT_APP_IDS = [
   'arcade',
   'games',
+  'eduType',
   'mathTools',
   'dictionary',
   'paper',
@@ -16,6 +17,7 @@ export const STUDENT_APP_IDS = [
 export const STUDENT_APP_NAMES = {
   arcade: 'Arcade',
   games: 'Games',
+  eduType: 'Edu.Type',
   mathTools: 'Math Tools',
   dictionary: 'Dictionary',
   paper: 'Paper',
@@ -68,6 +70,10 @@ export const STUDENT_APP_PARTS = {
     { id: 'boom-jump', name: 'Boom Jump', tab: 'Boom Jump' },
   ],
   games: [{ id: 'wordle', name: 'Wordle', tab: 'Wordle' }],
+  eduType: [
+    { id: 'type-a-classic', name: 'Type a Classic', tab: 'Type a Classic' },
+    { id: 'today', name: 'Today', tab: 'Today' },
+  ],
   mathTools: [
     { id: 'money', name: 'Money', tab: 'Money' },
     { id: 'clock', name: 'Clock', tab: 'Clock' },

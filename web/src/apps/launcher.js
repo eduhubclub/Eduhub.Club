@@ -19,6 +19,7 @@ import {
   Palette,
   BookOpenCheck,
   BookA,
+  Keyboard,
   Gamepad2,
   Joystick,
   Landmark,
@@ -164,6 +165,14 @@ export const launcherApps = [
     color: 'bg-pink-500',
     description:
       'Build 16:9 lesson decks, present on the classroom display, and import PDF or PowerPoint.',
+  },
+  {
+    id: 'eduType',
+    name: 'Edu.Type',
+    icon: Keyboard,
+    color: 'bg-violet-500',
+    description:
+      'Type a Classic, daily practice, and typing skills — with WPM and progress that follows each student.',
   },
   {
     id: 'games',

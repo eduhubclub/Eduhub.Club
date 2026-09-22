@@ -63,11 +63,13 @@ function cloneNav(nav) {
   }));
 }
 
-/** Hide Store embeds unless the matching Connect toggle is on; skip `hidden` nav items. */
-function filterAppNav(appId, nav) {
+/** Hide Store embeds unless the matching Connect toggle is on; skip `hidden` / teacher-only nav. */
+function filterAppNav(appId, nav, session) {
   const settings = readStoreSettings();
+  const isTeacher = session?.role === 'teacher' || Boolean(session?.owner);
   return nav.filter((item) => {
     if (item.hidden) return false;
+    if (item.teacherOnly && !isTeacher) return false;
     if (item.id !== 'store') return true;
     if (appId === 'bank') return settings.connectBank;
     if (appId === 'behavior') return settings.connectBehavior;
@@ -145,7 +147,7 @@ export function AppShell() {
   });
 
   const [navItems, setNavItems] = useState(() =>
-    filterAppNav(currentAppId, cloneNav(currentApp.nav)),
+    filterAppNav(currentAppId, cloneNav(currentApp.nav), null),
   );
   const [shellFooterActive, setShellFooterActive] = useState(false);
 
@@ -193,7 +195,7 @@ export function AppShell() {
     const app = getApp(currentAppId);
     const classLessons = getLessons(selectedClass?.id);
     setNavItems(
-      filterAppNav(currentAppId, cloneNav(app.nav)).map((item) => {
+      filterAppNav(currentAppId, cloneNav(app.nav), session).map((item) => {
         if (item.panelSource === 'classes') {
           return { ...item, panelContent: buildClassesPanelContent(classes) };
         }
@@ -219,7 +221,7 @@ export function AppShell() {
     setIsAddWidgetModalOpen(false);
     // classes/lessons snapshot at switch time; live updates handled below
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentAppId]);
+  }, [currentAppId, session?.role, session?.owner]);
 
   // Refresh Bank/Behavior Store nav when Store connection toggles change.
   useEffect(() => {
@@ -232,7 +234,7 @@ export function AppShell() {
             .filter((i) => i.panelSource)
             .map((i) => [i.id, i]),
         );
-        return filterAppNav(currentAppId, cloneNav(app.nav)).map((item) => {
+        return filterAppNav(currentAppId, cloneNav(app.nav), session).map((item) => {
           if (item.panelSource && panels[item.id]) {
             return {
               ...item,
@@ -474,6 +476,7 @@ export function AppShell() {
     currentAppId === 'noisemeter' ||
     currentAppId === 'arcade' ||
     currentAppId === 'games' ||
+    currentAppId === 'eduType' ||
     (currentAppId === 'calendar' &&
       activeTab !== 'Create Calendar' &&
       activeTab !== 'Saved Calendar' &&

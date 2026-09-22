@@ -64,6 +64,7 @@ import { MorningMeetingSettingsCards } from '../apps/morningMeeting/MorningMeeti
 import { OfTheDaySettingsCards } from '../apps/ofTheDay/OfTheDaySettingsCards';
 import { LibrarySettingsCards } from '../apps/library/LibrarySettingsCards';
 import { SlidesSettingsCards } from '../apps/slides/SlidesSettingsCards';
+import { EduTypeSettingsCards } from '../apps/eduType/EduTypeSettingsCards';
 
 function SettingsCard({ title, description, isDarkMode, defaultOpen = true, children }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -219,6 +220,7 @@ export function SettingsPage({
   const isOfTheDay = currentApp?.id === 'ofTheDay';
   const isLibrary = currentApp?.id === 'library';
   const isSlides = currentApp?.id === 'slides';
+  const isEduType = currentApp?.id === 'eduType';
   const [behaviorSyncToBank, setBehaviorSyncToBank] = useState(readBehaviorSyncToBank);
   const [behaviorShowNeedsWork, setBehaviorShowNeedsWork] = useState(
     readBehaviorShowNeedsWork,
@@ -1089,6 +1091,14 @@ export function SettingsPage({
 
         {isLibrary ? (
           <LibrarySettingsCards
+            theme={theme}
+            isDarkMode={isDarkMode}
+            Card={SettingsCard}
+          />
+        ) : null}
+
+        {isEduType ? (
+          <EduTypeSettingsCards
             theme={theme}
             isDarkMode={isDarkMode}
             Card={SettingsCard}
