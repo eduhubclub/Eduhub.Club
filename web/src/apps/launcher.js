@@ -33,6 +33,7 @@ import {
   Sun,
   Library,
   GalleryVertical,
+  RefreshCw,
 } from 'lucide-react';
 
 /**
@@ -270,6 +271,13 @@ export const launcherApps = [
     icon: NotebookPen,
     color: 'bg-sky-600',
     description: 'Print lined, dotted, grid, and other classroom paper.',
+  },
+  {
+    id: 'convert',
+    name: 'Convert',
+    icon: RefreshCw,
+    color: 'bg-teal-500',
+    description: 'Convert images and PDFs on this device — free, nothing uploaded.',
   },
   {
     id: 'files',

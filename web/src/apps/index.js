@@ -25,6 +25,7 @@ import { morningMeetingApp } from './morningMeeting/config';
 import { ofTheDayApp } from './ofTheDay/config';
 import { libraryApp } from './library/config';
 import { slidesApp } from './slides/config';
+import { convertApp } from './convert/config';
 
 export { launcherApps } from './launcher';
 
@@ -57,6 +58,7 @@ export const apps = {
   [ofTheDayApp.id]: ofTheDayApp,
   [libraryApp.id]: libraryApp,
   [slidesApp.id]: slidesApp,
+  [convertApp.id]: convertApp,
 };
 
 /** Hub is the default entry app. */
