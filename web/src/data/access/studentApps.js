@@ -12,6 +12,7 @@ export const STUDENT_APP_IDS = [
   'slides',
   'library',
   'morningMeeting',
+  'headspace',
 ];
 
 export const STUDENT_APP_NAMES = {
@@ -27,6 +28,7 @@ export const STUDENT_APP_NAMES = {
   slides: 'Slides',
   library: 'Library',
   morningMeeting: 'Morning Meeting',
+  headspace: 'Headspace',
 };
 
 export const DEFAULT_WEEKDAYS = [1, 2, 3, 4, 5];
@@ -62,6 +64,7 @@ export const STUDENT_APP_PARTS = {
   arcade: [
     { id: 'snake', name: 'Snake', tab: 'Snake' },
     { id: 'arkanoid', name: 'Arkanoid', tab: 'Arkanoid' },
+    { id: 'math-train', name: 'Math Train', tab: 'Math Train' },
     { id: 'solitaire', name: 'Solitaire', tab: 'Solitaire' },
     { id: 'spider', name: 'Spider', tab: 'Spider' },
     { id: 'go-fish', name: 'Go Fish', tab: 'Go Fish' },
@@ -111,6 +114,7 @@ export const STUDENT_APP_PARTS = {
   slides: [{ id: 'follow', name: 'Follow', tab: 'Follow' }],
   library: [{ id: 'shelf', name: 'Library', tab: 'Library' }],
   morningMeeting: [{ id: 'board', name: 'Board', tab: 'Board' }],
+  headspace: [{ id: 'pet-rock', name: 'Pet Rock', tab: 'Pet Rock' }],
 };
 
 export function appParts(appId) {
@@ -120,6 +124,7 @@ export function appParts(appId) {
 export function partsHeading(appId) {
   if (appId === 'arcade') return 'Games';
   if (appId === 'mathTools') return 'Desks';
+  if (appId === 'headspace') return 'Journal types';
   return 'Parts';
 }
 

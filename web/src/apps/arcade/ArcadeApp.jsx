@@ -35,6 +35,18 @@ export function ArcadeApp({
     );
   }
 
+  if (activeTab === 'Number Games') {
+    return (
+      <AppPageShell variant="stage">
+        <NumberGamesView
+          isDarkMode={isDarkMode}
+          theme={theme}
+          onOpenGame={(tab) => onSetActiveTab?.(tab)}
+        />
+      </AppPageShell>
+    );
+  }
+
   if (
     activeTab === 'Card Games' ||
     activeTab === 'Cards' ||
@@ -136,6 +148,14 @@ export function ArcadeApp({
     return (
       <AppPageShell variant="stage">
         <SnakeView isDarkMode={isDarkMode} theme={theme} isLeft={isLeft} />
+      </AppPageShell>
+    );
+  }
+
+  if (activeTab === 'Math Train') {
+    return (
+      <AppPageShell variant="stage">
+        <MathTrainView isDarkMode={isDarkMode} theme={theme} isLeft={isLeft} />
       </AppPageShell>
     );
   }

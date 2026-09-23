@@ -5,6 +5,7 @@ const StudentPartAccessContext = createContext(null);
 
 export function StudentPartAccessProvider({ appId, parts, onExplain, children }) {
   const value = {
+    isStudentFrame: true,
     isClosed(id, tab) {
       if (!appId || id !== appId) return false;
       const part = partByTab(id, tab);
@@ -24,6 +25,7 @@ export function StudentPartAccessProvider({ appId, parts, onExplain, children })
 export function useStudentParts() {
   return (
     useContext(StudentPartAccessContext) || {
+      isStudentFrame: false,
       isClosed: () => false,
       explain: () => {},
     }

@@ -971,6 +971,57 @@ export function DesignGuidePage({ theme, isDarkMode, activeTab = 'Overview' }) {
         {guideTab === 'patterns' ? (
           <>
             <StyleGuideCard
+              title="Stage sizing & templates"
+              token="AppBoard · StageToolLayout · …"
+              description="Three layers: layout tokens, shared template blocks, and app-specific topology. Prefer templates over copying board class stacks. Stress-test under phone / short frames in Patterns → Stage Sizing."
+              isDarkMode={isDarkMode}
+              accentClass={previewTheme.text}
+              specs={[
+                {
+                  label: 'AppBoard',
+                  value: 'surface + chrome + pad',
+                  note: 'static / scroll / multi / grid',
+                },
+                {
+                  label: 'StageToolLayout',
+                  value: 'toolbar + static board',
+                  note: 'AppPageShell stage',
+                },
+                {
+                  label: 'InternalScrollBoard',
+                  value: 'header + body scroll',
+                  note: 'APP_BOARD_BODY_SCROLL',
+                },
+                {
+                  label: 'ContentCardGrid',
+                  value: '1 → sm:2 → lg:3',
+                  note: 'shared breakpoints',
+                },
+                {
+                  label: 'AppFab',
+                  value: 'appFabClass + primary',
+                  note: 'shell corner FAB',
+                },
+                {
+                  label: 'Playground',
+                  value: 'Patterns → Stage Sizing',
+                  note: 'local phone / short frames',
+                },
+              ]}
+              doList={[
+                'Use AppBoard / StageToolLayout / InternalScrollBoard when they fit.',
+                'Fit square tools with aspect-square + one limiting axis.',
+                'Keep control chrome from permanently eating play height on short stages.',
+                'Open Stage Sizing to try templates under Phone + Short height.',
+              ]}
+              dontList={[
+                'Copy APP_SCROLL_BOARD + pad + theme.colorSurface stacks by hand.',
+                'Use independent max-w and max-h percentages on square tools.',
+                'Floor container-query card widths above what columns can fit.',
+              ]}
+            />
+
+            <StyleGuideCard
               title="App shell padding"
               token="SHELL_MAIN_PADDING"
               description="Single source of truth for the AppShell main inset. Every app inherits this — do not add extra horizontal padding on the root view."

@@ -27,6 +27,7 @@ import { libraryApp } from './library/config';
 import { slidesApp } from './slides/config';
 import { convertApp } from './convert/config';
 import { eduTypeApp } from './eduType/config';
+import { headspaceApp } from './headspace/config';
 
 export { launcherApps } from './launcher';
 
@@ -61,6 +62,7 @@ export const apps = {
   [slidesApp.id]: slidesApp,
   [convertApp.id]: convertApp,
   [eduTypeApp.id]: eduTypeApp,
+  [headspaceApp.id]: headspaceApp,
 };
 
 /** Hub is the default entry app. */

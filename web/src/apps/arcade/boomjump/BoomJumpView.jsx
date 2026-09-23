@@ -314,7 +314,7 @@ export function BoomJumpView({ isDarkMode }) {
             ) : null}
           </div>
 
-          <div className="mt-3 flex shrink-0 justify-center gap-3 pb-1">
+          <div className="arcade-boom-pad-row mt-3 flex shrink-0 justify-center gap-3 pb-1">
             <button
               type="button"
               className="edu-control arcade-btn arcade-boom-pad"

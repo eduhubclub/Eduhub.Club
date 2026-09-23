@@ -7,6 +7,7 @@ import {
   LearningZoomStage,
 } from '../components/LearningZoomStage';
 import {
+  CLOCK_FACE_PX,
   MINUTE_CHIPS,
   TeachingClock,
 } from '../clock/TeachingClock';
@@ -438,6 +439,11 @@ export function ClockWidget({
         footerExtra={footerExtra}
         footerTrailing={footerTrailing}
         footerSecondary={footerSecondary}
+        fitContent={{
+          // Face + ClockWidget p-10 centering padding (40px each side).
+          width: CLOCK_FACE_PX + 80,
+          height: CLOCK_FACE_PX + 80,
+        }}
       >
         <div ref={deskSurfaceRef} className="relative h-full w-full">
           <div className="flex h-full w-full items-center justify-center p-10">

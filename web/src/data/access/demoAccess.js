@@ -3,30 +3,83 @@ import { browserTimeZone, DEFAULT_WEEKDAYS, normalizeParts, STUDENT_APP_IDS } fr
 
 export const LOCAL_DEMO_CLASS_ID = 'demo-3rd-grade';
 const STORAGE_KEY = 'edu.demoAppAccess';
+/** Bump to re-seed open demo policies (weekends + new apps like Headspace). */
+const STORE_VERSION = 2;
 
 const WEEKDAY_INDEX = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
 
-function emptyStore() {
-  return { timezone: browserTimeZone(), policies: {}, usage: {} };
+/** Open all day every day — local demo should work on weekends too. */
+export function defaultOpenDemoPolicy() {
+  return {
+    enabled: true,
+    weekdays: [0, 1, 2, 3, 4, 5, 6],
+    windowStart: '',
+    windowEnd: '',
+    dailyMinutes: null,
+    parts: {},
+  };
 }
 
-export function readLocalDemoAccess() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return emptyStore();
-    const parsed = JSON.parse(raw);
-    return {
-      timezone: parsed.timezone || browserTimeZone(),
-      policies: parsed.policies || {},
-      usage: parsed.usage || {},
-    };
-  } catch {
-    return emptyStore();
-  }
+function emptyStore() {
+  return { version: STORE_VERSION, timezone: browserTimeZone(), policies: {}, usage: {} };
 }
 
 function writeLocalDemoAccess(store) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+  } catch {
+    /* ignore */
+  }
+}
+
+/**
+ * Keep local demo apps open for tryouts. Version bumps re-seed every student
+ * app as open (all week). After that, only missing apps get defaults so a
+ * teacher turn-off sticks.
+ */
+export function ensureLocalDemoDefaults(store) {
+  const next = store || emptyStore();
+  if (!next.policies || typeof next.policies !== 'object') next.policies = {};
+  let changed = false;
+
+  if (next.version !== STORE_VERSION) {
+    for (const appId of STUDENT_APP_IDS) {
+      next.policies[appId] = defaultOpenDemoPolicy();
+    }
+    next.version = STORE_VERSION;
+    changed = true;
+  } else {
+    for (const appId of STUDENT_APP_IDS) {
+      if (!next.policies[appId]) {
+        next.policies[appId] = defaultOpenDemoPolicy();
+        changed = true;
+      }
+    }
+  }
+
+  if (changed) writeLocalDemoAccess(next);
+  return next;
+}
+
+export function readLocalDemoAccess() {
+  let store;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      store = emptyStore();
+    } else {
+      const parsed = JSON.parse(raw);
+      store = {
+        version: parsed.version,
+        timezone: parsed.timezone || browserTimeZone(),
+        policies: parsed.policies || {},
+        usage: parsed.usage || {},
+      };
+    }
+  } catch {
+    store = emptyStore();
+  }
+  return ensureLocalDemoDefaults(store);
 }
 
 export function saveLocalDemoTimezone(timezone) {
@@ -92,7 +145,7 @@ function closed(appId, reason, detail, extra = {}) {
 }
 
 export function evaluateLocalDemoApp(appId, store = readLocalDemoAccess(), date = new Date()) {
-  const policy = store.policies[appId];
+  const policy = store.policies[appId] || defaultOpenDemoPolicy();
   const now = zonedNow(store.timezone || 'UTC', date);
   const used = store.usage[`${appId}:${now.date}`] || 0;
   const parts = normalizeParts(policy?.parts);

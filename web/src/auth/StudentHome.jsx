@@ -7,6 +7,7 @@ import { useAuth } from '../data/auth/AuthContext';
 import { canEnterApp } from '../data/access/accessCopy';
 import { accessErrorMessage, ensureDemoClass, loadStudentBoard } from '../data/access/studentAccessApi';
 import { localDemoBoard } from '../data/access/demoAccess';
+import { isLocalDemoSession } from './demoAccount';
 import { STUDENT_APP_IDS, STUDENT_APP_NAMES } from '../data/access/studentApps';
 import { LogoHorizontal } from '../shared/Logo';
 import { APP_GRID_CARD } from '../shared/layout';
@@ -61,7 +62,7 @@ export function StudentHome() {
   const { session, signOut, switchView } = useAuth();
   const theme = getTheme('Blue', false);
   const shellBackground = resolveShellBackgroundClass(undefined, false);
-  const localDemo = session?.userId === 'demo';
+  const localDemo = isLocalDemoSession(session);
   const [board, setBoard] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -193,6 +194,10 @@ export function StudentHome() {
                       if (open) {
                         setDialog(null);
                         setActiveAppId(appId);
+                        return;
+                      }
+                      if (localDemo) {
+                        showLock(appId, statusFor(appId) || status);
                         return;
                       }
                       try {

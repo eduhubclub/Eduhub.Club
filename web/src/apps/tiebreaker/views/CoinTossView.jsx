@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Coins, RotateCcw, Settings2, User } from 'lucide-react';
-import { ButtonRow } from '../../../shared/ButtonRow';
 import { Modal } from '../../../shared/Modal';
 import { ModalPrimaryButton } from '../../../shared/ModalPrimaryButton';
-import { APP_STATIC_BOARD_MD } from '../../../shared/layout';
+import { StageToolLayout } from '../../../shared/StageToolLayout';
 import { toolBtnClass } from '../../../shared/toolBtn';
 import { TYPE } from '../../../shared/typography';
 import { useAnnounce } from '../../../shared/LiveAnnouncer';
@@ -70,10 +69,6 @@ export function CoinTossView({ isDarkMode, theme }) {
     setHistory([]);
   };
 
-  const surface = isDarkMode
-    ? 'bg-slate-900 border-slate-700'
-    : 'bg-white border-slate-200';
-
   const toolBtn = toolBtnClass(isDarkMode);
 
   const historySlots = Array.from({ length: HISTORY_MAX }, (_, i) => history[i] ?? null);
@@ -81,29 +76,34 @@ export function CoinTossView({ isDarkMode, theme }) {
   const tailsCount = history.filter((r) => r === 'Tails').length;
   const hasHistory = history.length > 0;
 
+  const toolbar = (
+    <>
+      {hasHistory ? (
+        <button
+          type="button"
+          onClick={handleResetHistory}
+          disabled={isFlipping}
+          className={`${toolBtn} disabled:opacity-50`}
+        >
+          <RotateCcw size={16} strokeWidth={2.5} />
+          Reset
+        </button>
+      ) : null}
+      <button type="button" onClick={openSettings} className={toolBtn}>
+        <Settings2 size={16} strokeWidth={2.5} />
+        Settings
+      </button>
+    </>
+  );
+
   return (
     <>
-      <div className="w-full h-full min-h-0 max-h-full flex flex-col overflow-hidden">
-        <ButtonRow>
-          {hasHistory ? (
-            <button
-              type="button"
-              onClick={handleResetHistory}
-              disabled={isFlipping}
-              className={`${toolBtn} disabled:opacity-50`}
-            >
-              <RotateCcw size={16} strokeWidth={2.5} />
-              Reset
-            </button>
-          ) : null}
-          <button type="button" onClick={openSettings} className={toolBtn}>
-            <Settings2 size={16} strokeWidth={2.5} />
-            Settings
-          </button>
-        </ButtonRow>
-
-        <div className="flex-1 min-h-0 w-full overflow-hidden">
-          <div className={`${APP_STATIC_BOARD_MD} ${surface}`}>
+      <StageToolLayout
+        toolbar={toolbar}
+        boardSize="md"
+        pad="none"
+        theme={theme}
+      >
             <div className="flex flex-1 min-h-0 min-w-0 overflow-hidden">
             {/* Main toss area */}
             <div className="flex-1 min-w-0 min-h-0 flex flex-col items-center justify-end gap-4 sm:gap-6 pt-12 sm:pt-16 pb-8 sm:pb-10 px-4">
@@ -170,7 +170,7 @@ export function CoinTossView({ isDarkMode, theme }) {
                 type="button"
                 onClick={handleCoinToss}
                 disabled={isFlipping}
-                className={`px-5 py-2.5 ${TYPE.labelLg} rounded-xl shadow-sm inline-flex items-center justify-center transition-all active:scale-95 shrink-0 disabled:opacity-50 ${theme.colorPrimary} ${theme.colorOnPrimary}`}
+                className={`edu-control px-5 py-2.5 ${TYPE.labelLg} rounded-xl shadow-sm inline-flex items-center justify-center transition-all active:scale-95 shrink-0 disabled:opacity-50 ${theme.colorPrimary} ${theme.colorOnPrimary}`}
               >
                 Toss Coin
               </button>
@@ -267,9 +267,7 @@ export function CoinTossView({ isDarkMode, theme }) {
               </aside>
             ) : null}
             </div>
-          </div>
-        </div>
-      </div>
+      </StageToolLayout>
 
       <Modal
         isOpen={isSettingsOpen}

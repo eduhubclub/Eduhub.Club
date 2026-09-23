@@ -34,6 +34,8 @@ export const LEARNING_DESK_WIDTH = 2000;
 export const LEARNING_DESK_HEIGHT = 1400;
 /** Gutter around the desk so zoomed-out bounds stay visible. */
 const DESK_PAD = 80;
+/** Default margin when fitting preferred content into the viewport. */
+const FIT_VIEW_PAD = 24;
 
 function clampZoom(z) {
   const stepped = Math.round(z / ZOOM_STEP) * ZOOM_STEP;
@@ -41,9 +43,24 @@ function clampZoom(z) {
 }
 
 /**
+ * Zoom so preferred content (e.g. clock face) fits the viewport.
+ * Caps at 1 so large displays keep design size.
+ */
+export function computeFitZoom(viewportW, viewportH, contentW, contentH, pad = FIT_VIEW_PAD) {
+  if (!viewportW || !viewportH || !contentW || !contentH) return 1;
+  const availW = Math.max(1, viewportW - pad * 2);
+  const availH = Math.max(1, viewportH - pad * 2);
+  return clampZoom(Math.min(availW / contentW, availH / contentH, 1));
+}
+
+/**
  * Fill-height Learning workspace: finite scrollable desk under the shell.
  * Zoom scales the desk layout size; overflow scroll moves around it.
  * Tools live in `#edu-main-footer` (double footer: secondary chips + primary).
+ *
+ * @param {object} [props.fitContent] — preferred content size in desk CSS px
+ *   (`{ width, height, pad? }`). When set, initial / Reset View zoom fits that
+ *   content into the viewport instead of defaulting to 1.
  */
 export function LearningZoomStage({
   isDarkMode,
@@ -54,6 +71,7 @@ export function LearningZoomStage({
   footerSecondary = null,
   /** Label for the secondary tray toggle (Timer: Blocks, Bank: Bills). */
   footerSecondaryLabel = 'Blocks',
+  fitContent = null,
   children,
 }) {
   const viewportRef = useRef(null);
@@ -70,10 +88,13 @@ export function LearningZoomStage({
   zoomRef.current = zoom;
   const pendingScrollRef = useRef(null);
   const didCenterRef = useRef(false);
+  const didFitRef = useRef(false);
   /** True after the user pans or zooms — stop auto-recentering on resize. */
   const userAdjustedViewRef = useRef(false);
   /** Suppress scroll listener while we set scrollLeft/Top programmatically. */
   const programmaticScrollRef = useRef(false);
+  const fitContentRef = useRef(fitContent);
+  fitContentRef.current = fitContent;
 
   const useShellFooter = typeof onShellFooterActiveChange === 'function';
 
@@ -149,6 +170,19 @@ export function LearningZoomStage({
     [scrollToCenter, applyScroll],
   );
 
+  const getFitZoom = useCallback(() => {
+    const el = viewportRef.current;
+    const fit = fitContentRef.current;
+    if (!el || !fit?.width || !fit?.height) return 1;
+    return computeFitZoom(
+      el.clientWidth,
+      el.clientHeight,
+      fit.width,
+      fit.height,
+      fit.pad ?? FIT_VIEW_PAD,
+    );
+  }, []);
+
   useLayoutEffect(() => {
     const el = viewportRef.current;
     if (!el) return;
@@ -160,12 +194,23 @@ export function LearningZoomStage({
       return;
     }
 
+    if (!didFitRef.current && fitContentRef.current) {
+      const zFit = getFitZoom();
+      didFitRef.current = true;
+      if (zFit !== zoomRef.current) {
+        pendingScrollRef.current = scrollToCenter(zFit);
+        setZoom(zFit);
+        didCenterRef.current = true;
+        return;
+      }
+    }
+
     if (!didCenterRef.current) {
       if (centerViewport(zoom)) {
         didCenterRef.current = true;
       }
     }
-  }, [zoom, canvasW, canvasH, centerViewport, applyScroll]);
+  }, [zoom, canvasW, canvasH, centerViewport, applyScroll, getFitZoom, scrollToCenter]);
 
   // Keep the default view centered when the shell footer / Bills tray resizes
   // the viewport — until the user pans or zooms themselves.
@@ -181,8 +226,13 @@ export function LearningZoomStage({
 
     const ro = new ResizeObserver(() => {
       if (userAdjustedViewRef.current) return;
-      if (zoomRef.current !== 1) return;
-      if (centerViewport(1)) {
+      const defaultZ = fitContentRef.current ? getFitZoom() : 1;
+      if (Math.abs(zoomRef.current - defaultZ) > 0.001) {
+        pendingScrollRef.current = scrollToCenter(defaultZ);
+        setZoom(defaultZ);
+        return;
+      }
+      if (centerViewport(defaultZ)) {
         didCenterRef.current = true;
       }
     });
@@ -192,7 +242,7 @@ export function LearningZoomStage({
       el.removeEventListener('scroll', onScroll);
       ro.disconnect();
     };
-  }, [centerViewport]);
+  }, [centerViewport, getFitZoom, scrollToCenter]);
 
   const applyZoom = useCallback(
     (nextZoom, anchorClientX, anchorClientY) => {
@@ -235,14 +285,13 @@ export function LearningZoomStage({
   );
 
   const resetView = useCallback(() => {
-    const center = scrollToCenter(1) ?? { left: 0, top: 0 };
+    const zFit = getFitZoom();
+    const center = scrollToCenter(zFit) ?? { left: 0, top: 0 };
     userAdjustedViewRef.current = false;
 
-    if (zoomRef.current === 1) {
+    if (Math.abs(zoomRef.current - zFit) < 0.001) {
       const el = viewportRef.current;
       if (!el) return;
-      // Already on the default centered view — don't nudge (avoids a jump when
-      // the open layout was centered with a different viewport size earlier).
       if (
         Math.abs(el.scrollLeft - center.left) < 1 &&
         Math.abs(el.scrollTop - center.top) < 1
@@ -253,8 +302,8 @@ export function LearningZoomStage({
       return;
     }
     pendingScrollRef.current = center;
-    setZoom(1);
-  }, [scrollToCenter, applyScroll]);
+    setZoom(zFit);
+  }, [scrollToCenter, applyScroll, getFitZoom]);
 
   useEffect(() => {
     const el = viewportRef.current;

@@ -377,6 +377,7 @@ export const appThemes = {
   Library: { ...primaryPalettes.Emerald },
   Slides: { ...primaryPalettes.Pink },
   Convert: { ...primaryPalettes.Emerald },
+  Headspace: { ...primaryPalettes.Emerald },
 };
 
 /** Default primary key for each appThemes / themeKey name. */
@@ -413,6 +414,7 @@ export const appThemePrimaryKeys = {
   Library: 'Emerald',
   Slides: 'Pink',
   Convert: 'Emerald',
+  Headspace: 'Emerald',
 };
 
 /**
