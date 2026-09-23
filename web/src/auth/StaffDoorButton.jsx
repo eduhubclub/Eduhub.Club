@@ -46,6 +46,7 @@ export function StaffDoor({ theme, isDarkMode, onUnlock }) {
           <AuthField
             id="staff-code"
             label="Code"
+            type="password"
             theme={theme}
             isDarkMode={isDarkMode}
             value={code}
