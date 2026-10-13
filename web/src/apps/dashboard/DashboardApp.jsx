@@ -33,6 +33,9 @@ import {
 } from 'lucide-react';
 import { useClasses } from '../../data/classes/ClassContext';
 import { useLessons } from '../../data/lessons/LessonsContext';
+import { getTodayPlanLessons } from '../../data/plan/todayLessons';
+import { PLAN_UPDATED_EVENT } from '../../data/plan/planStorage';
+import { RESOURCES_UPDATED_EVENT } from '../../data/resources/resourceStorage';
 import {
   appFabClass,
   APP_EMPTY_SLOT,
@@ -84,6 +87,17 @@ export function DashboardApp({
 }) {
   const { selectedClass } = useClasses();
   const { getLessons, lessonsByClassId } = useLessons();
+  const [planTick, setPlanTick] = useState(0);
+
+  useEffect(() => {
+    const bump = () => setPlanTick((n) => n + 1);
+    window.addEventListener(PLAN_UPDATED_EVENT, bump);
+    window.addEventListener(RESOURCES_UPDATED_EVENT, bump);
+    return () => {
+      window.removeEventListener(PLAN_UPDATED_EVENT, bump);
+      window.removeEventListener(RESOURCES_UPDATED_EVENT, bump);
+    };
+  }, []);
 
   const [isAnnotateMode, setIsAnnotateMode] = useState(false);
   const [annotateDockExpanded, setAnnotateDockExpanded] = useState(false);
@@ -156,7 +170,19 @@ export function DashboardApp({
     if (isSavedWhiteboards) refreshSavedBoards();
   }, [isSavedWhiteboards]);
 
-  const classLessons = getLessons(selectedClass?.id);
+  const storedLessons = getLessons(selectedClass?.id);
+  const todayPlan = getTodayPlanLessons(selectedClass?.id);
+  void planTick;
+  const planLessons = todayPlan.lessons.map((l) => ({
+    ...l,
+    id: `plan-${l.id}`,
+  }));
+  const classLessons = [
+    ...planLessons,
+    ...storedLessons.filter(
+      (lesson) => !planLessons.some((p) => p.link === lesson.link),
+    ),
+  ];
   const activeLesson =
     classLessons.find(
       (lesson) =>

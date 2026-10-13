@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { SegmentControl } from '../../../shared/SegmentControl';
 import { TYPE } from '../../../shared/typography';
@@ -24,6 +24,9 @@ import {
   isMultiDayOccurrence,
 } from '../../../data/calendar/monthEventSpans';
 import { getStudents } from '../../../data/classes/seed';
+import { planOverlayForDate } from '../../../data/plan/planCalendarOverlay';
+import { PLAN_UPDATED_EVENT } from '../../../data/plan/planStorage';
+import { SCHEDULE_UPDATED_EVENT } from '../../../data/schedule/scheduleStorage';
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -101,6 +104,16 @@ export function CalendarView({ isDarkMode, theme }) {
   const showHolidays = prefs.showHolidays !== false;
   const showFunDays = prefs.showFunDays !== false;
   const showBirthdays = prefs.showBirthdays !== false;
+  const [planTick, setPlanTick] = useState(0);
+  useEffect(() => {
+    const bump = () => setPlanTick((n) => n + 1);
+    window.addEventListener(PLAN_UPDATED_EVENT, bump);
+    window.addEventListener(SCHEDULE_UPDATED_EVENT, bump);
+    return () => {
+      window.removeEventListener(PLAN_UPDATED_EVENT, bump);
+      window.removeEventListener(SCHEDULE_UPDATED_EVENT, bump);
+    };
+  }, []);
   const classFilterValue = useMemo(() => {
     const visible = new Set((prefs.visibleClassIds || []).map(String));
     const allIds = classes.map((c) => String(c.id));
@@ -369,6 +382,11 @@ export function CalendarView({ isDarkMode, theme }) {
                     const items = (byDate[iso] || []).filter(
                       (row) => !isMultiDayOccurrence(row),
                     );
+                    const planChip =
+                      inMonth && session && classId
+                        ? planOverlayForDate(classId, iso)
+                        : null;
+                    void planTick;
                     return (
                       <button
                         key={iso}
@@ -437,6 +455,21 @@ export function CalendarView({ isDarkMode, theme }) {
                               </p>
                             ))
                           : null}
+                        {planChip ? (
+                          <p
+                            className={`mt-0.5 w-full truncate text-[10px] font-semibold leading-tight ${theme.colorPrimary}`}
+                            title={
+                              planChip.plannedCount
+                                ? `${planChip.label}: ${planChip.titles.join(' · ')}`
+                                : planChip.label
+                            }
+                          >
+                            {planChip.label}
+                            {planChip.plannedCount
+                              ? ` · ${planChip.plannedCount}`
+                              : ''}
+                          </p>
+                        ) : null}
                         <ul className="mt-1 min-h-0 w-full flex-1 space-y-0.5 self-stretch overflow-hidden">
                           {items.slice(0, 3).map((row) => {
                             const on = bestOnColor(row.color || '#6366f1');
@@ -538,6 +571,9 @@ export function CalendarView({ isDarkMode, theme }) {
             const yearMarker = academicYearMarker(iso, academic);
             const breakDay = breakOn(iso, academic);
             const funDays = funDayByDate[iso] || [];
+            const planChip =
+              session && classId ? planOverlayForDate(classId, iso) : null;
+            void planTick;
             return (
               <div
                 key={iso}
@@ -576,6 +612,17 @@ export function CalendarView({ isDarkMode, theme }) {
                           className={`ml-2 ${TYPE.labelMicro} ${theme.colorOnSurfaceVariant}`}
                         >
                           Non-session
+                        </span>
+                      ) : null}
+                      {planChip ? (
+                        <span
+                          className={`ml-2 ${TYPE.labelMicro} ${theme.colorPrimary}`}
+                          title={planChip.titles.join(' · ')}
+                        >
+                          {planChip.label}
+                          {planChip.plannedCount
+                            ? ` · ${planChip.plannedCount} lesson${planChip.plannedCount === 1 ? '' : 's'}`
+                            : ''}
                         </span>
                       ) : null}
                     </p>

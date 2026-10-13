@@ -19,6 +19,9 @@ import { mathToolsApp } from './mathTools/config';
 import { attendanceApp } from './attendance/config';
 import { storeApp } from './store/config';
 import { calendarApp } from './calendar/config';
+import { scheduleApp } from './schedule/config';
+import { plannerApp } from './planner/config';
+import { docsApp } from './docs/config';
 import { paperApp } from './paper/config';
 import { dictionaryApp } from './dictionary/config';
 import { morningMeetingApp } from './morningMeeting/config';
@@ -54,6 +57,9 @@ export const apps = {
   [attendanceApp.id]: attendanceApp,
   [storeApp.id]: storeApp,
   [calendarApp.id]: calendarApp,
+  [scheduleApp.id]: scheduleApp,
+  [plannerApp.id]: plannerApp,
+  [docsApp.id]: docsApp,
   [paperApp.id]: paperApp,
   [dictionaryApp.id]: dictionaryApp,
   [morningMeetingApp.id]: morningMeetingApp,

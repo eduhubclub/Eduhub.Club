@@ -6,6 +6,7 @@ import { TodayView } from './views/TodayView';
 import { CreateView } from './views/CreateView';
 import { SavedView } from './views/SavedView';
 import { ClassStatsView } from './views/ClassStatsView';
+import { AccuracyCheckView } from './views/AccuracyCheckView';
 import { ComingSoonView } from './views/ComingSoonView';
 
 /**
@@ -64,6 +65,24 @@ export function EduTypeApp({ activeTab, isDarkMode, theme, isLeft }) {
     return (
       <AppPageShell variant="scroll">
         <SavedView isDarkMode={isDarkMode} theme={theme} />
+      </AppPageShell>
+    );
+  }
+
+  if (activeTab === 'Accuracy check') {
+    if (!isTeacher) {
+      return (
+        <AppPageShell variant="page">
+          <EmptyState
+            isDarkMode={isDarkMode}
+            message="Accuracy check is for teachers."
+          />
+        </AppPageShell>
+      );
+    }
+    return (
+      <AppPageShell variant="scroll">
+        <AccuracyCheckView isDarkMode={isDarkMode} theme={theme} />
       </AppPageShell>
     );
   }

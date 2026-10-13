@@ -3,6 +3,7 @@ export const STUDENT_APP_IDS = [
   'arcade',
   'games',
   'eduType',
+  'docs',
   'mathTools',
   'dictionary',
   'paper',
@@ -19,6 +20,7 @@ export const STUDENT_APP_NAMES = {
   arcade: 'Arcade',
   games: 'Games',
   eduType: 'Edu.Type',
+  docs: 'Docs',
   mathTools: 'Math Tools',
   dictionary: 'Dictionary',
   paper: 'Paper',
@@ -76,6 +78,11 @@ export const STUDENT_APP_PARTS = {
   eduType: [
     { id: 'type-a-classic', name: 'Type a Classic', tab: 'Type a Classic' },
     { id: 'today', name: 'Today', tab: 'Today' },
+  ],
+  docs: [
+    { id: 'documents', name: 'Documents', tab: 'Documents' },
+    { id: 'files', name: 'Files', tab: 'Files' },
+    { id: 'templates', name: 'Templates', tab: 'Templates' },
   ],
   mathTools: [
     { id: 'money', name: 'Money', tab: 'Money' },

@@ -28,8 +28,10 @@ import {
   Sparkles,
   Calculator,
   ClipboardCheck,
+  ClipboardList,
   ShoppingBag,
   Calendar,
+  CalendarClock,
   NotebookPen,
   Sun,
   Library,
@@ -169,7 +171,7 @@ export const launcherApps = [
   },
   {
     id: 'eduType',
-    name: 'Edu.Type',
+    name: 'Type',
     icon: Keyboard,
     color: 'bg-violet-500',
     description:
@@ -282,6 +284,30 @@ export const launcherApps = [
     color: 'bg-sky-500',
     description:
       'Class schedules, specialist rotations, snow-day pause, and countdowns.',
+  },
+  {
+    id: 'schedule',
+    name: 'Schedule',
+    icon: CalendarClock,
+    color: 'bg-indigo-500',
+    description:
+      'Day #N lesson slots, day presets, and a week block view.',
+  },
+  {
+    id: 'planner',
+    name: 'Planner',
+    icon: ClipboardList,
+    color: 'bg-violet-500',
+    description:
+      'Link library, Drive / OneDrive pick, and Day #N curriculum plan for the Dashboard hub.',
+  },
+  {
+    id: 'docs',
+    name: 'Docs',
+    icon: FileText,
+    color: 'bg-blue-500',
+    description:
+      'Local-first word processor. Cloud copies use .edudoc so Word won’t scramble them.',
   },
   {
     id: 'paper',

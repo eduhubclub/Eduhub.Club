@@ -42,6 +42,8 @@ export function Sidebar({
   onNavScroll,
   isSettingsOpen,
   onOpenSettings,
+  /** Brand mark → Hub Dashboard (teacher home). */
+  onGoHome,
   /** Dashboard-only teaching widgets pinned to this rail. */
   showTeachingWidgets = false,
   pinnedWidgets = [],
@@ -87,11 +89,23 @@ export function Sidebar({
           className={`relative flex items-center justify-center shrink-0 border-b-[1.5px] ${NAV_HEIGHT} w-full px-3 ${theme.colorSurface} ${theme.colorOutline}`}
         >
           <div className="flex items-center justify-center px-1 min-w-0">
-            {showLabels ? (
-              <LogoHorizontal className="h-8 w-auto" />
-            ) : (
-              <LogoIcon2x2 className="h-8 w-8" />
-            )}
+            <button
+              type="button"
+              onClick={onGoHome}
+              aria-label="Go to Dashboard"
+              title="Dashboard"
+              className={`edu-control flex items-center justify-center rounded-lg px-1 py-0.5 min-w-0 ${
+                isDarkMode
+                  ? 'hover:bg-slate-800'
+                  : 'hover:bg-slate-100'
+              }`}
+            >
+              {showLabels ? (
+                <LogoHorizontal className="h-8 w-auto" />
+              ) : (
+                <LogoIcon2x2 className="h-8 w-8" />
+              )}
+            </button>
           </div>
           {!isDesktop && (
             <button

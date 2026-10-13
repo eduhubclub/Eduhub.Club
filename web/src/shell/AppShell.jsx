@@ -14,6 +14,9 @@ import { apps, defaultAppId, getApp } from '../apps';
 import { useClasses } from '../data/classes/ClassContext';
 import { useLessons } from '../data/lessons/LessonsContext';
 import { normalizeLessonUrl } from '../data/lessons/normalizeLessonUrl';
+import { getTodayPlanLessons } from '../data/plan/todayLessons';
+import { PLAN_UPDATED_EVENT } from '../data/plan/planStorage';
+import { RESOURCES_UPDATED_EVENT } from '../data/resources/resourceStorage';
 import {
   MAX_DASHBOARD_WIDGETS,
   getDashboardWidget,
@@ -98,6 +101,20 @@ function buildLessonsPanelContent(lessons) {
     icon: LESSON_ICONS[lesson.icon] || ExternalLink,
     link: lesson.link,
   }));
+}
+
+function mergeLessonsWithTodayPlan(classId, storedLessons) {
+  const today = getTodayPlanLessons(classId);
+  const planLessons = today.lessons.map((l) => ({
+    ...l,
+    id: `plan-${l.id}`,
+  }));
+  return [
+    ...planLessons,
+    ...(storedLessons || []).filter(
+      (lesson) => !planLessons.some((p) => p.link === lesson.link),
+    ),
+  ];
 }
 
 export function AppShell() {
@@ -193,7 +210,11 @@ export function AppShell() {
 
   useEffect(() => {
     const app = getApp(currentAppId);
-    const classLessons = getLessons(selectedClass?.id);
+    const classLessons = mergeLessonsWithTodayPlan(
+      selectedClass?.id,
+      getLessons(selectedClass?.id),
+    );
+    const dayNum = getTodayPlanLessons(selectedClass?.id).dayNumber;
     setNavItems(
       filterAppNav(currentAppId, cloneNav(app.nav), session).map((item) => {
         if (item.panelSource === 'classes') {
@@ -203,7 +224,7 @@ export function AppShell() {
           return {
             ...item,
             panelTitle: selectedClass?.name
-              ? `${selectedClass.name} Resources`
+              ? `${selectedClass.name} Resources${dayNum != null ? ` · Day #${dayNum}` : ''}`
               : 'Lessons',
             panelContent: buildLessonsPanelContent(classLessons),
           };
@@ -277,13 +298,32 @@ export function AppShell() {
     });
   }, [classes]);
 
-  // Keep Lessons panel content + title in sync with the selected class.
+  // Keep Lessons panel content + title in sync with the selected class + today's plan.
+  const [planPanelTick, setPlanPanelTick] = useState(0);
+  useEffect(() => {
+    const bump = () => setPlanPanelTick((n) => n + 1);
+    window.addEventListener(PLAN_UPDATED_EVENT, bump);
+    window.addEventListener(RESOURCES_UPDATED_EVENT, bump);
+    return () => {
+      window.removeEventListener(PLAN_UPDATED_EVENT, bump);
+      window.removeEventListener(RESOURCES_UPDATED_EVENT, bump);
+    };
+  }, []);
+
   useEffect(() => {
     setNavItems((prev) => {
       if (!prev.some((item) => item.panelSource === 'lessons')) return prev;
-      const content = buildLessonsPanelContent(getLessons(selectedClass?.id));
+      const merged = mergeLessonsWithTodayPlan(
+        selectedClass?.id,
+        getLessons(selectedClass?.id),
+      );
+      const content = buildLessonsPanelContent(merged);
+      const dayHint =
+        getTodayPlanLessons(selectedClass?.id).dayNumber != null
+          ? ` · Day #${getTodayPlanLessons(selectedClass?.id).dayNumber}`
+          : '';
       const title = selectedClass?.name
-        ? `${selectedClass.name} Resources`
+        ? `${selectedClass.name} Resources${dayHint}`
         : 'Lessons';
       return prev.map((item) =>
         item.panelSource === 'lessons'
@@ -291,7 +331,7 @@ export function AppShell() {
           : item
       );
     });
-  }, [selectedClass, getLessons, lessonsByClassId]);
+  }, [selectedClass, getLessons, lessonsByClassId, planPanelTick]);
 
   const handleAddResource = () => {
     if (!newItemName.trim() || !panelItem) return;
@@ -631,6 +671,23 @@ export function AppShell() {
           setPopoutItem(null);
         }}
         isSettingsOpen={isSettingsOpen}
+        onGoHome={() => {
+          hideTooltip();
+          setIsSettingsOpen(false);
+          setPanelItem(null);
+          setPopoutItem(null);
+          setExpandedItem(null);
+          setActiveWidgetId(null);
+          setIsAppsMenuOpen(false);
+          setIsNotificationsOpen(false);
+          setIsAccountMenuOpen(false);
+          if (!isDesktop) setIsMobileNavOpen(false);
+          if (currentAppId !== 'hub') {
+            setCurrentAppId('hub');
+          } else {
+            setActiveTab('Dashboard');
+          }
+        }}
         onOpenSettings={() => {
           hideTooltip();
           setIsSettingsOpen(true);

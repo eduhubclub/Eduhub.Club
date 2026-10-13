@@ -1,3 +1,5 @@
+import { formatClockTime } from '../settings/clockFormat';
+
 export const WEEKDAY_NAMES = [
   'Sunday',
   'Monday',
@@ -26,14 +28,7 @@ export function dayPhrase(weekdays) {
 }
 
 export function clockLabel(value) {
-  if (!value) return '';
-  const [hourRaw, minuteRaw] = String(value).slice(0, 5).split(':');
-  const hour = Number(hourRaw);
-  const minute = Number(minuteRaw);
-  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return '';
-  const hour12 = hour % 12 || 12;
-  const suffix = hour < 12 ? 'AM' : 'PM';
-  return `${hour12}:${String(minute).padStart(2, '0')} ${suffix}`;
+  return formatClockTime(value);
 }
 
 /** Same sentence the database uses in the student lock dialog. */

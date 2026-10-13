@@ -6,6 +6,7 @@ import {
   Keyboard,
   Layers,
   PenLine,
+  SpellCheck,
   Trophy,
 } from 'lucide-react';
 import { EduTypeApp } from './EduTypeApp';
@@ -15,7 +16,7 @@ import { EduTypeApp } from './EduTypeApp';
  */
 export const eduTypeApp = {
   id: 'eduType',
-  name: 'Edu.Type',
+  name: 'Type',
   themeKey: 'EduType',
   defaultView: 'Type a Classic',
   nav: [
@@ -33,6 +34,13 @@ export const eduTypeApp = {
     { id: 'today', name: 'Today', icon: CalendarDays, type: 'link' },
     { id: 'create', name: 'Create', icon: PenLine, type: 'link', teacherOnly: true },
     { id: 'saved', name: 'Saved', icon: Bookmark, type: 'link', teacherOnly: true },
+    {
+      id: 'accuracy',
+      name: 'Accuracy check',
+      icon: SpellCheck,
+      type: 'link',
+      teacherOnly: true,
+    },
     { id: 'lessons', name: 'Lessons', icon: Keyboard, type: 'link' },
     { id: 'arcade', name: 'Arcade', icon: Trophy, type: 'link' },
     { id: 'stats', name: 'Class Stats', icon: BarChart2, type: 'link', teacherOnly: true },

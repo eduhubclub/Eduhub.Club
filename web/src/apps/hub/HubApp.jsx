@@ -17,6 +17,8 @@ import {
   Pencil,
   Trash2,
   Heart,
+  Shield,
+  ChevronRight,
 } from 'lucide-react';
 import { launcherApps } from '../launcher';
 import { PageHeader } from '../../shared/PageHeader';
@@ -509,6 +511,7 @@ function AppsPage({ isDarkMode, theme, onOpenApp, isAppAvailable, isLeft, isSide
   const [renameFolder, setRenameFolder] = useState(null); // { id, name, color } | null
   const [renameFolderName, setRenameFolderName] = useState('');
   const [renameFolderColor, setRenameFolderColor] = useState(DEFAULT_FOLDER_COLOR);
+  const [studentAccessOpen, setStudentAccessOpen] = useState(false);
 
   const searchInputRef = useRef(null);
   const filterRef = useRef(null);
@@ -730,16 +733,63 @@ function AppsPage({ isDarkMode, theme, onOpenApp, isAppAvailable, isLeft, isSide
       />
 
       {canSetStudentAccess ? (
-        <section className={`mb-6 rounded-2xl border-[1.5px] ${theme.colorSurface} ${theme.colorOutline}`}>
-          <div className={`border-b-[1.5px] px-5 py-5 sm:px-6 ${theme.colorOutline}`}>
-            <h2 className={`${TYPE.titleSm} ${theme.colorOnSurface}`}>Student access</h2>
-            <p className={`${TYPE.bodySm} mt-0.5 ${theme.colorOnSurfaceVariant}`}>
-              Turn apps and their parts on or off for this class. Days, the clock window, and the
-              daily limit stay on each app. An individual app&apos;s settings only control that app.
-            </p>
-          </div>
-          <StudentAppsCard theme={theme} />
-        </section>
+        <>
+          <button
+            type="button"
+            onClick={() => setStudentAccessOpen(true)}
+            className={`edu-control mb-6 w-full rounded-2xl border-[1.5px] px-5 py-4 sm:px-6 text-left flex items-center gap-4 transition-colors ${theme.colorSurface} ${theme.colorOutline} ${
+              isDarkMode ? 'hover:bg-slate-800/60' : 'hover:bg-slate-50'
+            }`}
+          >
+            <span
+              className={`shrink-0 flex h-11 w-11 items-center justify-center rounded-xl ${theme.colorPrimary} ${theme.colorOnPrimary}`}
+            >
+              <Shield className="h-5 w-5" aria-hidden />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className={`block ${TYPE.titleSm} ${theme.colorOnSurface}`}>
+                Student access
+              </span>
+              <span className={`block mt-0.5 ${TYPE.bodySm} ${theme.colorOnSurfaceVariant}`}>
+                Turn apps on or off for this class, set days, clock windows, and daily limits.
+              </span>
+            </span>
+            <ChevronRight
+              className={`shrink-0 h-5 w-5 ${theme.colorOnSurfaceVariant}`}
+              aria-hidden
+            />
+          </button>
+
+          <Modal
+            isOpen={studentAccessOpen}
+            title="Student access"
+            theme={theme}
+            isDarkMode={isDarkMode}
+            onClose={() => setStudentAccessOpen(false)}
+            maxWidth="max-w-3xl"
+            footer={
+              <div className="flex justify-end">
+                <ModalPrimaryButton
+                  theme={theme}
+                  onClick={() => setStudentAccessOpen(false)}
+                >
+                  Done
+                </ModalPrimaryButton>
+              </div>
+            }
+          >
+            <div className="px-1 pb-2">
+              <p
+                className={`${TYPE.bodySm} px-5 pt-4 sm:px-6 ${theme.colorOnSurfaceVariant}`}
+              >
+                Turn apps and their parts on or off for this class. Days, the clock
+                window, and the daily limit stay on each app. An individual
+                app&apos;s settings only control that app.
+              </p>
+              <StudentAppsCard theme={theme} />
+            </div>
+          </Modal>
+        </>
       ) : null}
 
       <ButtonRow>

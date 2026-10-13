@@ -3,16 +3,33 @@ import { createPortal } from 'react-dom';
 import { Clock, Maximize, Minimize } from 'lucide-react';
 import { APP_GRID_CARD } from '../../../shared/layout';
 import { TYPE } from '../../../shared/typography';
+import {
+  CLOCK_FORMAT_UPDATED_EVENT,
+  readUseMilitaryTime,
+} from '../../../data/settings/clockFormat';
 
 const FULLSCREEN_Z = 'z-[240]';
 
 /** Large local clock for classroom display. */
 export function LocalClockCard({ isDarkMode, theme, isFullscreen, setIsFullscreen }) {
   const [time, setTime] = useState(new Date());
+  const [useMilitaryTime, setUseMilitaryTime] = useState(readUseMilitaryTime);
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const onFmt = (e) => {
+      setUseMilitaryTime(
+        e?.detail?.useMilitaryTime != null
+          ? Boolean(e.detail.useMilitaryTime)
+          : readUseMilitaryTime(),
+      );
+    };
+    window.addEventListener(CLOCK_FORMAT_UPDATED_EVENT, onFmt);
+    return () => window.removeEventListener(CLOCK_FORMAT_UPDATED_EVENT, onFmt);
   }, []);
 
   useEffect(() => {
@@ -59,7 +76,11 @@ export function LocalClockCard({ isDarkMode, theme, isFullscreen, setIsFullscree
             : 'mt-4 mb-2'
         } ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
       >
-        {time.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+        {time.toLocaleTimeString([], {
+          hour: useMilitaryTime ? '2-digit' : 'numeric',
+          minute: '2-digit',
+          hour12: !useMilitaryTime,
+        })}
       </p>
       <p
         className={`${

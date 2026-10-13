@@ -54,11 +54,20 @@ import {
 } from '../data/attendance/dateView';
 import { dateKey } from '../data/attendance/attendanceModel';
 import {
+  CLOCK_FORMAT_UPDATED_EVENT,
+  formatClockTime,
+  readUseMilitaryTime,
+  writeUseMilitaryTime,
+} from '../data/settings/clockFormat';
+import {
   readStoreSettings,
   writeStoreSettings,
   STORE_SETTINGS_UPDATED_EVENT,
 } from '../data/store/storeSettings';
 import { CalendarSettingsCards } from '../apps/calendar/CalendarSettingsCards';
+import { ScheduleSettingsCards } from '../apps/schedule/ScheduleSettingsCards';
+import { PlannerSettingsCards } from '../apps/planner/PlannerSettingsCards';
+import { DocsSettingsCards } from '../apps/docs/DocsSettingsCards';
 import { DictionarySettingsCards } from '../apps/dictionary/DictionarySettingsCards';
 import { MorningMeetingSettingsCards } from '../apps/morningMeeting/MorningMeetingSettingsCards';
 import { OfTheDaySettingsCards } from '../apps/ofTheDay/OfTheDaySettingsCards';
@@ -215,6 +224,9 @@ export function SettingsPage({
   const isAttendance = currentApp?.id === 'attendance';
   const isStore = currentApp?.id === 'store';
   const isCalendar = currentApp?.id === 'calendar';
+  const isSchedule = currentApp?.id === 'schedule';
+  const isPlanner = currentApp?.id === 'planner';
+  const isDocs = currentApp?.id === 'docs';
   const isDictionary = currentApp?.id === 'dictionary';
   const isMorningMeeting = currentApp?.id === 'morningMeeting';
   const isOfTheDay = currentApp?.id === 'ofTheDay';
@@ -230,7 +242,20 @@ export function SettingsPage({
     () => readSchoolStartTime() || '',
   );
   const [dateView, setDateView] = useState(readDateView);
+  const [useMilitaryTime, setUseMilitaryTime] = useState(readUseMilitaryTime);
   const [storeSettings, setStoreSettings] = useState(readStoreSettings);
+
+  useEffect(() => {
+    const onFmt = (e) => {
+      setUseMilitaryTime(
+        e?.detail?.useMilitaryTime != null
+          ? Boolean(e.detail.useMilitaryTime)
+          : readUseMilitaryTime(),
+      );
+    };
+    window.addEventListener(CLOCK_FORMAT_UPDATED_EVENT, onFmt);
+    return () => window.removeEventListener(CLOCK_FORMAT_UPDATED_EVENT, onFmt);
+  }, []);
 
   useEffect(() => {
     const onStore = (e) => {
@@ -445,6 +470,53 @@ export function SettingsPage({
             </div>
           </SettingsCard>
         ) : null}
+
+        <SettingsCard
+          title="Clock format"
+          description="How times appear across Edu.Hub (Schedule, clocks, and access windows). Default is a 12-hour clock."
+          isDarkMode={isDarkMode}
+        >
+          <div className="px-5 sm:px-6 py-5 sm:py-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0 pr-2">
+                <p className={`${TYPE.titleSm} ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                  Military time (24-hour)
+                </p>
+                <p
+                  className={`${TYPE.bodySm} mt-1 ${
+                    isDarkMode ? 'text-slate-500' : 'text-slate-400'
+                  }`}
+                >
+                  {useMilitaryTime
+                    ? `On — times show as ${formatClockTime('14:50', { useMilitaryTime: true })}.`
+                    : `Off — times show as ${formatClockTime('14:50', { useMilitaryTime: false })}.`}
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={useMilitaryTime}
+                aria-label="Use military time"
+                onClick={() =>
+                  setUseMilitaryTime(writeUseMilitaryTime(!useMilitaryTime))
+                }
+                className={`relative shrink-0 w-11 h-6 rounded-full transition-colors ${
+                  useMilitaryTime
+                    ? theme.colorPrimary
+                    : isDarkMode
+                      ? 'bg-slate-700'
+                      : 'bg-slate-300'
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                    useMilitaryTime ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+        </SettingsCard>
 
         <SettingsCard
           title="Shell background"
@@ -1059,6 +1131,30 @@ export function SettingsPage({
 
         {isCalendar ? (
           <CalendarSettingsCards
+            theme={theme}
+            isDarkMode={isDarkMode}
+            Card={SettingsCard}
+          />
+        ) : null}
+
+        {isSchedule ? (
+          <ScheduleSettingsCards
+            theme={theme}
+            isDarkMode={isDarkMode}
+            Card={SettingsCard}
+          />
+        ) : null}
+
+        {isPlanner ? (
+          <PlannerSettingsCards
+            theme={theme}
+            isDarkMode={isDarkMode}
+            Card={SettingsCard}
+          />
+        ) : null}
+
+        {isDocs ? (
+          <DocsSettingsCards
             theme={theme}
             isDarkMode={isDarkMode}
             Card={SettingsCard}
