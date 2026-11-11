@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import {
+  BookOpen,
   ExternalLink,
   Folder,
   Layers,
@@ -11,12 +12,20 @@ import { getTheme, resolveShellBackgroundClass } from '../shared/theme';
 import { SHELL_MAIN_PADDING } from '../shared/layout';
 import { useIsDesktop } from '../shared/useMediaQuery';
 import { apps, defaultAppId, getApp } from '../apps';
+import { isAppBlockedForTeachers } from '../data/district/districtAppAccess';
 import { useClasses } from '../data/classes/ClassContext';
 import { useLessons } from '../data/lessons/LessonsContext';
 import { normalizeLessonUrl } from '../data/lessons/normalizeLessonUrl';
 import { getTodayPlanLessons } from '../data/plan/todayLessons';
 import { PLAN_UPDATED_EVENT } from '../data/plan/planStorage';
 import { RESOURCES_UPDATED_EVENT } from '../data/resources/resourceStorage';
+import { getTodayPacingLessons } from '../data/pacing/todayPacingLessons';
+import {
+  PACING_UPDATED_EVENT,
+  setTeacherPlacementStatus,
+} from '../data/pacing/pacingStorage';
+import { CheckInHost } from '../apps/pacing/components/CheckInHost';
+import { usePacingStore } from '../data/pacing/usePacingStore';
 import {
   MAX_DASHBOARD_WIDGETS,
   getDashboardWidget,
@@ -51,6 +60,7 @@ import {
 } from '../data/store/storeSettings';
 
 const LESSON_ICONS = {
+  BookOpen,
   ExternalLink,
   MonitorPlay,
   Presentation,
@@ -70,14 +80,22 @@ function cloneNav(nav) {
 function filterAppNav(appId, nav, session) {
   const settings = readStoreSettings();
   const isTeacher = session?.role === 'teacher' || Boolean(session?.owner);
+  const isAdmin = session?.role === 'admin';
   return nav.filter((item) => {
     if (item.hidden) return false;
     if (item.teacherOnly && !isTeacher) return false;
+    if (item.adminOnly && !isAdmin) return false;
     if (item.id !== 'store') return true;
     if (appId === 'bank') return settings.connectBank;
     if (appId === 'behavior') return settings.connectBehavior;
     return true;
   });
+}
+
+function defaultTabForNav(app, filteredNav) {
+  const links = (filteredNav || []).filter((item) => item.type === 'link' || !item.type);
+  if (links.some((item) => item.name === app.defaultView)) return app.defaultView;
+  return links[0]?.name || app.defaultView;
 }
 
 function buildClassesPanelContent(classes) {
@@ -100,19 +118,25 @@ function buildLessonsPanelContent(lessons) {
     desc: lesson.desc || 'Lesson resource',
     icon: LESSON_ICONS[lesson.icon] || ExternalLink,
     link: lesson.link,
+    pacingPlacementId: lesson.pacingPlacementId || null,
+    pacingStatus: lesson.pacingStatus || null,
+    source: lesson.source || null,
   }));
 }
 
 function mergeLessonsWithTodayPlan(classId, storedLessons) {
   const today = getTodayPlanLessons(classId);
+  const pacingToday = getTodayPacingLessons();
   const planLessons = today.lessons.map((l) => ({
     ...l,
     id: `plan-${l.id}`,
   }));
+  const pacingLessons = pacingToday.lessons;
+  const combinedPlan = [...pacingLessons, ...planLessons];
   return [
-    ...planLessons,
+    ...combinedPlan,
     ...(storedLessons || []).filter(
-      (lesson) => !planLessons.some((p) => p.link === lesson.link),
+      (lesson) => !combinedPlan.some((p) => p.link && p.link === lesson.link),
     ),
   ];
 }
@@ -215,24 +239,23 @@ export function AppShell() {
       getLessons(selectedClass?.id),
     );
     const dayNum = getTodayPlanLessons(selectedClass?.id).dayNumber;
-    setNavItems(
-      filterAppNav(currentAppId, cloneNav(app.nav), session).map((item) => {
-        if (item.panelSource === 'classes') {
-          return { ...item, panelContent: buildClassesPanelContent(classes) };
-        }
-        if (item.panelSource === 'lessons') {
-          return {
-            ...item,
-            panelTitle: selectedClass?.name
-              ? `${selectedClass.name} Resources${dayNum != null ? ` · Day #${dayNum}` : ''}`
-              : 'Lessons',
-            panelContent: buildLessonsPanelContent(classLessons),
-          };
-        }
-        return item;
-      })
-    );
-    setActiveTab(app.defaultView);
+    const filtered = filterAppNav(currentAppId, cloneNav(app.nav), session).map((item) => {
+      if (item.panelSource === 'classes') {
+        return { ...item, panelContent: buildClassesPanelContent(classes) };
+      }
+      if (item.panelSource === 'lessons') {
+        return {
+          ...item,
+          panelTitle: selectedClass?.name
+            ? `${selectedClass.name} Resources${dayNum != null ? ` · Day #${dayNum}` : ''}`
+            : 'Lessons',
+          panelContent: buildLessonsPanelContent(classLessons),
+        };
+      }
+      return item;
+    });
+    setNavItems(filtered);
+    setActiveTab(defaultTabForNav(app, filtered));
     setExpandedItem(null);
     setPanelItem(null);
     setPopoutItem(null);
@@ -304,11 +327,15 @@ export function AppShell() {
     const bump = () => setPlanPanelTick((n) => n + 1);
     window.addEventListener(PLAN_UPDATED_EVENT, bump);
     window.addEventListener(RESOURCES_UPDATED_EVENT, bump);
+    window.addEventListener(PACING_UPDATED_EVENT, bump);
     return () => {
       window.removeEventListener(PLAN_UPDATED_EVENT, bump);
       window.removeEventListener(RESOURCES_UPDATED_EVENT, bump);
+      window.removeEventListener(PACING_UPDATED_EVENT, bump);
     };
   }, []);
+
+  const pacingBundle = usePacingStore();
 
   useEffect(() => {
     setNavItems((prev) => {
@@ -790,6 +817,9 @@ export function AppShell() {
           onDeleteLesson={
             panelNavItem?.panelSource === 'lessons' && lessonsTargetClass
               ? (sub) => {
+                  if (sub.source === 'pacing' || String(sub.id || '').startsWith('pacing-')) {
+                    return;
+                  }
                   removeLesson(lessonsTargetClass.id, sub.id);
                   if (
                     activeTab === sub.label ||
@@ -800,8 +830,24 @@ export function AppShell() {
                 }
               : null
           }
+          onPacingStatus={
+            panelNavItem?.panelSource === 'lessons'
+              ? (sub, status) => {
+                  if (sub.pacingPlacementId) {
+                    setTeacherPlacementStatus(sub.pacingPlacementId, status);
+                  }
+                }
+              : null
+          }
         />
       )}
+
+      <CheckInHost
+        theme={theme}
+        isDarkMode={isDarkMode}
+        store={pacingBundle.store}
+        grade={pacingBundle.grade}
+      />
 
       {/* transform-gpu: fixed FABs/docks position within this column, not the viewport (keeps them out of the sidebar). */}
       <div className="flex-1 flex flex-col h-full min-w-0 relative z-10 overflow-hidden transform-gpu">
@@ -829,7 +875,9 @@ export function AppShell() {
             hideTooltip();
           }}
           onSelectLauncherApp={(app) => {
-            if (apps[app.id]) setCurrentAppId(app.id);
+            if (apps[app.id] && !isAppBlockedForTeachers(app.id)) {
+              setCurrentAppId(app.id);
+            }
             setIsSettingsOpen(false);
             setIsAppsMenuOpen(false);
           }}
@@ -902,14 +950,16 @@ export function AppShell() {
                         onSetActiveTab={setActiveTab}
                         onLiveSpaceDebugChange={setLiveSpaceDebug}
                         onOpenApp={(appId) => {
-                          if (apps[appId]) {
+                          if (apps[appId] && !isAppBlockedForTeachers(appId)) {
                             setCurrentAppId(appId);
                             setIsSettingsOpen(false);
                             setPanelItem(null);
                             setPopoutItem(null);
                           }
                         }}
-                        isAppAvailable={(appId) => Boolean(apps[appId])}
+                        isAppAvailable={(appId) =>
+                          Boolean(apps[appId]) && !isAppBlockedForTeachers(appId)
+                        }
                         onNavBadge={handleNavBadge}
                         onShellFooterActiveChange={handleShellFooterActiveChange}
                       />
@@ -964,14 +1014,16 @@ export function AppShell() {
                       onSetActiveTab={setActiveTab}
                       onLiveSpaceDebugChange={setLiveSpaceDebug}
                       onOpenApp={(appId) => {
-                        if (apps[appId]) {
+                        if (apps[appId] && !isAppBlockedForTeachers(appId)) {
                           setCurrentAppId(appId);
                           setIsSettingsOpen(false);
                           setPanelItem(null);
                           setPopoutItem(null);
                         }
                       }}
-                      isAppAvailable={(appId) => Boolean(apps[appId])}
+                      isAppAvailable={(appId) =>
+                        Boolean(apps[appId]) && !isAppBlockedForTeachers(appId)
+                      }
                       onNavBadge={handleNavBadge}
                       onShellFooterActiveChange={handleShellFooterActiveChange}
                     />

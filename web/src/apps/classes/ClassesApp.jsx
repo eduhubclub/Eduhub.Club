@@ -169,6 +169,7 @@ export function ClassesApp({ activeTab, isDarkMode, theme, isLeft }) {
           theme={theme}
           isDarkMode={isDarkMode}
           allStudents={directoryStudents}
+          classes={classes}
           onSave={(patch) => {
             updateStudent(selectedClass.id, selectedStudent.id, patch);
             updateDirectoryStudent(selectedStudent.id, patch);

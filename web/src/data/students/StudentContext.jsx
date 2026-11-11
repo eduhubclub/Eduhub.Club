@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo, useState, useEffect, useCallback } from 'react';
-import { SEED_CLASSES } from '../classes/seed';
+import { getSeedClasses } from '../classes/seed';
 import { SEED_STUDENTS, SEED_REVISION, mergeDirectoryStudents } from './seed';
 import { isDemoStudentId, useDemoData } from '../settings/DemoDataContext';
 
@@ -9,14 +9,14 @@ function withoutDemoStudents(list) {
   return list.filter((s) => !isDemoStudentId(s.id));
 }
 
-/** Demo Class roster + rich profile overlays (Harper + sibling Liam). */
+/** Full Storywell demo roster + any rich profile overlays in SEED_STUDENTS. */
 function demoDirectoryStudents() {
-  const roster = SEED_CLASSES.flatMap((c) =>
+  const roster = getSeedClasses().flatMap((c) =>
     (c.studentList || []).map((s) => ({
       ...s,
       grade_level: s.grade_level || c.grade || '',
-      school: s.school || 'Tahoma Elementary',
-      district: s.district || 'Tahoma School District',
+      school: s.school || 'Wayside Elementary',
+      district: s.district || 'Storywell School District',
       managedByDistrict: s.managedByDistrict ?? true,
     })),
   );

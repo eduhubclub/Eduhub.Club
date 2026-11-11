@@ -58,7 +58,7 @@ export const hubApp = {
     {
       // Hidden for now — restore by removing `hidden: true`
       id: 'district',
-      name: 'District',
+      name: 'DistrictHub',
       icon: Users,
       type: 'popout',
       hidden: true,

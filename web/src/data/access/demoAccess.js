@@ -1,4 +1,8 @@
 import { scheduleLabel } from './accessCopy';
+import {
+  isAppBlockedForStudents,
+  readDistrictAppAccess,
+} from '../district/districtAppAccess';
 import { browserTimeZone, DEFAULT_WEEKDAYS, normalizeParts, STUDENT_APP_IDS } from './studentApps';
 
 export const LOCAL_DEMO_CLASS_ID = 'demo-3rd-grade';
@@ -149,6 +153,12 @@ export function evaluateLocalDemoApp(appId, store = readLocalDemoAccess(), date 
   const now = zonedNow(store.timezone || 'UTC', date);
   const used = store.usage[`${appId}:${now.date}`] || 0;
   const parts = normalizeParts(policy?.parts);
+  if (isAppBlockedForStudents(appId, readDistrictAppAccess())) {
+    return closed(appId, 'closed', 'Your district has blocked this app.', {
+      seconds_used: used,
+      parts,
+    });
+  }
   if (!policy?.enabled) {
     return closed(appId, 'closed', 'Your teacher has this closed.', { seconds_used: used, parts });
   }

@@ -1,5 +1,6 @@
 import { hubApp } from './hub/config';
 import { classesApp } from './classes/config';
+import { districtApp } from './district/config';
 import { studentsApp } from './students/config';
 import { randomizerApp } from './randomizer/config';
 import { dashboardApp } from './dashboard/config';
@@ -31,6 +32,9 @@ import { slidesApp } from './slides/config';
 import { convertApp } from './convert/config';
 import { eduTypeApp } from './eduType/config';
 import { headspaceApp } from './headspace/config';
+import { screenerApp } from './screener/config';
+import { pacingApp } from './pacing/config';
+import { classCreatorApp } from './class-creator/config';
 
 export { launcherApps } from './launcher';
 
@@ -38,6 +42,7 @@ export { launcherApps } from './launcher';
 export const apps = {
   [hubApp.id]: hubApp,
   [classesApp.id]: classesApp,
+  [districtApp.id]: districtApp,
   [studentsApp.id]: studentsApp,
   [randomizerApp.id]: randomizerApp,
   [dashboardApp.id]: dashboardApp,
@@ -69,6 +74,9 @@ export const apps = {
   [convertApp.id]: convertApp,
   [eduTypeApp.id]: eduTypeApp,
   [headspaceApp.id]: headspaceApp,
+  [screenerApp.id]: screenerApp,
+  [pacingApp.id]: pacingApp,
+  [classCreatorApp.id]: classCreatorApp,
 };
 
 /** Hub is the default entry app. */

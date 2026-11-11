@@ -342,6 +342,29 @@ export const ANNOTATE_PALETTE = [
   BOARD_NEUTRAL_HEX.black,
 ];
 
+/**
+ * Softer / pastel step of each primary (≈ *-200–300) for rating scales and
+ * spectrum-picker presets that should start muted rather than saturated.
+ */
+export const PRIMARY_MUTED_HEX = {
+  Red: '#fca5a5',
+  Orange: '#fdba74',
+  Amber: '#fde68a',
+  Emerald: '#6ee7b7',
+  Blue: '#93c5fd',
+  Indigo: '#a5b4fc',
+  Purple: '#d8b4fe',
+  Pink: '#f9a8d4',
+  Brown: '#d6b894',
+};
+
+export const ANNOTATE_MUTED_PALETTE = [
+  ...PRIMARY_KEYS.map((key) => PRIMARY_MUTED_HEX[key]),
+  '#94a3b8', // slate-400
+  '#f1f5f9', // slate-100
+  '#334155', // slate-700
+];
+
 /** Apps map onto muted primaries (themeKey still Hub, Classes, …). */
 export const appThemes = {
   Hub: { ...primaryPalettes.Blue },
@@ -381,6 +404,9 @@ export const appThemes = {
   Slides: { ...primaryPalettes.Pink },
   Convert: { ...primaryPalettes.Emerald },
   Headspace: { ...primaryPalettes.Emerald },
+  Screener: { ...primaryPalettes.Indigo },
+  Pacing: { ...primaryPalettes.Pink },
+  ClassCreator: { ...primaryPalettes.Emerald },
 };
 
 /** Default primary key for each appThemes / themeKey name. */
@@ -421,6 +447,9 @@ export const appThemePrimaryKeys = {
   Slides: 'Pink',
   Convert: 'Emerald',
   Headspace: 'Emerald',
+  Screener: 'Indigo',
+  Pacing: 'Pink',
+  ClassCreator: 'Emerald',
 };
 
 /**

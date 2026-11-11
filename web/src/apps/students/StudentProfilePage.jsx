@@ -19,6 +19,7 @@ const SECTION_OPTIONS = [
   { id: 'school', label: 'School' },
   { id: 'login', label: 'Logins & sign-in' },
   { id: 'family', label: 'Family information' },
+  { id: 'teachers', label: 'Previous teachers' },
   { id: 'bankCard', label: 'ClassBank card' },
   { id: 'library', label: 'Library' },
   { id: 'insights', label: 'Insights & highlights' },
@@ -72,6 +73,17 @@ function sectionsMatchingQuery(student, allStudents, query) {
       'sibling',
       'parent',
       'guardian',
+    ]),
+    teachers: includes([
+      'teacher',
+      'previous',
+      'homeroom',
+      ...(student.previousTeachers || []).flatMap((row) => [
+        row.teacherName,
+        row.yearLabel,
+        row.grade,
+        row.className,
+      ]),
     ]),
     bankCard: includes([
       'bank',
@@ -343,6 +355,7 @@ export function StudentProfilePage({
             theme={theme}
             isDarkMode={isDarkMode}
             allStudents={allStudents}
+            classes={classes}
             sectionVisibility={sectionVisibility}
             showBankQr={false}
             onSave={onSave}

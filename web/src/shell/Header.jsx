@@ -21,6 +21,7 @@ import { NAV_HEIGHT } from '../shared/theme';
 import { TYPE } from '../shared/typography';
 import { launcherApps } from '../apps';
 import { useAuth } from '../data/auth/AuthContext';
+import { isAppBlockedForTeachers } from '../data/district/districtAppAccess';
 import { OwnerFacetSwitch } from '../auth/OwnerFacetSwitch';
 import { useAppThemePreferences } from '../data/settings/AppThemePreferencesContext';
 
@@ -244,7 +245,7 @@ export function Header({
     dragPointerYRef.current = null;
   };
 
-  const appsList = orderedApps;
+  const appsList = orderedApps.filter((app) => !isAppBlockedForTeachers(app.id));
 
   return (
     <header

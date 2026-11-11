@@ -1,10 +1,25 @@
 import { createContext, useContext, useMemo, useState, useEffect, useCallback } from 'react';
-import { SEED_CLASSES, SEED_REVISION, findClassById, getStudentNames, getStudents } from './seed';
+import { useAuth } from '../auth/AuthContext';
+import {
+  getSeedClasses,
+  invalidateDemoRosterSeed,
+  SEED_REVISION,
+  findClassById,
+  getStudentNames,
+  getStudents,
+} from './seed';
 import { isDemoClassId, useDemoData } from '../settings/DemoDataContext';
 import { assignClassJoinCodes } from './joinCode';
 import { makeClassroomJoinCode, normalizeJoinCode } from '../auth/codes';
+import {
+  SHARED_DEMO_CLASS_ID,
+  classesForAdminWorkspace,
+  withClassOwner,
+} from './classVisibility';
 
 const ClassContext = createContext(null);
+
+/** @typedef {'all' | 'adminWorkspace'} ClassVisibilityMode */
 
 function withoutDemoClasses(list) {
   return list.filter((c) => !isDemoClassId(c.id));
@@ -12,7 +27,7 @@ function withoutDemoClasses(list) {
 
 function withDemoClasses(list) {
   const userClasses = withoutDemoClasses(list);
-  return [...SEED_CLASSES, ...userClasses];
+  return [...getSeedClasses(), ...userClasses];
 }
 
 /**
@@ -20,19 +35,24 @@ function withDemoClasses(list) {
  * the same roster without owning a copy.
  */
 export function ClassProvider({ children }) {
+  const { session } = useAuth();
   const { showDemoData } = useDemoData();
   const [classes, setClasses] = useState(() =>
-    assignClassJoinCodes(showDemoData ? [...SEED_CLASSES] : [])
+    assignClassJoinCodes(showDemoData ? [...getSeedClasses()] : [])
   );
   const [selectedClassId, setSelectedClassId] = useState(null);
   const [selectedStudentId, setSelectedStudentId] = useState(null);
+  const [visibilityMode, setVisibilityMode] = useState(
+    /** @type {ClassVisibilityMode} */ ('all'),
+  );
 
   // Apply seed replacements (clears demo data after SEED_REVISION bumps)
   useEffect(() => {
+    invalidateDemoRosterSeed();
     setClasses((prev) => {
       const userClasses = withoutDemoClasses(prev);
       return assignClassJoinCodes(
-        showDemoData ? [...SEED_CLASSES, ...userClasses] : userClasses,
+        showDemoData ? [...getSeedClasses(), ...userClasses] : userClasses,
       );
     });
     setSelectedClassId(null);
@@ -57,9 +77,28 @@ export function ClassProvider({ children }) {
     setClasses((prev) => assignClassJoinCodes(prev));
   }, []);
 
+  const setClassVisibility = useCallback((mode) => {
+    setVisibilityMode(mode === 'adminWorkspace' ? 'adminWorkspace' : 'all');
+  }, []);
+
+  const visibleClasses = useMemo(() => {
+    if (visibilityMode !== 'adminWorkspace') return classes;
+    return classesForAdminWorkspace(classes, session?.userId);
+  }, [classes, visibilityMode, session?.userId]);
+
+  useEffect(() => {
+    if (visibilityMode !== 'adminWorkspace') return;
+    const allowed = new Set(visibleClasses.map((row) => row.id));
+    if (selectedClassId && allowed.has(selectedClassId)) return;
+    const fallback =
+      visibleClasses.find((row) => row.id === SHARED_DEMO_CLASS_ID) || visibleClasses[0] || null;
+    setSelectedClassId(fallback?.id ?? null);
+    setSelectedStudentId(null);
+  }, [visibilityMode, visibleClasses, selectedClassId]);
+
   const selectedClass = useMemo(
-    () => findClassById(classes, selectedClassId),
-    [classes, selectedClassId]
+    () => findClassById(visibleClasses, selectedClassId),
+    [visibleClasses, selectedClassId]
   );
 
   const selectedStudent = useMemo(() => {
@@ -67,11 +106,21 @@ export function ClassProvider({ children }) {
     return selectedClass.studentList?.find((s) => s.id === selectedStudentId) || null;
   }, [selectedClass, selectedStudentId]);
 
-  const selectClass = useCallback((clsOrId) => {
-    const id = typeof clsOrId === 'object' ? clsOrId?.id : clsOrId;
-    setSelectedClassId(id ?? null);
-    setSelectedStudentId(null);
-  }, []);
+  const selectClass = useCallback(
+    (clsOrId) => {
+      const id = typeof clsOrId === 'object' ? clsOrId?.id : clsOrId;
+      if (
+        visibilityMode === 'adminWorkspace' &&
+        id &&
+        !visibleClasses.some((row) => row.id === id)
+      ) {
+        return;
+      }
+      setSelectedClassId(id ?? null);
+      setSelectedStudentId(null);
+    },
+    [visibilityMode, visibleClasses],
+  );
 
   const selectStudent = useCallback((studentOrId) => {
     const id = typeof studentOrId === 'object' ? studentOrId?.id : studentOrId;
@@ -89,17 +138,21 @@ export function ClassProvider({ children }) {
     );
   }, []);
 
-  const addClass = useCallback((cls) => {
-    setClasses((prev) => {
-      const used = new Set(
-        prev.map((row) => normalizeJoinCode(row.joinCode)).filter(Boolean),
-      );
-      const requested = normalizeJoinCode(cls.joinCode);
-      const joinCode =
-        requested && !used.has(requested) ? requested : makeClassroomJoinCode(used);
-      return [...prev, { ...cls, joinCode }];
-    });
-  }, []);
+  const addClass = useCallback(
+    (cls) => {
+      setClasses((prev) => {
+        const owned = withClassOwner(cls, session?.userId);
+        const used = new Set(
+          prev.map((row) => normalizeJoinCode(row.joinCode)).filter(Boolean),
+        );
+        const requested = normalizeJoinCode(owned.joinCode);
+        const joinCode =
+          requested && !used.has(requested) ? requested : makeClassroomJoinCode(used);
+        return [...prev, { ...owned, joinCode }];
+      });
+    },
+    [session?.userId],
+  );
 
   const removeClass = useCallback((classId) => {
     setClasses((prev) => prev.filter((c) => c.id !== classId));
@@ -165,22 +218,26 @@ export function ClassProvider({ children }) {
   // Bridge for future non-React modules / iframes
   useEffect(() => {
     window.EduHubAPI = window.EduHubAPI || {};
-    window.EduHubAPI.getClasses = () => classes;
+    window.EduHubAPI.getClasses = () => visibleClasses;
     window.EduHubAPI.getSelectedClass = () => selectedClass;
     window.EduHubAPI.getSelectedStudent = () => selectedStudent;
     window.EduHubAPI.getStudentNames = (classId) => {
-      const cls = classId ? findClassById(classes, classId) : selectedClass;
+      const cls = classId ? findClassById(visibleClasses, classId) : selectedClass;
       return getStudentNames(cls);
     };
     window.EduHubAPI.getStudents = (classId) => {
-      const cls = classId ? findClassById(classes, classId) : selectedClass;
+      const cls = classId ? findClassById(visibleClasses, classId) : selectedClass;
       return getStudents(cls);
     };
-  }, [classes, selectedClass, selectedStudent]);
+  }, [visibleClasses, selectedClass, selectedStudent]);
 
   const value = useMemo(
     () => ({
-      classes,
+      // Scoped list — DistrictHub uses 'all'; admin tool apps use 'adminWorkspace'.
+      classes: visibleClasses,
+      allClasses: classes,
+      classVisibility: visibilityMode,
+      setClassVisibility,
       setClasses,
       selectedClass,
       selectedStudent,
@@ -195,12 +252,15 @@ export function ClassProvider({ children }) {
       updateStudentInAllClasses,
       // Field selectors for other apps
       getStudentNamesFor: (classId) =>
-        getStudentNames(classId ? findClassById(classes, classId) : selectedClass),
+        getStudentNames(classId ? findClassById(visibleClasses, classId) : selectedClass),
       getStudentsFor: (classId) =>
-        getStudents(classId ? findClassById(classes, classId) : selectedClass),
+        getStudents(classId ? findClassById(visibleClasses, classId) : selectedClass),
     }),
     [
+      visibleClasses,
       classes,
+      visibilityMode,
+      setClassVisibility,
       selectedClass,
       selectedStudent,
       selectClass,

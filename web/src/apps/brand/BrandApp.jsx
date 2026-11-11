@@ -3,6 +3,7 @@ import { BrandOverview } from './BrandOverview';
 import { ArtStyleView } from './ArtStyleView';
 import { ColorTestView } from './ColorTestView';
 import { ColorView } from './ColorView';
+import { LibrariesView } from './LibrariesView';
 import { LogoView } from './LogoView';
 
 /**
@@ -23,6 +24,7 @@ export function BrandApp({
   let body = <BrandOverview isDarkMode={isDarkMode} />;
   if (section === 'Art Style') body = <ArtStyleView isDarkMode={isDarkMode} />;
   else if (section === 'Logo') body = <LogoView isDarkMode={isDarkMode} />;
+  else if (section === 'Libraries') body = <LibrariesView isDarkMode={isDarkMode} />;
   else if (section === 'Color') body = <ColorView isDarkMode={isDarkMode} />;
   else if (isColorTest) {
     body = (

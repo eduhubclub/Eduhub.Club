@@ -18,6 +18,7 @@ import {
   Timer,
   Palette,
   BookOpenCheck,
+  SpellCheck,
   BookA,
   Keyboard,
   Gamepad2,
@@ -32,12 +33,14 @@ import {
   ShoppingBag,
   Calendar,
   CalendarClock,
+  Route,
   NotebookPen,
   Sun,
   Library,
   GalleryVertical,
   RefreshCw,
   Heart,
+  Shapes,
 } from 'lucide-react';
 
 /**
@@ -128,6 +131,14 @@ export const launcherApps = [
     color: 'bg-sky-500',
     description:
       'Phonics tools — blending board, word work mat, and more for early reading.',
+  },
+  {
+    id: 'screener',
+    name: 'Screener',
+    icon: SpellCheck,
+    color: 'bg-indigo-500',
+    description:
+      'Classroom screeners in one app. Start with the LETRS Basic and Advanced spelling screeners.',
   },
   {
     id: 'dictionary',
@@ -251,10 +262,11 @@ export const launcherApps = [
   },
   {
     id: 'district',
-    name: 'District',
+    name: 'DistrictHub',
     icon: Users,
     color: 'bg-pink-500',
-    description: 'District tools and collaboration — coming soon.',
+    description:
+      'DistrictHub — admin dashboard and schools. Open a building for schedule, students, and staff.',
   },
   {
     id: 'admin',
@@ -300,6 +312,22 @@ export const launcherApps = [
     color: 'bg-violet-500',
     description:
       'Link library, Drive / OneDrive pick, and Day #N curriculum plan for the Dashboard hub.',
+  },
+  {
+    id: 'pacing',
+    name: 'Pacing',
+    icon: Route,
+    color: 'bg-fuchsia-500',
+    description:
+      'District schedule minutes and content-area paths, plus teacher week reality in each building.',
+  },
+  {
+    id: 'class-creator',
+    name: 'Class Creator',
+    icon: Shapes,
+    color: 'bg-teal-500',
+    description:
+      'Next-year elementary placement — CSV intake, teacher ratings, balanced classes, and printable drafts.',
   },
   {
     id: 'docs',

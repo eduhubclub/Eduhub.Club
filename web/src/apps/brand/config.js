@@ -1,4 +1,4 @@
-import { Droplets, LayoutDashboard, Palette, Pencil, Shapes } from 'lucide-react';
+import { Droplets, LayoutDashboard, Library, Palette, Pencil, Shapes } from 'lucide-react';
 import { BrandApp } from './BrandApp';
 
 /**
@@ -17,6 +17,7 @@ export const brandApp = {
     features: [
       'Art style — playful line + shape building blocks',
       'Logo marks and glyph colors',
+      'Libraries — shape catalog for badges and accents',
       'Color Test — workshop for theme roles / harmony (then Color Brand page)',
       'Color — interim Edu.ColorPalette spots until Brand page is simplified',
       'Brand do’s and don’ts (coming next)',
@@ -25,6 +26,7 @@ export const brandApp = {
   nav: [
     { id: 'overview', name: 'Overview', icon: LayoutDashboard, type: 'link' },
     { id: 'logo', name: 'Logo', icon: Shapes, type: 'link' },
+    { id: 'libraries', name: 'Libraries', icon: Library, type: 'link' },
     { id: 'color', name: 'Color', icon: Palette, type: 'link' },
     { id: 'color-test', name: 'Color Test', icon: Droplets, type: 'link' },
     { id: 'art-style', name: 'Art Style', icon: Pencil, type: 'link' },

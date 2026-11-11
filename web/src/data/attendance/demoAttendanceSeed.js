@@ -3,7 +3,7 @@
  * Regenerates when the calendar day changes so “today” is always free to practice.
  */
 
-import { SEED_CLASSES } from '../classes/seed';
+import { getSeedClasses } from '../classes/seed';
 import {
   CHECK_IN_DEADLINE,
   dateKey,
@@ -50,7 +50,7 @@ function isWeekday(date) {
 }
 
 export function getDemoAttendanceRoster() {
-  const cls = SEED_CLASSES.find((c) => c.id === DEMO_ATTENDANCE_CLASS_ID);
+  const cls = getSeedClasses().find((c) => c.id === DEMO_ATTENDANCE_CLASS_ID);
   return cls?.studentList || [];
 }
 

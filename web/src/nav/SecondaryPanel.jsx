@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import {
+  Check,
   ChevronDown,
   ChevronRight,
+  CircleDashed,
   ExternalLink,
   Plus,
   Search,
@@ -59,6 +61,8 @@ export function SecondaryPanel({
   onUploadLessonFile = null,
   /** Lessons panel: delete resource */
   onDeleteLesson = null,
+  /** Lessons panel: mark pacing lesson done / partial */
+  onPacingStatus = null,
   lessonsEmptyHint = null,
 }) {
   const title = panelNavItem?.panelTitle || panelNavItem?.name || 'Panel';
@@ -375,6 +379,40 @@ export function SecondaryPanel({
                     ) : null,
                     aside: isLessons ? (
                       <div className="flex items-center gap-0.5 pr-3 shrink-0">
+                        {sub.pacingPlacementId && onPacingStatus ? (
+                          <>
+                            <button
+                              type="button"
+                              title="Mark done"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onPacingStatus(sub, 'done');
+                              }}
+                              className={`edu-control p-1.5 rounded-md transition-colors ${
+                                sub.pacingStatus === 'done'
+                                  ? `${theme.colorPrimary} ${theme.colorOnPrimary}`
+                                  : `${theme.colorOnSurfaceVariant} ${theme.hoverBg}`
+                              }`}
+                            >
+                              <Check size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              title="Partially done"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onPacingStatus(sub, 'partial');
+                              }}
+                              className={`edu-control p-1.5 rounded-md transition-colors ${
+                                sub.pacingStatus === 'partial'
+                                  ? `${theme.colorPrimary} ${theme.colorOnPrimary}`
+                                  : `${theme.colorOnSurfaceVariant} ${theme.hoverBg}`
+                              }`}
+                            >
+                              <CircleDashed size={14} />
+                            </button>
+                          </>
+                        ) : null}
                         {sub.link ? (
                           <button
                             type="button"
@@ -404,7 +442,10 @@ export function SecondaryPanel({
                             <ExternalLink size={14} />
                           </button>
                         ) : null}
-                        {onDeleteLesson ? (
+                        {onDeleteLesson &&
+                        sub.source !== 'pacing' &&
+                        !String(sub.id || '').startsWith('pacing-') &&
+                        !String(sub.id || '').startsWith('plan-') ? (
                           <button
                             type="button"
                             title="Delete resource"

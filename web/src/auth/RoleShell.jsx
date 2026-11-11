@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Home, Users } from 'lucide-react';
-import { defaultAppId, getApp } from '../apps';
+import { ArrowLeft, Home, Users } from 'lucide-react';
+import { apps, getApp } from '../apps';
+import { districtHomeNav, districtSchoolNav } from '../apps/district/districtNav';
 import { useAuth } from '../data/auth/AuthContext';
+import { useClasses } from '../data/classes/ClassContext';
+import { readDistrictOrg } from '../data/district/districtStorage';
 import { useAccessibilityPreferences, ACCESSIBLE_FONTS } from '../data/settings/AccessibilityPreferencesContext';
 import { useAppThemePreferences } from '../data/settings/AppThemePreferencesContext';
 import { AppInfoProvider } from '../shared/AppInfo';
@@ -15,56 +18,59 @@ import { Header } from '../shell/Header';
 import { SettingsPage } from '../shell/SettingsPage';
 import { Sidebar } from '../shell/Sidebar';
 
-const NAV = {
-  admin: [
-    { id: 'home', name: 'Home', icon: Home, type: 'link' },
-    { id: 'people', name: 'People', icon: Users, type: 'link' },
-  ],
-  parent: [
-    { id: 'home', name: 'Home', icon: Home, type: 'link' },
-    { id: 'children', name: 'My children', icon: Users, type: 'link' },
-  ],
-};
+const PARENT_NAV = [
+  { id: 'home', name: 'Home', icon: Home, type: 'link' },
+  { id: 'children', name: 'My children', icon: Users, type: 'link' },
+];
 
-const COPY = {
-  admin: {
-    appName: 'Admin',
-    Home: {
-      title: 'School home',
-      description: 'A simple start for administrators. The teaching apps stay on teacher accounts.',
-    },
-    People: {
-      title: 'People',
-      description: 'Teachers, students, and families will live here.',
-    },
+const PARENT_COPY = {
+  appName: 'Parent',
+  Home: {
+    title: 'Family home',
+    description: 'A simple start for families. Teaching tools stay with the teacher.',
   },
-  parent: {
-    appName: 'Parent',
-    Home: {
-      title: 'Family home',
-      description: 'A simple start for families. Teaching tools stay with the teacher.',
-    },
-    'My children': {
-      title: 'My children',
-      description: 'Students linked to this account will show here.',
-    },
+  'My children': {
+    title: 'My children',
+    description: 'Students linked to this account will show here.',
   },
 };
 
+const ALL_SCHOOLS_NAV = {
+  id: 'all-schools',
+  name: 'All schools',
+  icon: ArrowLeft,
+  type: 'link',
+};
+
+const BACK_TO_DISTRICT_NAV = {
+  id: 'back-district',
+  name: 'DistrictHub',
+  icon: ArrowLeft,
+  type: 'link',
+};
+
+/**
+ * Admin: District dashboard → schools → school workspace (sidebar swap).
+ * Parent stays a light shell until family tools land.
+ */
 export function RoleShell({ role }) {
   const { session, signOut } = useAuth();
+  const { setClassVisibility } = useClasses();
   const isDesktop = useIsDesktop();
   const { getAppPrimary, shellBackgroundId } = useAppThemePreferences();
   const { fontId } = useAccessibilityPreferences();
-  const currentApp = getApp(defaultAppId);
-  const navItems = NAV[role] || NAV.admin;
-  const copy = COPY[role] || COPY.admin;
+  const isAdmin = role === 'admin';
+  const districtApp = getApp('district');
 
+  const [schoolId, setSchoolId] = useState(null);
+  const [schoolName, setSchoolName] = useState('');
+  const [openedAppId, setOpenedAppId] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [sidebarSide, setSidebarSide] = useState('left');
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [activeTab, setActiveTab] = useState('Home');
+  const [activeTab, setActiveTab] = useState(isAdmin ? districtApp.defaultView : 'Home');
+  const [expandedItem, setExpandedItem] = useState(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
@@ -75,11 +81,94 @@ export function RoleShell({ role }) {
   const accountButtonRef = useRef(null);
   const accountMenuRef = useRef(null);
 
+  const openedApp = openedAppId && apps[openedAppId] ? apps[openedAppId] : null;
+  const currentApp = openedApp || (isAdmin ? districtApp : getApp('hub'));
   const theme = getTheme(getAppPrimary(currentApp.id), isDarkMode);
   const shellBackground = resolveShellBackgroundClass(shellBackgroundId, isDarkMode);
   const accessibleFont = ACCESSIBLE_FONTS.find((font) => font.id === fontId);
   const isLeft = sidebarSide === 'left';
-  const page = copy[activeTab] || copy.Home;
+  const parentPage = PARENT_COPY[activeTab] || PARENT_COPY.Home;
+  const inSchool = isAdmin && Boolean(schoolId) && !openedApp;
+  const navItems = isAdmin
+    ? openedApp
+      ? [
+          BACK_TO_DISTRICT_NAV,
+          ...(openedApp.nav || []).filter(
+            (item) => !item.hidden && !item.teacherOnly,
+          ),
+        ]
+      : inSchool
+        ? [ALL_SCHOOLS_NAV, ...districtSchoolNav]
+        : districtHomeNav
+    : PARENT_NAV;
+  const appName = isAdmin
+    ? openedApp
+      ? openedApp.name
+      : inSchool
+        ? schoolName || 'School'
+        : districtApp.name
+    : PARENT_COPY.appName;
+  const DistrictView = districtApp.View;
+  const OpenedView = openedApp?.View;
+
+  const openSchool = (id) => {
+    const org = readDistrictOrg();
+    const school = org.schools.find((row) => row.id === id);
+    setOpenedAppId(null);
+    setSchoolId(id);
+    setSchoolName(school?.name || 'School');
+    setActiveTab('Staff');
+    setExpandedItem(null);
+    setIsSettingsOpen(false);
+  };
+
+  const closeSchool = () => {
+    setSchoolId(null);
+    setSchoolName('');
+    setActiveTab('Schools');
+    setExpandedItem(null);
+  };
+
+  const returnToDistrictHub = () => {
+    setOpenedAppId(null);
+    setClassVisibility('all');
+    setActiveTab('Apps');
+    setExpandedItem(null);
+    setIsSettingsOpen(false);
+  };
+
+  const openCatalogApp = (appId) => {
+    if (!isAdmin || !appId) return;
+    if (appId === 'district') {
+      setOpenedAppId(null);
+      setClassVisibility('all');
+      setSchoolId(null);
+      setSchoolName('');
+      setActiveTab(districtApp.defaultView);
+      setExpandedItem(null);
+      setIsSettingsOpen(false);
+      return;
+    }
+    const next = apps[appId];
+    if (!next?.View) return;
+    // Keep schoolId when opening from a school workspace (principals stay scoped).
+    setOpenedAppId(appId);
+    // Teacher tools: Demo Class + classes this admin owns — not other teachers' rooms.
+    setClassVisibility('adminWorkspace');
+    const nextTab = next.defaultView || next.nav?.[0]?.name || 'Home';
+    setActiveTab(nextTab);
+    const accordion = (next.nav || []).find(
+      (item) =>
+        item.type === 'accordion' &&
+        (item.name === nextTab || item.subItems?.includes(nextTab)),
+    );
+    setExpandedItem(accordion?.id || null);
+    setIsSettingsOpen(false);
+  };
+
+  useEffect(() => {
+    if (!openedAppId) setClassVisibility('all');
+  }, [openedAppId, setClassVisibility]);
 
   useEffect(() => {
     document.documentElement.dataset.eduScheme = isDarkMode ? 'dark' : 'light';
@@ -93,7 +182,9 @@ export function RoleShell({ role }) {
     if (!isAccountMenuOpen) return undefined;
     function onPointerDown(event) {
       const target = event.target;
-      if (accountMenuRef.current?.contains(target) || accountButtonRef.current?.contains(target)) return;
+      if (accountMenuRef.current?.contains(target) || accountButtonRef.current?.contains(target)) {
+        return;
+      }
       setIsAccountMenuOpen(false);
     }
     document.addEventListener('mousedown', onPointerDown);
@@ -132,14 +223,43 @@ export function RoleShell({ role }) {
           isDarkMode={isDarkMode}
           theme={theme}
           activeTab={isSettingsOpen ? null : activeTab}
-          expandedItem={null}
+          expandedItem={expandedItem}
           panelItem={null}
           onItemClick={(item) => {
+            if (item.id === 'all-schools') {
+              closeSchool();
+              if (!isDesktop) setIsMobileNavOpen(false);
+              return;
+            }
+            if (item.id === 'back-district') {
+              returnToDistrictHub();
+              if (!isDesktop) setIsMobileNavOpen(false);
+              return;
+            }
+            if (item.type === 'accordion') {
+              if (isDesktop && !isSidebarOpen) setIsSidebarOpen(true);
+              const opening = expandedItem !== item.id;
+              setExpandedItem(opening ? item.id : null);
+              if (opening) {
+                setActiveTab(item.name);
+                setIsSettingsOpen(false);
+              }
+              return;
+            }
             setActiveTab(item.name);
+            setExpandedItem(null);
             setIsSettingsOpen(false);
             if (!isDesktop) setIsMobileNavOpen(false);
           }}
-          onSubItemClick={() => {}}
+          onSubItemClick={(sub) => {
+            setActiveTab(sub);
+            const parent = navItems.find(
+              (item) => item.type === 'accordion' && item.subItems?.includes(sub),
+            );
+            if (parent) setExpandedItem(parent.id);
+            setIsSettingsOpen(false);
+            if (!isDesktop) setIsMobileNavOpen(false);
+          }}
           onShowTooltip={() => {}}
           onHideTooltip={() => {}}
           onToggleDarkMode={() => setIsDarkMode((value) => !value)}
@@ -156,7 +276,7 @@ export function RoleShell({ role }) {
 
         <div className="relative z-10 flex h-full min-w-0 flex-1 transform-gpu flex-col overflow-hidden">
           <Header
-            appName={copy.appName}
+            appName={appName}
             isDarkMode={isDarkMode}
             theme={theme}
             searchRef={searchRef}
@@ -194,10 +314,39 @@ export function RoleShell({ role }) {
           >
             {isSettingsOpen ? (
               <SettingsPage theme={theme} isDarkMode={isDarkMode} currentApp={currentApp} />
+            ) : isAdmin && openedApp && OpenedView ? (
+              <OpenedView
+                activeTab={activeTab}
+                isDarkMode={isDarkMode}
+                onDarkModeChange={setIsDarkMode}
+                theme={theme}
+                isLeft={isLeft}
+                isSidebarOpen={isSidebarOpen}
+                isDesktop={isDesktop}
+                onSetActiveTab={setActiveTab}
+                schoolId={schoolId}
+              />
+            ) : isAdmin && DistrictView ? (
+              <DistrictView
+                activeTab={activeTab}
+                schoolId={schoolId}
+                onOpenSchool={openSchool}
+                onCloseSchool={closeSchool}
+                onOpenApp={openCatalogApp}
+                isDarkMode={isDarkMode}
+                theme={theme}
+                isLeft={isLeft}
+                isDesktop={isDesktop}
+                onSetActiveTab={setActiveTab}
+              />
             ) : (
               <div className={APP_PAGE_SHELL}>
                 <div className={`${APP_SCROLL_BOARD} ${theme.colorSurface} ${theme.colorOutline} p-5 sm:p-6`}>
-                  <PageHeader title={page.title} description={page.description} isDarkMode={isDarkMode} />
+                  <PageHeader
+                    title={parentPage.title}
+                    description={parentPage.description}
+                    isDarkMode={isDarkMode}
+                  />
                   <p className={`${TYPE.bodyMd} ${theme.colorOnSurfaceVariant}`}>
                     Signed in as {session?.displayName}.
                   </p>

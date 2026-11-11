@@ -36,6 +36,9 @@ import { useLessons } from '../../data/lessons/LessonsContext';
 import { getTodayPlanLessons } from '../../data/plan/todayLessons';
 import { PLAN_UPDATED_EVENT } from '../../data/plan/planStorage';
 import { RESOURCES_UPDATED_EVENT } from '../../data/resources/resourceStorage';
+import { getTodayPacingLessons } from '../../data/pacing/todayPacingLessons';
+import { PACING_UPDATED_EVENT } from '../../data/pacing/pacingStorage';
+import { WeekAtAGlancePanel } from './WeekAtAGlancePanel';
 import {
   appFabClass,
   APP_EMPTY_SLOT,
@@ -84,6 +87,7 @@ export function DashboardApp({
   onNavBadge,
   onShellFooterActiveChange,
   onSetActiveTab,
+  onOpenApp,
 }) {
   const { selectedClass } = useClasses();
   const { getLessons, lessonsByClassId } = useLessons();
@@ -93,9 +97,11 @@ export function DashboardApp({
     const bump = () => setPlanTick((n) => n + 1);
     window.addEventListener(PLAN_UPDATED_EVENT, bump);
     window.addEventListener(RESOURCES_UPDATED_EVENT, bump);
+    window.addEventListener(PACING_UPDATED_EVENT, bump);
     return () => {
       window.removeEventListener(PLAN_UPDATED_EVENT, bump);
       window.removeEventListener(RESOURCES_UPDATED_EVENT, bump);
+      window.removeEventListener(PACING_UPDATED_EVENT, bump);
     };
   }, []);
 
@@ -172,15 +178,18 @@ export function DashboardApp({
 
   const storedLessons = getLessons(selectedClass?.id);
   const todayPlan = getTodayPlanLessons(selectedClass?.id);
+  const pacingToday = getTodayPacingLessons();
   void planTick;
   const planLessons = todayPlan.lessons.map((l) => ({
     ...l,
     id: `plan-${l.id}`,
   }));
+  const pacingLessons = pacingToday.lessons;
+  const combinedToday = [...pacingLessons, ...planLessons];
   const classLessons = [
-    ...planLessons,
+    ...combinedToday,
     ...storedLessons.filter(
-      (lesson) => !planLessons.some((p) => p.link === lesson.link),
+      (lesson) => !combinedToday.some((p) => p.link && p.link === lesson.link),
     ),
   ];
   const activeLesson =
@@ -2055,16 +2064,25 @@ export function DashboardApp({
         }`}
       >
         {isWhiteboard ? (
-          <div
-            className={`relative w-full flex-1 min-h-0 overflow-hidden shadow-inner rounded-2xl sm:rounded-3xl border ${
-              isDarkMode
-                ? 'bg-slate-900 border-slate-700'
-                : 'bg-white border-slate-300'
-            }`}
-            style={getWhiteboardBgStyle()}
-          >
-            {annotateCanvas}
-          </div>
+          <>
+            <WeekAtAGlancePanel
+              theme={theme}
+              isDarkMode={isDarkMode}
+              onOpenPacing={
+                onOpenApp ? () => onOpenApp('pacing') : undefined
+              }
+            />
+            <div
+              className={`relative w-full flex-1 min-h-0 overflow-hidden shadow-inner rounded-2xl sm:rounded-3xl border ${
+                isDarkMode
+                  ? 'bg-slate-900 border-slate-700'
+                  : 'bg-white border-slate-300'
+              }`}
+              style={getWhiteboardBgStyle()}
+            >
+              {annotateCanvas}
+            </div>
+          </>
         ) : isLessonView ? (
           lessonViewer
         ) : isSavedWhiteboards ? (

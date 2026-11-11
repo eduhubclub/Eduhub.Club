@@ -12,9 +12,9 @@ import { normalizeAppDisplayName } from './displayName';
  * Shared student directory seed.
  * Bump SEED_REVISION when seed content should replace in-memory state.
  */
-export const SEED_REVISION = 16;
+export const SEED_REVISION = 21;
 
-export const DISTRICT_OPTIONS = ['Tahoma School District'];
+export const DISTRICT_OPTIONS = ['Storywell School District'];
 
 /** District-rostered students cannot be deleted by teachers. */
 export function isStudentManagedByDistrict(student) {
@@ -22,13 +22,12 @@ export function isStudentManagedByDistrict(student) {
 }
 
 export const SCHOOL_OPTIONS = [
-  'Tahoma Elementary',
-  'Rock Creek Elementary',
-  'Glacier Park Elementary',
-  'Shadow Lake Elementary',
-  'Cedar River Middle School',
-  'Summit Trail Middle School',
-  'Tahoma High School',
+  'Wayside Elementary',
+  'Crunchem Hall Elementary',
+  'Avonlea Elementary',
+  'Lark Creek Elementary',
+  'Sweet Valley Middle',
+  'Hogwarts High',
 ];
 
 const DEMO_GUARDIANS = [
@@ -68,8 +67,8 @@ export const SEED_STUDENTS = [
     password: '4821',
     gender: HISTORICAL_PORTRAITS[0].gender,
     grade_level: '3rd Grade',
-    school: 'Tahoma Elementary',
-    district: 'Tahoma School District',
+    school: 'Wayside Elementary',
+    district: 'Storywell School District',
     managedByDistrict: true,
     siblingIds: [],
     birthdate: `${HISTORICAL_PORTRAITS[0].birthMonthDay}/2017`,
@@ -92,8 +91,8 @@ export const SEED_STUDENTS = [
     password: '1137',
     gender: HISTORICAL_PORTRAITS[1].gender,
     grade_level: '3rd Grade',
-    school: 'Tahoma Elementary',
-    district: 'Tahoma School District',
+    school: 'Wayside Elementary',
+    district: 'Storywell School District',
     managedByDistrict: true,
     siblingIds: [],
     birthdate: `${HISTORICAL_PORTRAITS[1].birthMonthDay}/2016`,
@@ -109,6 +108,30 @@ export const SEED_STUDENTS = [
 const GENDER_OPTIONS = ['Female', 'Male', 'Non-binary', 'Prefer not to say', 'Other'];
 
 export { GENDER_OPTIONS };
+
+/** Prior teachers for a student profile (year / grade / class). */
+export function normalizePreviousTeachers(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((row, index) => ({
+      id: String(row?.id || `prev-tch-${index}`),
+      teacherName: String(row?.teacherName || row?.name || '').trim(),
+      yearLabel: String(row?.yearLabel || '').trim(),
+      grade: String(row?.grade || row?.grade_level || '').trim(),
+      className: String(row?.className || '').trim(),
+    }))
+    .filter((row) => row.teacherName);
+}
+
+export function createEmptyPreviousTeacher() {
+  return {
+    id: `prev-tch-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+    teacherName: '',
+    yearLabel: '',
+    grade: '',
+    className: '',
+  };
+}
 
 /** Normalize a roster/class student into a directory record. */
 export function normalizeDirectoryStudent(raw, extras = {}) {
@@ -136,6 +159,7 @@ export function normalizeDirectoryStudent(raw, extras = {}) {
     birthdate: raw.birthdate || '',
     guardianAddress: raw.guardianAddress || raw.address || '',
     avatar: raw.avatar || createDefaultAvatar(),
+    previousTeachers: normalizePreviousTeachers(raw.previousTeachers),
     guardians: raw.guardians,
     guardianName: raw.guardianName,
     guardianPhone: raw.guardianPhone,
@@ -206,6 +230,10 @@ export function mergeDirectoryStudents(existing, incoming, extras = {}) {
       birthdate: prev.birthdate || normalized.birthdate,
       guardianAddress: prev.guardianAddress || normalized.guardianAddress,
       guardians: prev.guardians?.length ? prev.guardians : normalized.guardians,
+      previousTeachers:
+        normalized.previousTeachers?.length > 0
+          ? normalized.previousTeachers
+          : prev.previousTeachers || [],
       avatar: preferAvatar(normalized.avatar, prev.avatar),
       id: prev.id,
     };
@@ -252,6 +280,7 @@ export function buildStudentFromForm(form) {
     siblingIds,
     birthdate: (form.birthdate || '').trim(),
     guardianAddress: (form.guardianAddress || '').trim(),
+    previousTeachers: [],
     avatar: createDefaultAvatar(),
     ...syncLegacyGuardianFields(guardians),
   };

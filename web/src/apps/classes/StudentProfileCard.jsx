@@ -14,7 +14,12 @@ import { ModalPrimaryButton } from '../../shared/ModalPrimaryButton';
 import { StudentAuthDisplay, StudentAuthField } from '../../shared/StudentAuthField';
 import { getDistrictAuthMethod } from '../../data/students/districtAuth';
 import { GRADE_OPTIONS } from './gradeOptions';
-import { DISTRICT_OPTIONS, SCHOOL_OPTIONS } from '../../data/students/seed';
+import {
+  createEmptyPreviousTeacher,
+  DISTRICT_OPTIONS,
+  normalizePreviousTeachers,
+  SCHOOL_OPTIONS,
+} from '../../data/students/seed';
 import { APP_GRID_CARD } from '../../shared/layout';
 import { SegmentControl } from '../../shared/SegmentControl';
 import { TYPE } from '../../shared/typography';
@@ -297,12 +302,37 @@ function toDraft(student) {
     birthdate: student.birthdate || '',
     guardianAddress: student.guardianAddress || student.address || '',
     guardians: normalizeGuardians(student),
+    previousTeachers: normalizePreviousTeachers(student.previousTeachers).map((row) => ({
+      ...row,
+    })),
   };
+}
+
+function currentTeachersFromClasses(student, classes = []) {
+  const id = String(student?.id || '');
+  if (!id) return [];
+  const rows = [];
+  for (const cls of classes || []) {
+    if (cls?.isArchived) continue;
+    const onRoster = (cls.studentList || []).some((s) => String(s.id) === id);
+    if (!onRoster) continue;
+    const teacherName = String(cls.teacherName || '').trim();
+    if (!teacherName) continue;
+    rows.push({
+      id: `current-${cls.id}`,
+      teacherName,
+      yearLabel: 'This year',
+      grade: String(cls.grade || student.grade_level || '').trim(),
+      className: String(cls.name || '').trim(),
+      current: true,
+    });
+  }
+  return rows;
 }
 
 /**
  * Student profile as focused cards:
- * Student info · School · Logins & sign-in · Family information
+ * Student info · School · Logins & sign-in · Family · Previous teachers
  */
 export function StudentProfileCard({
   student,
@@ -310,6 +340,7 @@ export function StudentProfileCard({
   isDarkMode,
   onSave,
   allStudents = [],
+  classes = [],
   sectionVisibility = null,
   showBankQr = true,
 }) {
@@ -400,10 +431,38 @@ export function StudentProfileCard({
       siblingIds: Array.isArray(nextDraft.siblingIds) ? nextDraft.siblingIds : [],
       birthdate: (nextDraft.birthdate || '').trim(),
       guardianAddress: (nextDraft.guardianAddress || '').trim(),
+      previousTeachers: normalizePreviousTeachers(nextDraft.previousTeachers),
       ...syncLegacyGuardianFields(guardiansList),
     });
     setEditingSection(null);
   };
+
+  const updatePreviousTeacher = (index, patch) => {
+    setDraft((prev) => ({
+      ...prev,
+      previousTeachers: (prev.previousTeachers || []).map((row, i) =>
+        i === index ? { ...row, ...patch } : row,
+      ),
+    }));
+  };
+
+  const addPreviousTeacher = () => {
+    setDraft((prev) => ({
+      ...prev,
+      previousTeachers: [...(prev.previousTeachers || []), createEmptyPreviousTeacher()],
+    }));
+  };
+
+  const removePreviousTeacher = (index) => {
+    setDraft((prev) => ({
+      ...prev,
+      previousTeachers: (prev.previousTeachers || []).filter((_, i) => i !== index),
+    }));
+  };
+
+  const currentTeachers = currentTeachersFromClasses(student, classes);
+  const previousTeachers = display.previousTeachers || [];
+  const teachersEditing = editingSection === 'teachers';
 
   const toggleSibling = (siblingId) => {
     setDraft((prev) => {
@@ -934,6 +993,249 @@ export function StudentProfileCard({
           </div>
         </div>
       </ProfileSectionCard>
+      ) : null}
+
+      {show('teachers') ? (
+        <ProfileSectionCard
+          title="Previous teachers"
+          hint="Homeroom teachers from prior years. Current class teachers appear first."
+          isDarkMode={isDarkMode}
+          theme={theme}
+          editing={teachersEditing}
+          onEdit={() => startEdit('teachers')}
+          onCancel={cancelEdit}
+          onSave={() => persist(draft)}
+          className="lg:col-span-2"
+        >
+          {teachersEditing ? (
+            <div className="space-y-3">
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={addPreviousTeacher}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg ${TYPE.labelMd} ${
+                    isDarkMode
+                      ? 'bg-slate-800 text-slate-200 hover:bg-slate-700'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  <Plus size={14} strokeWidth={2.5} />
+                  Add teacher
+                </button>
+              </div>
+              {(draft.previousTeachers || []).length === 0 ? (
+                <p className={`${TYPE.bodyMd} ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                  No previous teachers yet.
+                </p>
+              ) : (
+                (draft.previousTeachers || []).map((row, index) => (
+                  <div
+                    key={row.id || index}
+                    className={`rounded-xl border p-4 ${
+                      isDarkMode
+                        ? 'border-slate-700 bg-slate-800/40'
+                        : 'border-slate-300 bg-slate-50/80'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <span
+                        className={`${TYPE.labelMd} ${
+                          isDarkMode ? 'text-slate-300' : 'text-slate-600'
+                        }`}
+                      >
+                        Prior teacher {index + 1}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removePreviousTeacher(index)}
+                        className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-500/10"
+                        aria-label="Remove teacher"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <label className="block sm:col-span-2">
+                        <span
+                          className={`${TYPE.labelMicro} ${
+                            isDarkMode ? 'text-slate-500' : 'text-slate-400'
+                          }`}
+                        >
+                          Teacher
+                        </span>
+                        <input
+                          type="text"
+                          value={row.teacherName || ''}
+                          onChange={(e) =>
+                            updatePreviousTeacher(index, { teacherName: e.target.value })
+                          }
+                          className={inputClass(false, isDarkMode)}
+                        />
+                      </label>
+                      <label className="block">
+                        <span
+                          className={`${TYPE.labelMicro} ${
+                            isDarkMode ? 'text-slate-500' : 'text-slate-400'
+                          }`}
+                        >
+                          School year
+                        </span>
+                        <input
+                          type="text"
+                          value={row.yearLabel || ''}
+                          onChange={(e) =>
+                            updatePreviousTeacher(index, { yearLabel: e.target.value })
+                          }
+                          placeholder="2025–26"
+                          className={inputClass(false, isDarkMode)}
+                        />
+                      </label>
+                      <label className="block">
+                        <span
+                          className={`${TYPE.labelMicro} ${
+                            isDarkMode ? 'text-slate-500' : 'text-slate-400'
+                          }`}
+                        >
+                          Grade
+                        </span>
+                        <input
+                          type="text"
+                          value={row.grade || ''}
+                          onChange={(e) =>
+                            updatePreviousTeacher(index, { grade: e.target.value })
+                          }
+                          className={inputClass(false, isDarkMode)}
+                        />
+                      </label>
+                      <label className="block sm:col-span-2">
+                        <span
+                          className={`${TYPE.labelMicro} ${
+                            isDarkMode ? 'text-slate-500' : 'text-slate-400'
+                          }`}
+                        >
+                          Class
+                        </span>
+                        <input
+                          type="text"
+                          value={row.className || ''}
+                          onChange={(e) =>
+                            updatePreviousTeacher(index, { className: e.target.value })
+                          }
+                          className={inputClass(false, isDarkMode)}
+                        />
+                      </label>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {currentTeachers.length ? (
+                <div>
+                  <h4
+                    className={`${TYPE.labelMicro} mb-2 ${
+                      isDarkMode ? 'text-slate-500' : 'text-slate-400'
+                    }`}
+                  >
+                    Current
+                  </h4>
+                  <ul className="grid gap-2 sm:grid-cols-2">
+                    {currentTeachers.map((row) => (
+                      <li
+                        key={row.id}
+                        className={`rounded-xl border px-3 py-2.5 ${
+                          isDarkMode
+                            ? 'border-slate-700 bg-slate-800/40'
+                            : 'border-slate-300 bg-slate-50/80'
+                        }`}
+                      >
+                        <p
+                          className={`font-medium ${
+                            isDarkMode ? 'text-white' : 'text-slate-900'
+                          }`}
+                        >
+                          {row.teacherName}
+                        </p>
+                        <p
+                          className={`${TYPE.bodySm} ${
+                            isDarkMode ? 'text-slate-400' : 'text-slate-500'
+                          }`}
+                        >
+                          {[row.yearLabel, row.grade, row.className].filter(Boolean).join(' · ')}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              <div>
+                <h4
+                  className={`${TYPE.labelMicro} mb-2 ${
+                    isDarkMode ? 'text-slate-500' : 'text-slate-400'
+                  }`}
+                >
+                  Previous
+                </h4>
+                {previousTeachers.length === 0 ? (
+                  <p className={`${TYPE.bodyMd} ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                    No previous teachers on file.
+                  </p>
+                ) : (
+                  <div className="overflow-x-auto -mx-1 px-1">
+                    <table className="w-full text-sm border-separate border-spacing-y-1.5">
+                      <thead>
+                        <tr className={isDarkMode ? 'text-slate-400' : 'text-slate-500'}>
+                          <th className={`text-left px-2 py-1 ${TYPE.labelMicro}`}>Teacher</th>
+                          <th className={`text-left px-2 py-1 ${TYPE.labelMicro}`}>Year</th>
+                          <th className={`text-left px-2 py-1 ${TYPE.labelMicro}`}>Grade</th>
+                          <th className={`text-left px-2 py-1 ${TYPE.labelMicro}`}>Class</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {previousTeachers.map((row) => (
+                          <tr
+                            key={row.id}
+                            className={isDarkMode ? 'bg-slate-800/40' : 'bg-slate-50'}
+                          >
+                            <td
+                              className={`px-2 py-2 font-medium ${
+                                isDarkMode ? 'text-white' : 'text-slate-900'
+                              }`}
+                            >
+                              {row.teacherName}
+                            </td>
+                            <td
+                              className={`px-2 py-2 ${
+                                isDarkMode ? 'text-slate-300' : 'text-slate-700'
+                              }`}
+                            >
+                              {row.yearLabel || '—'}
+                            </td>
+                            <td
+                              className={`px-2 py-2 ${
+                                isDarkMode ? 'text-slate-300' : 'text-slate-700'
+                              }`}
+                            >
+                              {row.grade || '—'}
+                            </td>
+                            <td
+                              className={`px-2 py-2 ${
+                                isDarkMode ? 'text-slate-300' : 'text-slate-700'
+                              }`}
+                            >
+                              {row.className || '—'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </ProfileSectionCard>
       ) : null}
     </div>
   );

@@ -114,6 +114,12 @@ function formatBirthdateInput(raw) {
  * Add Student modal — pages mirror student profile cards:
  * Student info · School · Logins & sign-in · Family information
  */
+/**
+ * @param {object} [props.classOptions] — when set (district school workspace), School page includes Class
+ * @param {string} [props.classId]
+ * @param {(id: string) => void} [props.onClassIdChange]
+ * @param {boolean} [props.lockPlacement] — district/school fields read-only (already in a building)
+ */
 export function AddStudentModal({
   isOpen,
   form,
@@ -122,11 +128,18 @@ export function AddStudentModal({
   onSubmit,
   theme,
   isDarkMode,
+  classOptions = null,
+  classId = '',
+  onClassIdChange,
+  lockPlacement = false,
 }) {
   const [page, setPage] = useState(1);
   const set = (key) => (e) => onChange({ ...form, [key]: e.target.value });
   const authMethod = getDistrictAuthMethod();
-  const valid = isAddStudentFormValid(form);
+  const needsClass = classOptions != null;
+  const valid =
+    isAddStudentFormValid(form) &&
+    (!needsClass || classOptions.length === 0 || Boolean(classId));
   const isLast = page === TOTAL_PAGES;
 
   const pageMeta = PAGES[page - 1];
@@ -140,7 +153,11 @@ export function AddStudentModal({
 
   const canAdvance = () => {
     if (page === 1) return isInfoPageValid(form);
-    if (page === 2) return isSchoolPageValid(form);
+    if (page === 2) {
+      if (!isSchoolPageValid(form)) return false;
+      if (needsClass && classOptions.length > 0 && !classId) return false;
+      return true;
+    }
     return true;
   };
 
@@ -291,18 +308,23 @@ export function AddStudentModal({
             <div>
               <FieldLabel isDarkMode={isDarkMode}>District</FieldLabel>
               <input
-                autoFocus
+                autoFocus={!lockPlacement}
                 value={form.district}
                 onChange={set('district')}
                 list="add-student-districts"
-                placeholder="Tahoma School District"
-                className={inputClass(isDarkMode)}
+                placeholder="Storywell School District"
+                readOnly={lockPlacement}
+                className={`${inputClass(isDarkMode)}${
+                  lockPlacement ? ' opacity-80' : ''
+                }`}
               />
-              <datalist id="add-student-districts">
-                {DISTRICT_OPTIONS.map((s) => (
-                  <option key={s} value={s} />
-                ))}
-              </datalist>
+              {!lockPlacement ? (
+                <datalist id="add-student-districts">
+                  {DISTRICT_OPTIONS.map((s) => (
+                    <option key={s} value={s} />
+                  ))}
+                </datalist>
+              ) : null}
             </div>
             <div>
               <FieldLabel isDarkMode={isDarkMode}>School</FieldLabel>
@@ -310,20 +332,30 @@ export function AddStudentModal({
                 value={form.school}
                 onChange={set('school')}
                 list="add-student-schools"
-                placeholder="Tahoma Elementary"
-                className={inputClass(isDarkMode)}
+                placeholder="Wayside Elementary"
+                readOnly={lockPlacement}
+                className={`${inputClass(isDarkMode)}${
+                  lockPlacement ? ' opacity-80' : ''
+                }`}
               />
-              <datalist id="add-student-schools">
-                {SCHOOL_OPTIONS.map((s) => (
-                  <option key={s} value={s} />
-                ))}
-              </datalist>
+              {!lockPlacement ? (
+                <datalist id="add-student-schools">
+                  {SCHOOL_OPTIONS.map((s) => (
+                    <option key={s} value={s} />
+                  ))}
+                </datalist>
+              ) : null}
             </div>
             <div>
               <FieldLabel required isDarkMode={isDarkMode}>
                 Grade
               </FieldLabel>
-              <select value={form.grade} onChange={set('grade')} className={inputClass(isDarkMode)}>
+              <select
+                value={form.grade}
+                onChange={set('grade')}
+                autoFocus={lockPlacement}
+                className={inputClass(isDarkMode)}
+              >
                 <option value="" disabled>
                   Select grade
                 </option>
@@ -334,6 +366,39 @@ export function AddStudentModal({
                 ))}
               </select>
             </div>
+            {needsClass ? (
+              <div>
+                <FieldLabel required={classOptions.length > 0} isDarkMode={isDarkMode}>
+                  Class
+                </FieldLabel>
+                <select
+                  value={classId}
+                  onChange={(event) => {
+                    const nextId = event.target.value;
+                    onClassIdChange?.(nextId);
+                    const match = classOptions.find((row) => String(row.id) === String(nextId));
+                    if (match?.grade) onChange({ ...form, grade: match.grade });
+                  }}
+                  className={inputClass(isDarkMode)}
+                  disabled={classOptions.length === 0}
+                >
+                  {classOptions.length === 0 ? (
+                    <option value="">No classes at this school yet</option>
+                  ) : (
+                    <>
+                      <option value="" disabled>
+                        Select class
+                      </option>
+                      {classOptions.map((opt) => (
+                        <option key={opt.id} value={opt.id}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </>
+                  )}
+                </select>
+              </div>
+            ) : null}
           </div>
         )}
 
