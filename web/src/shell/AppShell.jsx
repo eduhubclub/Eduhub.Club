@@ -58,6 +58,14 @@ import {
   readStoreSettings,
   STORE_SETTINGS_UPDATED_EVENT,
 } from '../data/store/storeSettings';
+import {
+  ASSESSMENT_EDITOR_PANEL_ID,
+  ASSESSMENT_EDITOR_PANEL_SOURCE,
+  buildAssessmentPanelContent,
+  getAssessmentEditorPanel,
+  setAssessmentEditorPanel,
+  subscribeAssessmentEditorPanel,
+} from '../data/tests/editorPanel';
 
 const LESSON_ICONS = {
   BookOpen,
@@ -231,6 +239,40 @@ export function AppShell() {
     if (typeof document === 'undefined') return;
     document.documentElement.dataset.eduScheme = isDarkMode ? 'dark' : 'light';
   }, [isDarkMode]);
+
+  // Keep Create Assessments secondary panel attached to the editor outline.
+  const [assessmentEditorPage, setAssessmentEditorPage] = useState(
+    () => getAssessmentEditorPanel().page,
+  );
+  const assessmentEditorOpenRef = useRef(getAssessmentEditorPanel().open);
+  useEffect(() => {
+    const sync = (outline) => {
+      const next = outline || getAssessmentEditorPanel();
+      setAssessmentEditorPage(next.page);
+      setNavItems((prev) =>
+        prev.map((item) =>
+          item.panelSource === ASSESSMENT_EDITOR_PANEL_SOURCE
+            ? {
+                ...item,
+                panelTitle: String(next.title || '').trim() || 'Assessment',
+                panelContent: buildAssessmentPanelContent(next),
+              }
+            : item,
+        ),
+      );
+      const wasOpen = assessmentEditorOpenRef.current;
+      assessmentEditorOpenRef.current = Boolean(next.open);
+      if (next.open && !wasOpen) {
+        setPanelItem(ASSESSMENT_EDITOR_PANEL_ID);
+      } else if (!next.open && wasOpen) {
+        setPanelItem((current) =>
+          current === ASSESSMENT_EDITOR_PANEL_ID ? null : current,
+        );
+      }
+    };
+    sync();
+    return subscribeAssessmentEditorPanel(sync);
+  }, []);
 
   useEffect(() => {
     const app = getApp(currentAppId);
@@ -513,6 +555,12 @@ export function AppShell() {
         setActiveTab('Card Types');
         setActiveWidgetId(null);
       }
+      // Create Assessments — open the authoring view with the question rail.
+      if (isOpening && item.panelSource === ASSESSMENT_EDITOR_PANEL_SOURCE) {
+        setActiveTab('Create Assessments');
+        setActiveWidgetId(null);
+        setIsSettingsOpen(false);
+      }
       if (!isDesktop) setIsMobileNavOpen(false);
     }
   };
@@ -564,6 +612,8 @@ export function AppShell() {
       (activeTab === 'Edit' || activeTab === 'Present' || activeTab === 'Follow')) ||
     (currentAppId === 'bank' && activeTab === 'Learning') ||
     currentAppId === 'mathTools' ||
+    currentAppId === 'tests' ||
+    currentAppId === 'grades' ||
     activeTab === 'Static board' ||
     activeTab === 'Static medium' ||
     activeTab === 'Static small' ||
@@ -752,7 +802,11 @@ export function AppShell() {
           theme={theme}
           activeTab={activeTab}
           activePanelId={
-            panelNavItem?.panelSource === 'classes' ? selectedClass?.id ?? null : null
+            panelNavItem?.panelSource === 'classes'
+              ? selectedClass?.id ?? null
+              : panelNavItem?.panelSource === ASSESSMENT_EDITOR_PANEL_SOURCE
+                ? assessmentEditorPage
+                : null
           }
           panelSearchQuery={panelSearchQuery}
           onPanelSearchChange={setPanelSearchQuery}
@@ -766,7 +820,13 @@ export function AppShell() {
             panelNavItem?.panelSource === 'design-patterns' ||
             panelNavItem?.panelSource === 'design-cards'
           }
-          onAddClick={() => setIsAddModalOpen(true)}
+          onAddClick={() => {
+            if (panelNavItem?.panelSource === ASSESSMENT_EDITOR_PANEL_SOURCE) {
+              setAssessmentEditorPanel({ requestAdd: true });
+              return;
+            }
+            setIsAddModalOpen(true);
+          }}
           onSelectItem={(sub) => {
             if (panelNavItem?.panelSource === 'classes') {
               selectClass(sub.id);
@@ -774,6 +834,12 @@ export function AppShell() {
                 setPanelItem(null);
                 setPanelSearchQuery('');
               }
+              return;
+            }
+            if (panelNavItem?.panelSource === ASSESSMENT_EDITOR_PANEL_SOURCE) {
+              setAssessmentEditorPanel({ page: String(sub.id) });
+              setActiveTab('Create Assessments');
+              setIsSettingsOpen(false);
               return;
             }
             if (panelNavItem?.panelSource === 'lessons') {

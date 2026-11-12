@@ -15,6 +15,8 @@ export const STUDENT_APP_IDS = [
   'morningMeeting',
   'headspace',
   'screener',
+  'writingBuddy',
+  'tests',
 ];
 
 export const STUDENT_APP_NAMES = {
@@ -33,6 +35,8 @@ export const STUDENT_APP_NAMES = {
   morningMeeting: 'Morning Meeting',
   headspace: 'Headspace',
   screener: 'Screener',
+  writingBuddy: 'Writing Buddy',
+  tests: 'Tests',
 };
 
 export const DEFAULT_WEEKDAYS = [1, 2, 3, 4, 5];
@@ -125,6 +129,8 @@ export const STUDENT_APP_PARTS = {
   morningMeeting: [{ id: 'board', name: 'Board', tab: 'Board' }],
   headspace: [{ id: 'pet-rock', name: 'Pet Rock', tab: 'Pet Rock' }],
   screener: [{ id: 'screeners', name: 'Screeners', tab: 'Screeners' }],
+  writingBuddy: [{ id: 'write', name: 'Write', tab: 'Write' }],
+  tests: [{ id: 'take', name: 'Student view', tab: 'Student view' }],
 };
 
 export function appParts(appId) {
@@ -136,6 +142,7 @@ export function partsHeading(appId) {
   if (appId === 'mathTools') return 'Desks';
   if (appId === 'headspace') return 'Journal types';
   if (appId === 'screener') return 'Screeners';
+  if (appId === 'tests') return 'Tests';
   return 'Parts';
 }
 

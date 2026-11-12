@@ -35,6 +35,9 @@ import { headspaceApp } from './headspace/config';
 import { screenerApp } from './screener/config';
 import { pacingApp } from './pacing/config';
 import { classCreatorApp } from './class-creator/config';
+import { writingBuddyApp } from './writingBuddy/config';
+import { testsApp } from './tests/config';
+import { gradesApp } from './grades/config';
 
 export { launcherApps } from './launcher';
 
@@ -77,6 +80,9 @@ export const apps = {
   [screenerApp.id]: screenerApp,
   [pacingApp.id]: pacingApp,
   [classCreatorApp.id]: classCreatorApp,
+  [writingBuddyApp.id]: writingBuddyApp,
+  [testsApp.id]: testsApp,
+  [gradesApp.id]: gradesApp,
 };
 
 /** Hub is the default entry app. */

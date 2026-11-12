@@ -407,6 +407,9 @@ export const appThemes = {
   Screener: { ...primaryPalettes.Indigo },
   Pacing: { ...primaryPalettes.Pink },
   ClassCreator: { ...primaryPalettes.Emerald },
+  WritingBuddy: { ...primaryPalettes.Orange },
+  Tests: { ...primaryPalettes.Indigo },
+  Grades: { ...primaryPalettes.Amber },
 };
 
 /** Default primary key for each appThemes / themeKey name. */
@@ -450,6 +453,9 @@ export const appThemePrimaryKeys = {
   Screener: 'Indigo',
   Pacing: 'Pink',
   ClassCreator: 'Emerald',
+  WritingBuddy: 'Orange',
+  Tests: 'Indigo',
+  Grades: 'Amber',
 };
 
 /**

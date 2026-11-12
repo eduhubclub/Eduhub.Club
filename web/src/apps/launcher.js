@@ -41,6 +41,7 @@ import {
   RefreshCw,
   Heart,
   Shapes,
+  PenLine,
 } from 'lucide-react';
 
 /**
@@ -338,6 +339,14 @@ export const launcherApps = [
       'Local-first word processor. Cloud copies use .edudoc so Word won’t scramble them.',
   },
   {
+    id: 'writingBuddy',
+    name: 'Writing Buddy',
+    icon: PenLine,
+    color: 'bg-orange-500',
+    description:
+      'Guide K–5 writers piece by piece — sentence, paragraph, or essay — with revise checks and teacher Buddy profiles.',
+  },
+  {
     id: 'paper',
     name: 'Paper',
     icon: NotebookPen,
@@ -366,11 +375,20 @@ export const launcherApps = [
     description: 'To-dos and classroom task lists — coming soon.',
   },
   {
+    id: 'tests',
+    name: 'Assessments',
+    icon: ClipboardCheck,
+    color: 'bg-indigo-500',
+    description:
+      'Create a test, assign it to a class, and let students take it one question at a time.',
+  },
+  {
     id: 'grades',
     name: 'Grades',
     icon: Star,
     color: 'bg-amber-500',
-    description: 'Gradebook and assessment tracking — coming soon.',
+    description:
+      'Class scores from tests. Enter a score and close a test when a student cannot finish it.',
   },
   {
     id: 'support',
